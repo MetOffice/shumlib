@@ -1,26 +1,28 @@
-FC=ifort
-CC=gcc
-
-FCFLAGS=-i8 -r8
-
-STRING_CONV_LIB=shum_string_conv
-STRING_CONV_DIR=../../${STRING_CONV_LIB}/src
-
-all: libshum_data_conv.so libshum_data_conv.a
+all: libshum_data_conv.so libshum_data_conv.a copy
 
 c_shum_data_conv.o: c_shum_data_conv.c c_shum_data_conv.h 
-	${CC} -fPIC -c $<
+	${CC} ${CCFLAGS_PREC} -c $<
+
+c_shum_data_conv_PIC.o: c_shum_data_conv.c c_shum_data_conv.h 
+	${CC} ${CCFLAGS_PREC} ${CCFLAGS_PIC} -c $< -o $@
 
 f_shum_data_conv.o: f_shum_data_conv.F90
-	${FC} ${FCFLAGS} -fPIC -c -I${STRING_CONV_DIR} $<
+	${FC} ${FCFLAGS_PREC} -c -I${LIBDIR_OUT}/include $<
 
-libshum_data_conv.so: c_shum_data_conv.o f_shum_data_conv.o 
-	${FC} -shared ${FCFLAGS} -fPIC $^ -o $@
+f_shum_data_conv_PIC.o: f_shum_data_conv.F90
+	${FC} ${FCFLAGS_PREC} ${FCFLAGS_PIC} -c -I${LIBDIR_OUT}/include $< -o $@
+
+libshum_data_conv.so: c_shum_data_conv_PIC.o f_shum_data_conv_PIC.o 
+	${FC} ${FCFLAGS_SHARED} ${FCFLAGS_PREC} ${FCFLAGS_PIC} $^ -o $@
 
 libshum_data_conv.a: c_shum_data_conv.o f_shum_data_conv.o
-	ar -rc $@ $^
+	${AR} $@ $^
 
-.PHONY: clean
+.PHONY: clean copy
+
+copy:
+	mv *.so *.a ${LIBDIR_OUT}/lib
+	cp *.h *.mod ${LIBDIR_OUT}/include || :
 
 clean: 
 	rm -f *.o *.mod *.so *.a

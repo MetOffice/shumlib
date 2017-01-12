@@ -40,6 +40,23 @@ PUBLIC ::                                                                      &
   f_shum_numendians
 
 ! -----------------------------------------------------------------------------!
+! 64 and 32-bit real types; since the ISO_C_BINDING module does not yet provide
+! these (for integers it does)
+!
+! Precision and range for 64 bit real
+INTEGER, PARAMETER :: prec64  = 15
+INTEGER, PARAMETER :: range64 = 307
+
+! Precision and range for 32 bit real
+INTEGER, PARAMETER :: prec32  = 6
+INTEGER, PARAMETER :: range32 = 37
+
+! Kind for 64 bit real
+INTEGER, PARAMETER :: real64 = SELECTED_REAL_KIND(prec64,range64)
+! Kind for 32 bit real
+INTEGER, PARAMETER :: real32  = SELECTED_REAL_KIND(prec32,range32)
+
+! -----------------------------------------------------------------------------!
 
 ENUM, BIND(c)
 ENUMERATOR ::                                                                  &
@@ -51,32 +68,6 @@ END ENUM
 INTEGER, PARAMETER :: f_shum_endianness = KIND(f_shum_bigendian)
 
 ! -----------------------------------------------------------------------------!
-! Types - these are setup for fairly typical types in Fortran which should be
-! of the correct size for the C functions.  Since the interfaces are overloaded
-! it will fail to link/compile against code which uses incorrect type sizes
-
-! Precision and range for 64 bit real
-INTEGER, PARAMETER :: prec64  = 15
-INTEGER, PARAMETER :: range64 = 307
-
-! Precision and range for 32 bit real
-INTEGER, PARAMETER :: prec32  = 6
-INTEGER, PARAMETER :: range32 = 37
-
-! Range for integers
-INTEGER, PARAMETER :: irange64=15
-INTEGER, PARAMETER :: irange32=9
-
-! Kind for 64 bit real
-INTEGER, PARAMETER :: real64  = SELECTED_REAL_KIND(prec64,range64)
-! Kind for 32 bit real
-INTEGER, PARAMETER :: real32  = SELECTED_REAL_KIND(prec32,range32)
-! Kind for 64 bit integer
-INTEGER, PARAMETER :: integer64 = SELECTED_INT_KIND(irange64)
-! Kind for 32 bit integer
-INTEGER, PARAMETER :: integer32 = SELECTED_INT_KIND(irange32)
-
-! -----------------------------------------------------------------------------!
 ! Interfaces
 
 ! C Interfaces
@@ -84,17 +75,17 @@ INTEGER, PARAMETER :: integer32 = SELECTED_INT_KIND(irange32)
 INTERFACE
 FUNCTION c_shum_byteswap (bytes, len, word_len) BIND(c, NAME="c_shum_byteswap")
 
-IMPORT :: c_int64_t, c_ptr
+IMPORT :: C_INT64_T, C_PTR
 
 IMPLICIT NONE
 
-TYPE(c_ptr), INTENT(IN), VALUE ::                                              &
+TYPE(C_PTR), INTENT(IN), VALUE ::                                              &
     bytes
 
-INTEGER(KIND=c_int64_t) ::                                                     &
+INTEGER(KIND=C_INT64_T) ::                                                     &
     c_shum_byteswap
 
-INTEGER(KIND=c_int64_t), INTENT(IN) , VALUE ::                                 &
+INTEGER(KIND=C_INT64_T), INTENT(IN) , VALUE ::                                 &
     len,                                                                       &
     word_len
 
@@ -132,14 +123,14 @@ FUNCTION shum_byteswap_64(bytes, len, word_len)
                           
 IMPLICIT NONE
 
-INTEGER(kind=integer64) ::                                                     &
+INTEGER(KIND=C_INT64_T) ::                                                     &
   shum_byteswap_64
 
-INTEGER(kind=integer64), INTENT(IN) ::                                         &
+INTEGER(KIND=C_INT64_T), INTENT(IN) ::                                         &
   len,                                                                         &
   word_len
 
-REAL(kind=real64), INTENT(INOUT), TARGET ::                                    &
+REAL(KIND=real64), INTENT(INOUT), TARGET ::                                    &
   bytes(len)
 
 shum_byteswap_64 = c_shum_byteswap(C_LOC(bytes), len, word_len)

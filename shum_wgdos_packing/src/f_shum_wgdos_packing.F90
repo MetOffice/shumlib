@@ -26,6 +26,9 @@ MODULE f_shum_wgdos_packing_mod
 USE yomhook, ONLY: lhook, dr_hook
 USE parkind1, ONLY: jprb, jpim
 
+USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         &
+  C_INT64_T, C_INT32_T, C_INT16_T
+
 IMPLICIT NONE 
 
 PRIVATE
@@ -33,10 +36,9 @@ PRIVATE
 PUBLIC :: f_shum_wgdos_pack, f_shum_wgdos_unpack
 
 ! -----------------------------------------------------------------------------!
-! Types - these are setup for fairly typical types in Fortran which should be
-! of the correct size for the C functions.  Since the interfaces are overloaded
-! it will fail to link/compile against code which uses incorrect type sizes
-
+! 64 and 32-bit real types; since the ISO_C_BINDING module does not yet provide
+! these (for integers it does)
+!
 ! Precision and range for 64 bit real
 INTEGER, PARAMETER :: prec64  = 15
 INTEGER, PARAMETER :: range64 = 307
@@ -45,31 +47,27 @@ INTEGER, PARAMETER :: range64 = 307
 INTEGER, PARAMETER :: prec32  = 6
 INTEGER, PARAMETER :: range32 = 37
 
-! Range for integers
-INTEGER, PARAMETER :: irange64=15
-INTEGER, PARAMETER :: irange32=9
-
 ! Kind for 64 bit real
-INTEGER, PARAMETER :: real64  = SELECTED_REAL_KIND(prec64,range64)
+INTEGER, PARAMETER :: real64 = SELECTED_REAL_KIND(prec64,range64)
 ! Kind for 32 bit real
-INTEGER, PARAMETER :: real32  = SELECTED_REAL_KIND(prec32,range32)
-! Kind for 64 bit integer
-INTEGER, PARAMETER :: integer64 = SELECTED_INT_KIND(irange64)
-! Kind for 32 bit integer
-INTEGER, PARAMETER :: integer32 = SELECTED_INT_KIND(irange32)
+INTEGER, PARAMETER :: real32 = SELECTED_REAL_KIND(prec32,range32)
+! -----------------------------------------------------------------------------!
 
 ! Drhook handles
 INTEGER(KIND=jpim), PARAMETER :: zhook_in  = 0
 INTEGER(KIND=jpim), PARAMETER :: zhook_out = 1
 
-! Ensure the largest values are correctly sized for 32-bit builds
-INTEGER(KIND=integer64), PARAMETER :: mask16 = INT(z'FFFF')
-INTEGER(KIND=integer64), PARAMETER :: mask32 = INT(z'FFFFFFFF', KIND=integer64)
-
-INTEGER(KIND=integer64), PARAMETER :: mask_mant_ibm = INT(z'00FFFFFF')
-INTEGER(KIND=integer64), PARAMETER :: mask_expt_ibm = INT(z'7F000000')
-INTEGER(KIND=integer64), PARAMETER :: mask_sign_ibm = INT(z'80000000', &
-                                                          KIND=integer64)
+! Define various masks used to manipulate values later
+INTEGER(KIND=C_INT64_T), PARAMETER ::                                          &
+                     mask16  = INT(HUGE(0_C_INT16_T), KIND=C_INT64_T)*2 + 1
+INTEGER(KIND=C_INT64_T), PARAMETER ::                                          &
+                     mask32  = INT(HUGE(0_C_INT32_T), KIND=C_INT64_T)*2 + 1
+INTEGER(KIND=C_INT64_T), PARAMETER ::                                          &
+                     mask_mant_ibm = INT(z'00FFFFFF', KIND=C_INT64_T)
+INTEGER(KIND=C_INT64_T), PARAMETER ::                                          &
+                     mask_expt_ibm = INT(z'7F000000', KIND=C_INT64_T)
+INTEGER(KIND=C_INT64_T), PARAMETER ::                                          &
+                     mask_sign_ibm = INT(z'80000000', KIND=C_INT64_T)
 
 CONTAINS
 
@@ -81,44 +79,47 @@ FUNCTION f_shum_wgdos_pack(field, packed_field, len_packed_field, cols, rows,  &
 
 IMPLICIT NONE
 
-INTEGER :: status           
+INTEGER(KIND=C_INT64_T) :: status
 
-INTEGER,                 INTENT(IN)  :: len_packed_field
-INTEGER,                 INTENT(IN)  :: cols
-INTEGER,                 INTENT(IN)  :: rows
+INTEGER(KIND=C_INT64_T), INTENT(IN)  :: len_packed_field
+INTEGER(KIND=C_INT64_T), INTENT(IN)  :: cols
+INTEGER(KIND=C_INT64_T), INTENT(IN)  :: rows
 REAL(KIND=real64),       INTENT(IN)  :: field(cols, rows)
-INTEGER,                 INTENT(IN)  :: accuracy
-REAL,                    INTENT(IN)  :: rmdi
-INTEGER,                 INTENT(OUT) :: n_packed_words
-INTEGER(KIND=integer64), INTENT(OUT) :: packed_field(len_packed_field)
-CHARACTER (LEN=*),       INTENT(OUT) :: message    
+INTEGER(KIND=C_INT64_T), INTENT(IN)  :: accuracy
+REAL(KIND=real64),       INTENT(IN)  :: rmdi
+INTEGER(KIND=C_INT64_T), INTENT(OUT) :: n_packed_words
+INTEGER(KIND=C_INT64_T), INTENT(OUT) :: packed_field(len_packed_field)
+CHARACTER(LEN=*),        INTENT(OUT) :: message    
 
-INTEGER :: i, j, npoint, nshft, ival
-INTEGER :: iexp, iman
-INTEGER :: is1, is2, is3
-INTEGER :: nbits_bmap, nwords_bmap, nwords_data
-INTEGER :: nbits_pack, nvals_pack
-INTEGER :: i1, i2, j1, j2
+INTEGER(KIND=C_INT64_T) :: i, j, npoint, nshft, ival
+INTEGER(KIND=C_INT64_T) :: iexp, iman
+INTEGER(KIND=C_INT64_T) :: is1, is2, is3
+INTEGER(KIND=C_INT64_T) :: nbits_bmap, nwords_bmap, nwords_data
+INTEGER(KIND=C_INT64_T) :: nbits_pack, nvals_pack
+INTEGER(KIND=C_INT64_T) :: i1, i2, j1, j2
 
-REAL    :: aprec, bprec
+REAL(KIND=real64)       :: aprec, bprec
 
 LOGICAL :: obtmis, obtzer
 LOGICAL :: l_thread_error     ! Error flag for each OMP thread
 
-INTEGER :: ibase              ! Base values
-INTEGER :: ibit
-INTEGER :: nmiss                  ! missing-data bitmaps
-INTEGER :: nzero                  ! zero bitmaps
-INTEGER :: ibm                    ! IBM representation of base
-INTEGER :: itmp(2*cols+32)          ! temporary storage
-INTEGER :: icomp(2*cols+8,MAX(rows,1))! temporary storage for compression
-INTEGER :: iword(rows)              ! per row sizes
+INTEGER(KIND=C_INT64_T) :: ibase       ! Base values
+INTEGER(KIND=C_INT64_T) :: ibit
+INTEGER(KIND=C_INT64_T) :: nmiss       ! missing-data bitmaps
+INTEGER(KIND=C_INT64_T) :: nzero       ! zero bitmaps
+INTEGER(KIND=C_INT64_T) :: ibm         ! IBM repr of base
+INTEGER(KIND=C_INT64_T) :: iword(rows) ! per row sizes
 
-INTEGER, PARAMETER :: istart = 1  ! start position in a row for data
+INTEGER(KIND=C_INT64_T) :: itmp(2*cols+32)             ! temporary storage
+! compression storage
+INTEGER(KIND=C_INT64_T) :: icomp(2*cols+8,MAX(rows, INT(1,KIND=C_INT64_T))) 
 
-REAL    :: atmp(cols)
-REAL    :: base
-REAL    :: fmax
+! start position in a row for data
+INTEGER(KIND=C_INT64_T), PARAMETER :: istart = 1  
+
+REAL(KIND=real64)    :: atmp(cols)
+REAL(KIND=real64)    :: base
+REAL(KIND=real64)    :: fmax
 
 ! Drhook variables
 CHARACTER(LEN=*),   PARAMETER :: RoutineName='UM_WGDOS_PACK'
@@ -134,8 +135,8 @@ IF (lhook) CALL dr_hook(RoutineName,zhook_in,zhook_handle)
 ! and compress this array at the end to 64 bits
 
 ! Scale factor
-aprec = 2.0**accuracy
-bprec = 1.0/aprec
+aprec = 2.0_real64**accuracy
+bprec = 1.0_real64/aprec
 
 l_thread_error = .FALSE.
 ! Parallelisation is over rows - these can be be compressed
@@ -146,7 +147,7 @@ l_thread_error = .FALSE.
 !$OMP&         is1, is2, is3, nshft, nvals_pack, ibm, nbits_pack, nwords_data, &
 !$OMP&         ival, atmp, nwords_bmap, nzero, status, message, fmax, base,    &
 !$OMP&         ibase, ibit, nmiss)                                             &
-!$OMP& SHARED(rows, field, cols, rmdi, aprec, bprec, iword, icomp)                 &
+!$OMP& SHARED(rows, field, cols, rmdi, aprec, bprec, iword, icomp)             &
 !$OMP& REDUCTION(.OR.: l_thread_error) 
 DO j=1,rows
 
@@ -157,18 +158,18 @@ DO j=1,rows
   !     Find minimum and maximum value for every row,
   !     count number of missing and zero numbers
   !     + pack the non-MDI data.
-  base = HUGE(0.0)
-  fmax = -HUGE(0.0)
+  base = HUGE(0.0_real64)
+  fmax = -HUGE(0.0_real64)
   nmiss = 0
   nzero = 0
 
   DO i=1,cols
     ! filter denormal numbers
-    IF (IBITS(TRANSFER(field(i,j),INT(0,KIND=integer64)), 52, 11)==0) THEN
+    IF (IBITS(TRANSFER(field(i,j),INT(0,KIND=C_INT64_T)), 52, 11)==0) THEN
       ! exponent bits = 0; => field(i,j) is denormal
       atmp(i) = 0.0
-      base = MIN(base,0.0)
-      fmax = MAX(fmax,0.0)
+      base = MIN(base, REAL(0.0, KIND=real64))
+      fmax = MAX(fmax, REAL(0.0, KIND=real64))
       nzero = nzero + 1
 
     ELSE
@@ -179,7 +180,7 @@ DO j=1,rows
         base = MIN(REAL(base,KIND=real64),field(i,j))
         fmax = MAX(REAL(fmax,KIND=real64),field(i,j))
 
-        atmp(i) = NINT(field(i,j)*bprec)
+        atmp(i) = NINT(field(i,j)*bprec, KIND=C_INT64_T)
         IF (atmp(i) == 0.0) nzero = nzero + 1
 
       ELSE
@@ -203,11 +204,11 @@ DO j=1,rows
     ! nmiss must be in the range 0 <= nmiss < cols
 
   !     ROUND BASE TO PRECISION REQUIRED
-  ibase = NINT(base*bprec)
+  ibase = NINT(base*bprec, KIND=C_INT64_T)
   base  = ibase*aprec
 
  !     Find maximum scaled value
-   i = MAX(NINT(fmax*bprec)-ibase, 0)
+   i = MAX(NINT(fmax*bprec, KIND=C_INT64_T)-ibase, INT(0, KIND=C_INT64_T))
 
     IF (i > 2147483647) THEN
       ! If the scaled value cannot be stored in a 32-bit integer
@@ -236,13 +237,13 @@ DO j=1,rows
     iexp = EXPONENT(base) + 256
     iman = FRACTION(base) * 16777216.0
     ! IAND(iexp,3) is equivalent to MOD(iexp,4)
-    SELECT CASE (IAND(iexp,3))
-      CASE (1)
-        iman = ISHFT(iman,-3)
-      CASE (2)
-        iman = ISHFT(iman,-2)
-      CASE (3)
-        iman = ISHFT(iman,-1)
+    SELECT CASE (IAND(iexp, INT(3, KIND=C_INT64_T)))
+      CASE (1_C_INT64_T)
+        iman = ISHFT(iman, INT(-3, KIND=C_INT64_T))
+      CASE (2_C_INT64_T)
+        iman = ISHFT(iman, INT(-2, KIND=C_INT64_T))
+      CASE (3_C_INT64_T)
+        iman = ISHFT(iman, INT(-1, KIND=C_INT64_T))
     END SELECT
     iexp = (iexp+3)/4
     ibm = IOR(IAND(ISHFT(iexp,24),mask_expt_ibm),iman)
@@ -343,7 +344,8 @@ DO j=1,rows
 
     ! Use scaled value and find difference from base
     DO i=1,npoint
-      itmp(i) = MAX(NINT(atmp(i))-ibase, 0)
+      itmp(i) =                                                                &
+               MAX(NINT(atmp(i), KIND=C_INT64_T)-ibase, INT(0, KIND=C_INT64_T))
     END DO
 
     ! As long as ibit is <=16 we can combine two contiguous
@@ -502,37 +504,38 @@ FUNCTION f_shum_wgdos_unpack(field, packed_field, len_packed_field, cols,      &
 
 IMPLICIT NONE
 
-INTEGER :: status
+INTEGER(KIND=C_INT64_T) :: status
 
-INTEGER,                 INTENT(IN)  :: len_packed_field
-INTEGER,                 INTENT(IN)  :: cols
-INTEGER,                 INTENT(IN)  :: rows
-INTEGER(KIND=integer64), INTENT(IN)  :: packed_field(len_packed_field)
-INTEGER,                 INTENT(IN)  :: accuracy
-REAL,                    INTENT(IN)  :: rmdi
+INTEGER(KIND=C_INT64_T), INTENT(IN)  :: len_packed_field
+INTEGER(KIND=C_INT64_T), INTENT(IN)  :: cols
+INTEGER(KIND=C_INT64_T), INTENT(IN)  :: rows
+INTEGER(KIND=C_INT64_T), INTENT(IN)  :: packed_field(len_packed_field)
+INTEGER(KIND=C_INT64_T), INTENT(IN)  :: accuracy
+REAL(KIND=real64),       INTENT(IN)  :: rmdi
 REAL(KIND=real64),       INTENT(OUT) :: field(cols, rows)
 CHARACTER(LEN=*),        INTENT(OUT) :: message
 
-INTEGER :: i, j, nshft, num, iword, ioff, mant, iexp
+INTEGER(KIND=C_INT64_T) :: i, j, nshft, num, iword, ioff, mant, iexp
 
-INTEGER(KIND=integer64) :: ival
+INTEGER(KIND=C_INT64_T) :: ival
 
-INTEGER :: i1, i2, nbits_bmap
-INTEGER :: itmp(3*cols)
-INTEGER :: idx(cols), imap(cols)
-INTEGER :: istart(rows), nop(rows), nbits(rows)
+INTEGER(KIND=C_INT64_T) :: i1, i2, nbits_bmap
+INTEGER(KIND=C_INT64_T) :: itmp(3*cols)
+INTEGER(KIND=C_INT64_T) :: idx(cols), imap(cols)
+INTEGER(KIND=C_INT64_T) :: istart(rows), nop(rows), nbits(rows)
 
-INTEGER(KIND=integer64)  :: ibase(rows)
-INTEGER(KIND=integer64)  :: icomp(rows*(2*cols+2)+4)
+INTEGER(KIND=C_INT64_T) :: ibase(rows)
+INTEGER(KIND=C_INT64_T) :: icomp(rows*(2*cols+2)+4)
 
-REAL    :: aprec
-REAL    :: base(rows)
-LOGICAL :: obtzer(rows), obtmin(rows), obtmis(rows), obtmap(rows)
+REAL(KIND=real64)       :: aprec
+REAL(KIND=real64)       :: base(rows)
 
-INTEGER(KIND=integer64), PARAMETER :: One64 = 1
+LOGICAL ::                                                     &
+  obtzer(rows), obtmin(rows), obtmis(rows), obtmap(rows)
 
-INTEGER(KIND=integer64), SAVE :: mask_bits(0:63)
+INTEGER(KIND=C_INT64_T), PARAMETER :: One64 = 1
 
+INTEGER(KIND=C_INT64_T), SAVE :: mask_bits(0:63)
 LOGICAL, SAVE :: first = .TRUE.
 
 ! Drhook variables
@@ -559,7 +562,7 @@ aprec = 2.0**accuracy
 
 num = ISHFT(packed_field(1),-32) ! Number of 32 bit words
 
-IF (num > SIZE(icomp)-2) THEN
+IF (num > SIZE(icomp, KIND=C_INT64_T)-2) THEN
   status = 2
   message='Compressed data has too many elements'
   IF (lhook) CALL dr_hook(RoutineName,zhook_out,zhook_handle)
@@ -608,14 +611,13 @@ DO j=1,rows
   iexp = ISHFT(IAND(ibase(j),mask_expt_ibm),-24)-64-6
   base(j) = 16.0**iexp*mant
   IF (IAND(ibase(j),mask_sign_ibm) /= 0) base(j) = -base(j)
-
   ! Check if bitmaps are used
 
-  obtzer(j) = IAND(nbits(j),128) /= 0
-  obtmin(j) = IAND(nbits(j),64)  /= 0
-  obtmis(j) = IAND(nbits(j),32)  /= 0
+  obtzer(j) = IAND(nbits(j), INT(128, KIND=C_INT64_T)) /= 0
+  obtmin(j) = IAND(nbits(j), INT(64, KIND=C_INT64_T))  /= 0
+  obtmis(j) = IAND(nbits(j), INT(32, KIND=C_INT64_T))  /= 0
   obtmap(j) = obtzer(j) .OR. obtmin(j) .OR. obtmis(j)
-  nbits(j)  = IAND(nbits(j),31)
+  nbits(j)  = IAND(nbits(j), INT(31, KIND=C_INT64_T))
 
 
   ! Decode data row by row
@@ -635,7 +637,7 @@ DO j=1,rows
     DO i1=1,nbits_bmap,64
       ival  = IOR(ISHFT(icomp(iword),32),icomp(iword+1))
       iword = iword+2
-      DO i2=0,MIN(nbits_bmap-i1,63)
+      DO i2=0,MIN(nbits_bmap-i1, INT(63, KIND=C_INT64_T))
         itmp(i1+i2) = MERGE(1,0,IAND(ival,mask_bits(i2))/=0)
       END DO
     END DO
@@ -716,7 +718,7 @@ DO j=1,rows
         ival  = IOR(ISHFT(icomp(iword),32),icomp(iword+1))
 
         ! Number of bits we have to shift to the right:
-        nshft = 64 - IAND(ioff,31) - nbits(j)
+        nshft = 64 - IAND(ioff, INT(31, KIND=C_INT64_T)) - nbits(j)
 
         ! Mask ival and calculate decoded value:
         ival = IBITS(ival,nshft,nbits(j))
@@ -737,7 +739,7 @@ DO j=1,rows
         ival  = IOR(ISHFT(icomp(iword),32),icomp(iword+1))
 
         ! Number of bits we have to shift to the right:
-        nshft = 64 - IAND(ioff,31) - nbits(j)
+        nshft = 64 - IAND(ioff, INT(31, KIND=C_INT64_T)) - nbits(j)
 
         ! Mask ival and calculate decoded value:
         ival = IBITS(ival,nshft,nbits(j))

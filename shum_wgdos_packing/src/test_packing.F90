@@ -24,16 +24,36 @@ PROGRAM test_packing
 USE f_shum_read_wgdos_header_mod, ONLY: f_shum_read_wgdos_header
 USE f_shum_wgdos_packing_mod, ONLY: f_shum_wgdos_pack, f_shum_wgdos_unpack
 
+USE, INTRINSIC :: ISO_C_BINDING, ONLY: C_INT64_T
+
 IMPLICIT NONE 
 
-INTEGER :: len1, len2
-REAL, ALLOCATABLE :: data_in(:,:)
-REAL, ALLOCATABLE :: data_check(:,:)
-INTEGER :: status, num_words, accuracy
-INTEGER :: acc, cols, rows
-REAL :: mdi
-INTEGER :: i, j, k
-INTEGER, ALLOCATABLE :: packed(:)
+! -----------------------------------------------------------------------------!
+! 64 and 32-bit real types; since the ISO_C_BINDING module does not yet provide
+! these (for integers it does)
+!
+! Precision and range for 64 bit real
+INTEGER, PARAMETER :: prec64  = 15
+INTEGER, PARAMETER :: range64 = 307
+
+! Precision and range for 32 bit real
+INTEGER, PARAMETER :: prec32  = 6
+INTEGER, PARAMETER :: range32 = 37
+
+! Kind for 64 bit real
+INTEGER, PARAMETER :: real64  = SELECTED_REAL_KIND(prec64,range64)
+! Kind for 32 bit real
+INTEGER, PARAMETER :: real32  = SELECTED_REAL_KIND(prec32,range32)
+! -----------------------------------------------------------------------------!
+
+INTEGER(C_INT64_T) :: len1, len2
+REAL(real64), ALLOCATABLE :: data_in(:,:)
+REAL(real64), ALLOCATABLE :: data_check(:,:)
+INTEGER(C_INT64_T) :: status, num_words, accuracy
+INTEGER(C_INT64_T) :: acc, cols, rows
+REAL(real64) :: mdi
+INTEGER(C_INT64_T) :: i, j, k
+INTEGER(C_INT64_T), ALLOCATABLE :: packed(:)
 
 CHARACTER(LEN=500) :: message
 
@@ -52,7 +72,7 @@ k = 0
 DO j = 1, len2
   DO i = 1, len1
     k = k + 1
-    data_in(i, j) = REAL(k)
+    data_in(i, j) = REAL(k, KIND=real64)
   END DO
 END DO
 

@@ -33,6 +33,7 @@ MODULE parkind1
 !   Language: Fortran 90.
 !   This code is written to UM programming standards version 8.1.
 
+USE, INTRINSIC :: ISO_C_BINDING, ONLY: C_INT64_T
 
 IMPLICIT NONE
 

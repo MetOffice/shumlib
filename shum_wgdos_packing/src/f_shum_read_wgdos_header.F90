@@ -23,7 +23,8 @@
 !
 MODULE f_shum_read_wgdos_header_mod
 
-USE, INTRINSIC :: ISO_C_BINDING, ONLY: C_LOC, C_PTR, C_INT64_T, C_CHAR
+USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         &
+  C_LOC, C_PTR, C_INT64_T, C_INT32_T, C_CHAR
 
 USE f_shum_string_conv_mod, ONLY: f_shum_c2f_string
 
@@ -34,11 +35,10 @@ PRIVATE
 PUBLIC ::                                                                      &
   f_shum_read_wgdos_header
 
-! -----------------------------------------------------------------------------!
-! Types - these are setup for fairly typical types in Fortran which should be
-! of the correct size for the C functions.  Since the interfaces are overloaded
-! it will fail to link/compile against code which uses incorrect type sizes
-
+!! -----------------------------------------------------------------------------!
+! 64 and 32-bit real types; since the ISO_C_BINDING module does not yet provide
+! these (for integers it does)
+!
 ! Precision and range for 64 bit real
 INTEGER, PARAMETER :: prec64  = 15
 INTEGER, PARAMETER :: range64 = 307
@@ -47,19 +47,10 @@ INTEGER, PARAMETER :: range64 = 307
 INTEGER, PARAMETER :: prec32  = 6
 INTEGER, PARAMETER :: range32 = 37
 
-! Range for integers
-INTEGER, PARAMETER :: irange64=15
-INTEGER, PARAMETER :: irange32=9
-
 ! Kind for 64 bit real
-INTEGER, PARAMETER :: real64  = SELECTED_REAL_KIND(prec64,range64)
+INTEGER, PARAMETER :: real64 = SELECTED_REAL_KIND(prec64,range64)
 ! Kind for 32 bit real
-INTEGER, PARAMETER :: real32  = SELECTED_REAL_KIND(prec32,range32)
-! Kind for 64 bit integer
-INTEGER, PARAMETER :: integer64 = SELECTED_INT_KIND(irange64)
-! Kind for 32 bit integer
-INTEGER, PARAMETER :: integer32 = SELECTED_INT_KIND(irange32)
-
+INTEGER, PARAMETER :: real32 = SELECTED_REAL_KIND(prec32,range32)
 ! -----------------------------------------------------------------------------!
 ! Interfaces
 
@@ -105,13 +96,13 @@ FUNCTION shum_read_wgdos_header_real64(data_in, accuracy, cols, rows, message)
                           
 IMPLICIT NONE
 
-INTEGER(KIND=integer64) ::                                                     &
+INTEGER(KIND=C_INT64_T) ::                                                     &
   shum_read_wgdos_header_real64
 
-REAL(KIND=real64), INTENT(IN) ::                                               &
+REAL(KIND=real64), TARGET, INTENT(IN) ::                                       &
   data_in(*)
 
-INTEGER(KIND=integer64), INTENT(OUT) ::                                        &
+INTEGER(KIND=C_INT64_T), INTENT(OUT) ::                                        &
   accuracy, cols, rows
 
 CHARACTER(LEN=*), INTENT(INOUT) :: message
@@ -133,13 +124,13 @@ FUNCTION shum_read_wgdos_header_integer64(data_in, accuracy, cols, rows,       &
                           
 IMPLICIT NONE
 
-INTEGER(KIND=integer64) ::                                                     &
+INTEGER(KIND=C_INT64_T) ::                                                     &
   shum_read_wgdos_header_integer64
 
-INTEGER(KIND=integer64), INTENT(IN) ::                                         &
+INTEGER(KIND=C_INT64_T), TARGET, INTENT(IN) ::                                 &
   data_in(*)
 
-INTEGER(KIND=integer64), INTENT(INOUT) ::                                      &
+INTEGER(KIND=C_INT64_T), INTENT(INOUT) ::                                      &
   accuracy, cols, rows
 
 CHARACTER(LEN=*), INTENT(INOUT) :: message
@@ -160,13 +151,13 @@ FUNCTION shum_read_wgdos_header_real32(data_in, accuracy, cols, rows, message)
                           
 IMPLICIT NONE
 
-INTEGER(KIND=integer64) ::                                                     &
+INTEGER(KIND=C_INT64_T) ::                                                     &
   shum_read_wgdos_header_real32
 
-REAL(KIND=real32), INTENT(IN) ::                                               &
+REAL(KIND=real32), TARGET, INTENT(IN) ::                                       &
   data_in(*)
 
-INTEGER(KIND=integer64), INTENT(INOUT) ::                                      &
+INTEGER(KIND=C_INT64_T), INTENT(INOUT) ::                                      &
   accuracy, cols, rows
 
 CHARACTER(LEN=*), INTENT(INOUT) :: message
@@ -188,13 +179,13 @@ FUNCTION shum_read_wgdos_header_integer32(data_in, accuracy, cols, rows,       &
                           
 IMPLICIT NONE
 
-INTEGER(KIND=integer64) ::                                                     &
+INTEGER(KIND=C_INT64_T) ::                                                     &
   shum_read_wgdos_header_integer32
 
-INTEGER(KIND=integer32), INTENT(IN) ::                                         &
+INTEGER(KIND=C_INT32_T), TARGET, INTENT(IN) ::                                 &
   data_in(*)
 
-INTEGER(KIND=integer64), INTENT(INOUT) ::                                      &
+INTEGER(KIND=C_INT64_T), INTENT(INOUT) ::                                      &
   accuracy, cols, rows
 
 CHARACTER(LEN=*), INTENT(INOUT) :: message

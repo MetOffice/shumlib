@@ -21,16 +21,36 @@
 !*******************************************************************************
 PROGRAM test_byteswap
 
+USE ISO_C_BINDING, ONLY: C_INT64_T
+
 USE f_shum_byteswap_mod, ONLY: f_shum_byteswap, f_shum_get_machine_endianism, &
                                f_shum_littleendian, f_shum_bigendian
 
 IMPLICIT NONE 
 
-INTEGER :: len
-REAL, ALLOCATABLE :: data_in(:)
-INTEGER :: status
-INTEGER :: word_size = 8
-INTEGER :: i
+! -----------------------------------------------------------------------------!
+! 64 and 32-bit real types; since the ISO_C_BINDING module does not yet provide
+! these (for integers it does)
+
+! Precision and range for 64 bit real
+INTEGER, PARAMETER :: prec64  = 15
+INTEGER, PARAMETER :: range64 = 307
+
+! Precision and range for 32 bit real
+INTEGER, PARAMETER :: prec32  = 6
+INTEGER, PARAMETER :: range32 = 37
+
+! Kind for 64 bit real
+INTEGER, PARAMETER :: real64  = SELECTED_REAL_KIND(prec64,range64)
+! Kind for 32 bit real
+INTEGER, PARAMETER :: real32  = SELECTED_REAL_KIND(prec32,range32)
+! -----------------------------------------------------------------------------!
+
+INTEGER(C_INT64_T) :: len
+REAL(real64), ALLOCATABLE :: data_in(:)
+INTEGER(C_INT64_T) :: status
+INTEGER(C_INT64_T) :: word_size = 8
+INTEGER(C_INT64_T) :: i
 
 PRINT*, REPEAT("*", 70)
 PRINT*, "Testing byte-swapping library"

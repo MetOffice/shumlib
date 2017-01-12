@@ -26,9 +26,27 @@ USE f_shum_string_conv_mod,   ONLY: f_shum_f2c_string
 USE f_shum_wgdos_packing_mod, ONLY: f_shum_wgdos_pack, f_shum_wgdos_unpack
 
 USE, INTRINSIC :: iso_c_binding, ONLY: &
-    C_F_POINTER, C_LOC, C_INT64_T, C_DOUBLE, C_CHAR
+    C_F_POINTER, C_LOC, C_INT64_T, C_CHAR
 
 IMPLICIT NONE 
+
+! -----------------------------------------------------------------------------!
+! 64 and 32-bit real types; since the ISO_C_BINDING module does not yet provide
+! these (for integers it does)
+!
+! Precision and range for 64 bit real
+INTEGER, PARAMETER :: prec64  = 15
+INTEGER, PARAMETER :: range64 = 307
+
+! Precision and range for 32 bit real
+INTEGER, PARAMETER :: prec32  = 6
+INTEGER, PARAMETER :: range32 = 37
+
+! Kind for 64 bit real
+INTEGER, PARAMETER :: real64 = SELECTED_REAL_KIND(prec64,range64)
+! Kind for 32 bit real
+INTEGER, PARAMETER :: real32 = SELECTED_REAL_KIND(prec32,range32)
+! -----------------------------------------------------------------------------!
 
 CONTAINS
 
@@ -42,9 +60,9 @@ INTEGER(KIND=C_INT64_T),       INTENT(IN)         :: len_comp
 INTEGER(KIND=C_INT64_T),       INTENT(OUT)        :: comp_field(len_comp)
 INTEGER(KIND=C_INT64_T),       INTENT(IN)         :: cols
 INTEGER(KIND=C_INT64_T),       INTENT(IN)         :: rows
-REAL(KIND=C_DOUBLE),           INTENT(IN), TARGET :: field(cols*rows)
+REAL(KIND=real64),             INTENT(IN), TARGET :: field(cols*rows)
 INTEGER(KIND=C_INT64_T),       INTENT(IN)         :: acc
-REAL(KIND=C_DOUBLE),           INTENT(IN)         :: rmdi
+REAL(KIND=real64),             INTENT(IN)         :: rmdi
 INTEGER(KIND=C_INT64_T),       INTENT(OUT)        :: num_words
 INTEGER(KIND=C_INT64_T),       INTENT(IN)         :: message_len
 CHARACTER(KIND=C_CHAR, LEN=1), INTENT(OUT)        :: cmessage(message_len +1)
@@ -53,7 +71,7 @@ INTEGER(KIND=C_INT64_T) :: status
 
 CHARACTER(LEN=message_len) :: message
 
-REAL(KIND=C_DOUBLE), POINTER :: field2d(:,:)
+REAL(KIND=real64), POINTER :: field2d(:,:)
 
 ! Need to associate the fortan pointer to the field ("field2d") with the
 ! target of the C pointer ("field") which was passed in, since cmps_all is
@@ -84,9 +102,9 @@ INTEGER(KIND=C_INT64_T),       INTENT(IN)          :: len_comp
 INTEGER(KIND=C_INT64_T),       INTENT(IN)          :: comp_field(len_comp)
 INTEGER(KIND=C_INT64_T),       INTENT(IN)          :: cols
 INTEGER(KIND=C_INT64_T),       INTENT(IN)          :: rows
-REAL(KIND=C_DOUBLE),           INTENT(OUT), TARGET :: field(cols*rows)
+REAL(KIND=real64),             INTENT(OUT), TARGET :: field(cols*rows)
 INTEGER(KIND=C_INT64_T),       INTENT(IN)          :: acc
-REAL(KIND=C_DOUBLE),           INTENT(IN)          :: rmdi
+REAL(KIND=real64),             INTENT(IN)          :: rmdi
 INTEGER(KIND=C_INT64_T),       INTENT(IN)          :: message_len
 CHARACTER(KIND=C_CHAR, LEN=1), INTENT(OUT)         :: cmessage(message_len +1)
 
@@ -94,7 +112,7 @@ INTEGER(KIND=C_INT64_T) :: status
 
 CHARACTER(LEN=message_len) :: message
 
-REAL(KIND=C_DOUBLE), POINTER :: field2d(:,:)
+REAL(KIND=real64), POINTER :: field2d(:,:)
 
 ! Need to associate the fortan pointer to the field ("field2d") with the
 ! target of the C pointer ("field") which was passed in, since wgdos_unpack

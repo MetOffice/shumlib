@@ -56,8 +56,7 @@ INTERFACE
 FUNCTION c_std_strlen(cstr) BIND(c, NAME="strlen")
 
 USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         &
-  C_CHAR,                                                                      &
-  C_SIZE_T
+  C_CHAR, C_SIZE_T
 
 IMPLICIT NONE
 
@@ -71,25 +70,28 @@ CONTAINS
 
 FUNCTION c_strlen_integer_cstr(cstr)
 
-USE, INTRINSIC :: ISO_C_BINDING
+USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         &
+  C_CHAR, C_INT64_T
 
 IMPLICIT NONE
 
 CHARACTER(KIND=C_CHAR,LEN=1), TARGET :: cstr(*)
-INTEGER                      :: c_strlen_integer_cstr
+INTEGER(KIND=C_INT64_T)              :: c_strlen_integer_cstr
 
-c_strlen_integer_cstr = INT(c_std_strlen(cstr))
+c_strlen_integer_cstr = INT(c_std_strlen(cstr), KIND=C_INT64_T)
 
 END FUNCTION c_strlen_integer_cstr
 
 !Trivially turn a c string (a \0 terminated array of LEN=1 characters)
 !into a single character (LEN=something) variable.
 FUNCTION c2f_string_cstr(cstr, cstr_len)
-USE, INTRINSIC :: ISO_C_BINDING
+
+USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         &
+  C_CHAR, C_INT64_T
 
 IMPLICIT NONE
 
-INTEGER :: cstr_len, i
+INTEGER(KIND=C_INT64_T) :: cstr_len, i
 CHARACTER(KIND=C_CHAR,LEN=1), INTENT(IN) :: cstr(cstr_len)
 CHARACTER(LEN=cstr_len)                  :: c2f_string_cstr
 
@@ -100,11 +102,13 @@ END DO
 END FUNCTION c2f_string_cstr
 
 FUNCTION c2f_string_cptr(cptr, cstr_len)
-USE, INTRINSIC :: ISO_C_BINDING
+
+USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         &
+  C_CHAR, C_INT64_T, C_PTR, C_F_POINTER
 
 IMPLICIT NONE
 
-INTEGER :: cstr_len, i
+INTEGER(KIND=C_INT64_T) :: cstr_len, i
 TYPE(C_PTR), INTENT(IN)                  :: cptr
 CHARACTER(KIND=C_CHAR, LEN=1), POINTER   :: fptr(:)
 CHARACTER(LEN=cstr_len)                  :: c2f_string_cptr
@@ -118,14 +122,16 @@ END DO
 END FUNCTION c2f_string_cptr
 
 FUNCTION c2f_string_cstr_nolen(cstr)
-USE, INTRINSIC :: ISO_C_BINDING
+
+USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         &
+  C_CHAR, C_INT64_T
 
 IMPLICIT NONE
 
 CHARACTER(KIND=C_CHAR,LEN=1), INTENT(IN) :: cstr(*)
 CHARACTER(LEN=:), ALLOCATABLE            :: c2f_string_cstr_nolen
 
-INTEGER :: cstr_len
+INTEGER(KIND=C_INT64_T) :: cstr_len
 
 cstr_len = f_shum_strlen(cstr)
 
@@ -136,11 +142,16 @@ c2f_string_cstr_nolen = c2f_string_cstr(cstr,cstr_len)
 END FUNCTION c2f_string_cstr_nolen
 
 FUNCTION f_shum_f2c_string(fstr)
-USE, INTRINSIC :: ISO_C_BINDING
+
+USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         &
+  C_CHAR, C_INT64_T, C_NULL_CHAR
+
 IMPLICIT NONE
+
 CHARACTER(LEN=*), INTENT(IN)                 :: fstr
 CHARACTER(KIND=C_CHAR,LEN=1), ALLOCATABLE    :: f_shum_f2c_string(:)
-INTEGER :: strlen,i
+
+INTEGER(KIND=C_INT64_T) :: strlen,i
 
 strlen=LEN_TRIM(fstr)
 ALLOCATE(f_shum_f2c_string(strlen+1))
