@@ -1,41 +1,41 @@
-all: libshum_byteswap.so libshum_byteswap.a copy test
+# Makefile for library; builds both a static (.a) and dynamic (.so) version
+# for maximum flexibility. The required files are copied to the final directory
+#------------------------------------------------------------------------------
+LIBTARGETS= \
+ ${LIBDIR_OUT}/lib/libshum_byteswap.so \
+ ${LIBDIR_OUT}/lib/libshum_byteswap.a
 
+${LIBTARGETS}: libshum_byteswap.so libshum_byteswap.a
+	cp $^ ${LIBDIR_OUT}/lib
+	cp *.h *.mod ${LIBDIR_OUT}/include
+
+# Static library - uses archiver to create library
+#-------------------------------------------------------------------------------
 c_shum_byteswap.o: c_shum_byteswap.c c_shum_byteswap.h c_shum_byteswap_opt.h
 	${CC} ${CCFLAGS_PREC} -c $<
 
-c_shum_byteswap_PIC.o: c_shum_byteswap.c c_shum_byteswap.h c_shum_byteswap_opt.h
-	${CC} ${CCFLAGS_PREC} ${CCFLAGS_PIC} -c $< -o $@
-
 f_shum_byteswap.o: f_shum_byteswap.F90
-	${FC} ${FCFLAGS_PREC} -c $<
-
-f_shum_byteswap_PIC.o: f_shum_byteswap.F90
-	${FC} ${FCFLAGS_PREC} ${FCFLAGS_PIC} -c $< -o $@
-
-libshum_byteswap.so: c_shum_byteswap_PIC.o f_shum_byteswap_PIC.o
-	${FC} ${FCFLAGS_SHARED} ${FCFLAGS_PREC} ${FCFLAGS_PIC} $^ -o $@
+	${FC} ${FCFLAGS_PREC} -c -I${LIBDIR_OUT}/include $<
 
 libshum_byteswap.a: c_shum_byteswap.o f_shum_byteswap.o
 	${AR} $@ $^
 
-${LIBDIR_OUT}/tests/test_byteswap_static.exe: test_byteswap.F90 copy 
-	${FC} ${FCFLAGS_STATIC} ${FCFLAGS_PREC} $< \
-	-I${LIBDIR_OUT}/include -L${LIBDIR_OUT}/lib -lshum_byteswap -o $@ \
-	${FCFLAGS_STATIC_TRAIL}
+# Dynamic library - uses compiler to create shared library - the object files
+# are suffixed to keep them separate to the above (since the dynamic library
+# required position-independent-code flags whilst the static version does not)
+#-------------------------------------------------------------------------------
+c_shum_byteswap_PIC.o: c_shum_byteswap.c c_shum_byteswap.h c_shum_byteswap_opt.h
+	${CC} ${CCFLAGS_PREC} ${CCFLAGS_PIC} -c $< -o $@
 
-${LIBDIR_OUT}/tests/test_byteswap_dynamic.exe: test_byteswap.F90 copy 
-	${FC} ${FCFLAGS_DYNAMIC} ${FCFLAGS_PREC} ${FCFLAGS_PIC} $< \
-	-I${LIBDIR_OUT}/include -L${LIBDIR_OUT}/lib -lshum_byteswap \
-	-Wl,-rpath=${LIBDIR_OUT}/lib -o $@ ${FCFLAGS_DYNAMIC_TRAIL}
+f_shum_byteswap_PIC.o: f_shum_byteswap.F90
+	${FC} ${FCFLAGS_PREC} ${FCFLAGS_PIC} -c -I${LIBDIR_OUT}/include $< -o $@
 
-test: ${LIBDIR_OUT}/tests/test_byteswap_static.exe \
-      ${LIBDIR_OUT}/tests/test_byteswap_dynamic.exe
+libshum_byteswap.so: c_shum_byteswap_PIC.o f_shum_byteswap_PIC.o
+	${FC} ${FCFLAGS_SHARED} ${FCFLAGS_PREC} ${FCFLAGS_PIC} $^ -o $@
 
-.PHONY: clean copy test
-
-copy: libshum_byteswap.so libshum_byteswap.a
-	mv *.so *.a ${LIBDIR_OUT}/lib
-	cp *.h *.mod ${LIBDIR_OUT}/include
-
+# Cleanup
+#-------------------------------------------------------------------------------
+.PHONY: clean
 clean: 
 	rm -f *.o *.mod *.so *.a
+

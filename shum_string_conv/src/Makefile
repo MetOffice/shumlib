@@ -1,22 +1,34 @@
-all: libshum_string_conv.so libshum_string_conv.a copy
+# Makefile for library; builds both a static (.a) and dynamic (.so) version
+# for maximum flexibility. The required files are copied to the final directory
+#------------------------------------------------------------------------------
+LIBTARGETS= \
+ ${LIBDIR_OUT}/lib/libshum_string_conv.so \
+ ${LIBDIR_OUT}/lib/libshum_string_conv.a
 
+${LIBTARGETS}: libshum_string_conv.so libshum_string_conv.a
+	cp $^ ${LIBDIR_OUT}/lib
+	cp *.mod ${LIBDIR_OUT}/include
+
+# Static library - uses archiver to create library
+#-------------------------------------------------------------------------------
 f_shum_string_conv.o: f_shum_string_conv.F90
 	${FC} ${FCFLAGS_PREC} -c $<
 
+libshum_string_conv.a: f_shum_string_conv.o
+	${AR} $@ $<
+
+# Dynamic library - uses compiler to create shared library - the object files
+# are suffixed to keep them separate to the above (since the dynamic library
+# required position-independent-code flags whilst the static version does not)
+#-------------------------------------------------------------------------------
 f_shum_string_conv_PIC.o: f_shum_string_conv.F90
 	${FC} ${FCFLAGS_PREC} ${FCFLAGS_PIC} -c $< -o $@
 
 libshum_string_conv.so: f_shum_string_conv_PIC.o
 	${FC} ${FCFLAGS_SHARED} ${FCFLAGS_PREC} ${FCFLAGS_PIC} $< -o $@
 
-libshum_string_conv.a: f_shum_string_conv.o
-	${AR} $@ $<
-
-.PHONY: clean copy
-
-copy:
-	mv *.so *.a ${LIBDIR_OUT}/lib
-	cp *.h *.mod ${LIBDIR_OUT}/include || :
-
+# Cleanup
+#-------------------------------------------------------------------------------
+.PHONY: clean
 clean: 
 	rm -f *.o *.mod *.so *.a

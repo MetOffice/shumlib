@@ -1,0 +1,77 @@
+# NOTE: This makefile assumes that any library tests and libraries have 
+# already been built, including the "compiled_libs.inc" listing file; it
+# will create a dynamic FRUIT test driver program which runs the main
+# test function from any included library tests.
+
+# Setup variables to store the target objects
+DRIVER=${PWD}/fruit/fruit_driver.F90
+STATIC_EXEC=${LIBDIR_OUT}/tests/fruit_tests_static.exe
+DYNAMIC_EXEC=${LIBDIR_OUT}/tests/fruit_tests_dynamic.exe
+
+.PHONY: test
+test: $(STATIC_EXEC) $(DYNAMIC_EXEC)
+
+# Construct the paths to the test directories from the names
+TEST_DIR=$(patsubst %, $(PWD)/%/test/, $(FRUITTESTS))
+
+# Include flags for the test directories
+TEST_FLAGS_INCL=$(addprefix -I, $(TEST_DIR))
+
+# Also construct the object filenames (static + dynamic)
+TEST_OBJ_STATIC=$(patsubst %, fruit_test_%.o, $(FRUITTESTS))
+TEST_OBJ_DYNAMIC=$(patsubst %, fruit_test_%_PIC.o, $(FRUITTESTS))
+
+# Create the full paths to the object files by combining the above
+TEST_STATIC=$(join $(TEST_DIR), $(TEST_OBJ_STATIC))
+TEST_DYNAMIC=$(join $(TEST_DIR), $(TEST_OBJ_DYNAMIC))
+
+# The flags used to link against each library
+TEST_FLAGS_LINK=-lfruit $(addprefix -l, $(LIBNAMES))
+
+# Write the driver file - it is a very simple Fortran file which contains
+# the means to call each test module - note that everything must be named
+# according to a specific convention for this to work
+$(DRIVER): ${TEST_DYNAMIC} ${TEST_STATIC}
+	echo "PROGRAM fruit_driver" > ${DRIVER}
+	echo "USE fruit" >> ${DRIVER}
+	for name in $(FRUITTESTS) ; do \
+	    echo "USE fruit_test_$${name}_mod" >> ${DRIVER} ; \
+	done
+	echo "IMPLICIT NONE" >> ${DRIVER}
+	echo "CALL init_fruit" >> ${DRIVER}
+	for name in $(FRUITTESTS) ; do \
+	    echo "CALL fruit_test_$${name}" >> ${DRIVER} ; \
+	done
+	echo "CALL fruit_summary" >> ${DRIVER}
+	echo "CALL fruit_finalize" >> ${DRIVER}
+	echo "END PROGRAM fruit_driver" >> ${DRIVER}
+
+# Note: In both cases below the linking flags are included *twice*; this is
+# intentional, because some compilers strip away un-used symbols as they 
+# include each library... This might remove symbol dependencies for other
+# libraries (depending on the order of the flags); the second inclusion means
+# the compiler will have a chance to pick up any previously missed symbols
+
+# Static executable
+#------------------
+$(STATIC_EXEC): $(DRIVER)
+	${FC} ${FCFLAGS_PREC} ${FCFLAGS_STATIC} \
+	$< $(TEST_STATIC) ${TEST_FLAGS_INCL} \
+	-I${LIBDIR_OUT}/include -L${LIBDIR_OUT}/lib \
+	${TEST_FLAGS_LINK} ${TEST_FLAGS_LINK} \
+	-o $@ ${FCFLAGS_STATIC_TRAIL}
+
+# Dynamic executable
+#-------------------
+$(DYNAMIC_EXEC): $(DRIVER)
+	${FC} ${FCFLAGS_PREC} ${FCFLAGS_DYNAMIC} ${FCFLAGS_PIC} \
+	$< $(TEST_DYNAMIC) ${TEST_FLAGS_INCL} \
+	-I${LIBDIR_OUT}/include -L${LIBDIR_OUT}/lib \
+	${TEST_FLAGS_LINK} ${TEST_FLAGS_LINK} \
+	-Wl,-rpath=${LIBDIR_OUT}/lib -o $@ ${FCFLAGS_DYNAMIC_TRAIL}
+
+# Cleanup
+#--------
+.PHONY: clean
+clean: 
+	rm -f ${DRIVER}

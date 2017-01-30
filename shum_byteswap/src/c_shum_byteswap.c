@@ -25,7 +25,10 @@
 /*   endianism.                                                               */
 /******************************************************************************/
 
+#include <stdio.h>
 #include <stddef.h>
+#include <string.h>
+#include <inttypes.h>
 #include "c_shum_byteswap.h"
 #include "c_shum_byteswap_opt.h"
 
@@ -33,8 +36,12 @@
 /* Procedure implentations                                                    */
 /* -------------------------------------------------------------------------- */
 
-int64_t c_shum_byteswap(void *array, int64_t len, int64_t word_len)
+int64_t c_shum_byteswap(void *array, int64_t len, int64_t word_len, 
+                        char *message)
 {
+
+  size_t message_len = strlen(message);
+
   int64_t status = 0;
 
   size_t i;
@@ -80,6 +87,10 @@ int64_t c_shum_byteswap(void *array, int64_t len, int64_t word_len)
   else
   {
     status = 1;
+    snprintf(message, message_len,
+             "c_shum_byteswap: Word length of %" PRId64 " bytes not allowed. "
+             "Supported word lengths are 2, 4 or 8 bytes", 
+             word_len);
   }
 
   return status;

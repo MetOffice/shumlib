@@ -16,74 +16,126 @@ LIBDIR_ROOT ?= ${PWD}/build
 LIBDIR_OUT ?= ${LIBDIR_ROOT}/${PLATFORM}
 export
 
-# Default target - clean everything first (no incremental builds; the library
-# builds fairly fast anyway so this avoids complications) then build libraries
+# Default target - build all available libraries
 #--------------------------------------------------------------------------------
 .PHONY: default 
-default: clean libs
+default: libs
 
 # Output directories
 #--------------------------------------------------------------------------------
-.PHONY: dirs
-dirs:
+OUTDIRS=${LIBDIR_OUT}/lib ${LIBDIR_OUT}/include 
+${OUTDIRS}:
 	mkdir -p ${LIBDIR_OUT}/lib
 	mkdir -p ${LIBDIR_OUT}/include
-	mkdir -p ${LIBDIR_OUT}/tests
 
 # Libraries
 #--------------------------------------------------------------------------------
-.PHONY: bswap hook str_conv data_conv pack
-
-# Byte-swapping
-#--------------
-BSWAP=shum_byteswap
-bswap: dirs
-	make -C ${BSWAP}/src
-
 # Drhook dummy
 #-------------
 HOOK=shum_drhook_dummy
-hook: dirs
+${HOOK}: ${OUTDIRS}
 	make -C ${HOOK}/src
 
 # String conv
 #------------
 STR_CONV=shum_string_conv
-str_conv: dirs
+${STR_CONV}: ${OUTDIRS}
 	make -C ${STR_CONV}/src
+
+# Byte-swapping
+#--------------
+BSWAP=shum_byteswap
+${BSWAP}: ${STR_CONV} ${OUTDIRS} 
+	make -C ${BSWAP}/src
+${BSWAP}_tests: fruit ${BSWAP}
+	make -C ${BSWAP}/test
 
 # Data conv
 #----------
 DATA_CONV=shum_data_conv
-data_conv: str_conv dirs
+${DATA_CONV}: ${STR_CONV} ${OUTDIRS}
 	make -C ${DATA_CONV}/src
 
 # WGDOS packing
 #--------------
 PACK=shum_wgdos_packing
-pack: str_conv hook data_conv dirs
+${PACK}: ${STR_CONV} ${HOOK} ${DATA_CONV} ${OUTDIRS}
 	make -C ${PACK}/src
+${PACK}_tests: fruit ${PACK}
+	make -C ${PACK}/test
+
+ALL_LIBS=${BSWAP} ${HOOK} ${STR_CONV} ${DATA_CONV} ${PACK}
+.PHONY: libs ${ALL_LIBS} $(addsuffix, _test, ${ALL_LIBS})
 
 # Add a target which points to all libraries
-.PHONY: libs
-libs: bswap hook str_conv data_conv pack
+libs: ${ALL_LIBS}
+
+# FRUIT testing control
+#--------------------------------------------------------------------------------
+# We want the "test" target to turn on building of the tests. It is actually 
+# the variable "FRUIT_TESTS" which controls this (since a make target cannot
+# act as a switch in this way)
+.PHONY: test
+
+# Names of libraries which are currently compiled in output directory
+LIBFILES := $(wildcard ${LIBDIR_OUT}/lib/*.so)
+LIBNAMES := $(filter-out fruit, $(patsubst lib%.so, %, $(notdir $(LIBFILES))))
+
+# Names of libraries which defined FRUIT tests
+FRUITFILES := $(wildcard ${PWD}/shum_*/test/fruit_test_*.F90)
+FRUITNAMES := $(patsubst fruit_test_%.F90, %, $(notdir $(FRUITFILES)))
+
+# Intersection of the above - i.e. names of libraries which are both compiled
+# and have tests available (so we can compile only tests that actually exist)
+FRUITTESTS := $(foreach libname, ${LIBNAMES}, $(filter ${libname}, ${FRUITNAMES}))
+
+# Since building the tests is invalid unless some libraries have been built, 
+# don't try to proceed if none exist
+OUTDIR_TESTS=${LIBDIR_OUT}/tests
+
+ifneq ($(filter test, $(MAKECMDGOALS)),)
+ifndef LIBNAMES
+test:
+$(error Unable to build tests - at least one library must have been built \
+before calling with the "test" target)
+else
+${OUTDIR_TESTS}:
+	mkdir -p ${LIBDIR_OUT}/tests
+
+test: ${OUTDIR_TESTS} $(addsuffix _tests, ${FRUITTESTS})
+	make -f ${FRUIT}/Makefile-driver
+	${LIBDIR_OUT}/tests/fruit_tests_static.exe
+	${LIBDIR_OUT}/tests/fruit_tests_dynamic.exe
+endif
+endif
+
+# The FRUIT source itself
+#------------------------
+FRUIT=fruit
+.PHONY: fruit
+fruit: ${OUTDIRS}
+	make -C ${FRUIT}
 
 # Cleanup targets
 #--------------------------------------------------------------------------------
-.PHONY: clean clean-temp clean-build
+.PHONY: clean clean-temp clean-build 
 clean-temp:
 	make -C ${BSWAP}/src clean
+	make -C ${BSWAP}/test clean
 	make -C ${HOOK}/src clean
 	make -C ${STR_CONV}/src clean
 	make -C ${DATA_CONV}/src clean
 	make -C ${PACK}/src clean
+	make -C ${PACK}/test clean
+	make -C ${FRUIT} clean
+	make -f ${FRUIT}/Makefile-driver clean
 
 clean-build: 
-	rm -rf ${LIBDIR_OUT}/lib ${LIBDIR_OUT}/include ${LIBDIR_OUT}/tests
+	rm -rf ${OUTDIRS} ${OUTDIR_TESTS}
 	rmdir ${LIBDIR_OUT} || :
 	rmdir ${LIBDIR_ROOT} || :
 
-clean: clean-temp clean-build
+clean: clean-temp clean-build 
 
 
 

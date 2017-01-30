@@ -2,35 +2,29 @@
 # for maximum flexibility. The required files are copied to the final directory
 #------------------------------------------------------------------------------
 LIBTARGETS= \
- ${LIBDIR_OUT}/lib/libshum_data_conv.so \
- ${LIBDIR_OUT}/lib/libshum_data_conv.a
+ ${LIBDIR_OUT}/lib/libfruit.so \
+ ${LIBDIR_OUT}/lib/libfruit.a
 
-${LIBTARGETS}: libshum_data_conv.so libshum_data_conv.a
+${LIBTARGETS}: libfruit.so libfruit.a
 	cp $^ ${LIBDIR_OUT}/lib
-	cp *.h *.mod ${LIBDIR_OUT}/include
+	cp *.mod ${LIBDIR_OUT}/include
 
 # Static library - uses archiver to create library
 #-------------------------------------------------------------------------------
-c_shum_data_conv.o: c_shum_data_conv.c c_shum_data_conv.h 
-	${CC} ${CCFLAGS_PREC} -c $<
+fruit.o: fruit.f90
+	${FC} ${FCFLAGS_PREC} -c $< -o $@
 
-f_shum_data_conv.o: f_shum_data_conv.F90
-	${FC} ${FCFLAGS_PREC} -c -I${LIBDIR_OUT}/include $<
-
-libshum_data_conv.a: c_shum_data_conv.o f_shum_data_conv.o
+libfruit.a: fruit.o
 	${AR} $@ $^
 
 # Dynamic library - uses compiler to create shared library - the object files
 # are suffixed to keep them separate to the above (since the dynamic library
 # required position-independent-code flags whilst the static version does not)
 #-------------------------------------------------------------------------------
-c_shum_data_conv_PIC.o: c_shum_data_conv.c c_shum_data_conv.h 
-	${CC} ${CCFLAGS_PREC} ${CCFLAGS_PIC} -c $< -o $@
+fruit_PIC.o: fruit.f90
+	${FC} ${FCFLAGS_PREC} ${FCFLAGS_PIC} -c $< -o $@
 
-f_shum_data_conv_PIC.o: f_shum_data_conv.F90
-	${FC} ${FCFLAGS_PREC} ${FCFLAGS_PIC} -c -I${LIBDIR_OUT}/include $< -o $@
-
-libshum_data_conv.so: c_shum_data_conv_PIC.o f_shum_data_conv_PIC.o 
+libfruit.so: fruit_PIC.o 
 	${FC} ${FCFLAGS_SHARED} ${FCFLAGS_PREC} ${FCFLAGS_PIC} $^ -o $@
 
 # Cleanup
