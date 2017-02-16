@@ -26,27 +26,27 @@ USE f_shum_string_conv_mod,   ONLY: f_shum_f2c_string
 USE f_shum_wgdos_packing_mod, ONLY: f_shum_wgdos_pack, f_shum_wgdos_unpack
 
 USE, INTRINSIC :: iso_c_binding, ONLY: &
-    C_F_POINTER, C_LOC, C_INT64_T, C_CHAR
+    C_F_POINTER, C_LOC, C_INT64_T, C_INT32_T, C_CHAR, C_FLOAT, C_DOUBLE
 
 IMPLICIT NONE 
 
-! -----------------------------------------------------------------------------!
-! 64 and 32-bit real types; since the ISO_C_BINDING module does not yet provide
-! these (for integers it does)
-!
-! Precision and range for 64 bit real
-INTEGER, PARAMETER :: prec64  = 15
-INTEGER, PARAMETER :: range64 = 307
+PRIVATE
 
-! Precision and range for 32 bit real
-INTEGER, PARAMETER :: prec32  = 6
-INTEGER, PARAMETER :: range32 = 37
+PUBLIC :: c_shum_wgdos_pack, c_shum_wgdos_unpack
 
-! Kind for 64 bit real
-INTEGER, PARAMETER :: real64 = SELECTED_REAL_KIND(prec64,range64)
-! Kind for 32 bit real
-INTEGER, PARAMETER :: real32 = SELECTED_REAL_KIND(prec32,range32)
-! -----------------------------------------------------------------------------!
+!------------------------------------------------------------------------------!
+! We're going to use the types from the ISO_C_BINDING module, since although   !
+! the REALs aren't 100% guaranteed to correspond to the sizes we want to       !
+! enforce, they should be good enough on the majority of systems.              !
+!                                                                              !
+! Additional protection for the case that FLOAT/DOUBLE do not conform to the   !
+! sizes we expect is provided via the "precision_bomb" macro-file              !
+!------------------------------------------------------------------------------!
+  INTEGER, PARAMETER :: int64  = C_INT64_T
+  INTEGER, PARAMETER :: int32  = C_INT32_T
+  INTEGER, PARAMETER :: real64 = C_DOUBLE
+  INTEGER, PARAMETER :: real32 = C_FLOAT                                       
+!------------------------------------------------------------------------------!
 
 CONTAINS
 
@@ -60,9 +60,9 @@ INTEGER(KIND=C_INT64_T),       INTENT(IN)         :: len_comp
 INTEGER(KIND=C_INT64_T),       INTENT(OUT)        :: comp_field(len_comp)
 INTEGER(KIND=C_INT64_T),       INTENT(IN)         :: cols
 INTEGER(KIND=C_INT64_T),       INTENT(IN)         :: rows
-REAL(KIND=real64),             INTENT(IN), TARGET :: field(cols*rows)
+REAL(KIND=C_DOUBLE),           INTENT(IN), TARGET :: field(cols*rows)
 INTEGER(KIND=C_INT64_T),       INTENT(IN)         :: acc
-REAL(KIND=real64),             INTENT(IN)         :: rmdi
+REAL(KIND=C_DOUBLE),           INTENT(IN)         :: rmdi
 INTEGER(KIND=C_INT64_T),       INTENT(OUT)        :: num_words
 INTEGER(KIND=C_INT64_T),       INTENT(IN)         :: message_len
 CHARACTER(KIND=C_CHAR, LEN=1), INTENT(OUT)        :: cmessage(message_len +1)
@@ -90,7 +90,7 @@ END IF
 
 END FUNCTION c_shum_wgdos_pack
 
-!-------------------------------------------------------------------------------
+!------------------------------------------------------------------------------!
 
 FUNCTION c_shum_wgdos_unpack(field, comp_field, len_comp, cols, rows,          &
                                acc, rmdi, message_len, cmessage)               &
@@ -102,9 +102,9 @@ INTEGER(KIND=C_INT64_T),       INTENT(IN)          :: len_comp
 INTEGER(KIND=C_INT64_T),       INTENT(IN)          :: comp_field(len_comp)
 INTEGER(KIND=C_INT64_T),       INTENT(IN)          :: cols
 INTEGER(KIND=C_INT64_T),       INTENT(IN)          :: rows
-REAL(KIND=real64),             INTENT(OUT), TARGET :: field(cols*rows)
+REAL(KIND=C_DOUBLE),           INTENT(OUT), TARGET :: field(cols*rows)
 INTEGER(KIND=C_INT64_T),       INTENT(IN)          :: acc
-REAL(KIND=real64),             INTENT(IN)          :: rmdi
+REAL(KIND=C_DOUBLE),           INTENT(IN)          :: rmdi
 INTEGER(KIND=C_INT64_T),       INTENT(IN)          :: message_len
 CHARACTER(KIND=C_CHAR, LEN=1), INTENT(OUT)         :: cmessage(message_len +1)
 
@@ -130,5 +130,7 @@ IF (status /= 0) THEN
 END IF
 
 END FUNCTION c_shum_wgdos_unpack
+
+!------------------------------------------------------------------------------!
 
 END MODULE c_shum_wgdos_packing_mod

@@ -61,6 +61,7 @@
 
 /* Include file for Portable data conversion constants                */
 #include "c_shum_data_conv.h"
+#include "precision_bomb.h"
 
 /* Prototype functions */
 static void read_number (c_shum_dataformat format, size_t size, size_t offset,

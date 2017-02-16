@@ -31,6 +31,7 @@
 #include <inttypes.h>
 #include "c_shum_byteswap.h"
 #include "c_shum_byteswap_opt.h"
+#include "precision_bomb.h"
 
 /* -------------------------------------------------------------------------- */
 /* Procedure implentations                                                    */

@@ -4,7 +4,7 @@
 # test function from any included library tests.
 
 # Setup variables to store the target objects
-DRIVER=${PWD}/fruit/fruit_driver.F90
+DRIVER=${PWD}/fruit/fruit_driver.f90
 STATIC_EXEC=${LIBDIR_OUT}/tests/fruit_tests_static.exe
 DYNAMIC_EXEC=${LIBDIR_OUT}/tests/fruit_tests_dynamic.exe
 

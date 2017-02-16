@@ -26,7 +26,7 @@ MODULE f_shum_data_conv_mod
 ! DEPENDS ON: c_shum_data_conv.o
 
 USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         &
-  C_LOC, C_PTR, C_INT64_T, C_INT32_T, C_CHAR
+  C_LOC, C_PTR, C_INT64_T, C_INT32_T, C_CHAR, C_FLOAT, C_DOUBLE
 
 USE f_shum_string_conv_mod, ONLY: f_shum_c2f_string
 
@@ -61,30 +61,23 @@ ENUMERATOR ::                                                                  &
   f_shum_character_type
 END ENUM
 
-INTEGER(KIND=C_INT64_T), PARAMETER :: f_shum_data_types = KIND(f_shum_typenull)
+INTEGER, PARAMETER :: f_shum_data_types = KIND(f_shum_typenull)
 
-! -----------------------------------------------------------------------------!
-! 64 and 32-bit real types; since the ISO_C_BINDING module does not yet provide
-! these (for integers it does)
-!
-! Precision and range for 64 bit real
-INTEGER, PARAMETER :: prec64  = 15
-INTEGER, PARAMETER :: range64 = 307
-
-! Precision and range for 32 bit real
-INTEGER, PARAMETER :: prec32  = 6
-INTEGER, PARAMETER :: range32 = 37
-
-! Kind for 64 bit real
-INTEGER, PARAMETER :: real64 = SELECTED_REAL_KIND(prec64,range64)
-! Kind for 32 bit real
-INTEGER, PARAMETER :: real32 = SELECTED_REAL_KIND(prec32,range32)
-
-! -----------------------------------------------------------------------------!
+!------------------------------------------------------------------------------!
+! We're going to use the types from the ISO_C_BINDING module, since although   !
+! the REALs aren't 100% guaranteed to correspond to the sizes we want to       !
+! enforce, they should be good enough on the majority of systems.              !
+!                                                                              !
+! Additional protection for the case that FLOAT/DOUBLE do not conform to the   !
+! sizes we expect is provided via the "precision_bomb" macro-file              !
+!------------------------------------------------------------------------------!
+  INTEGER, PARAMETER :: int64  = C_INT64_T
+  INTEGER, PARAMETER :: int32  = C_INT32_T
+  INTEGER, PARAMETER :: real64 = C_DOUBLE
+  INTEGER, PARAMETER :: real32 = C_FLOAT                                       
+!------------------------------------------------------------------------------!
 ! Interfaces
-
 ! C Interfaces
-
 INTERFACE
 FUNCTION c_ieg2ieee (data_type, num, ieg_num_in, offset_in, cri_num_out,       &
                      stride, size_num_out, size_num_in, message)               &
@@ -115,6 +108,8 @@ CHARACTER(KIND=C_CHAR, LEN=1), INTENT(INOUT) :: message(*)
 
 END FUNCTION c_ieg2ieee
 END INTERFACE
+
+!------------------------------------------------------------------------------!
 
 INTERFACE
 FUNCTION c_ieee2ieg (data_type, num, ieg_num_out, offset_out, cri_num_in,      &
@@ -147,6 +142,8 @@ CHARACTER(KIND=C_CHAR, LEN=1), INTENT(INOUT) :: message(*)
 END FUNCTION c_ieee2ieg
 END INTERFACE
 
+!------------------------------------------------------------------------------!
+
 INTERFACE
 FUNCTION c_ieee2ibm (data_type, num, ibm_num_out, offset_out, cri_num_in,      &
                      stride, size_num_in, size_num_out, message)               &
@@ -177,6 +174,8 @@ CHARACTER(KIND=C_CHAR, LEN=1), INTENT(INOUT) :: message(*)
 
 END FUNCTION c_ieee2ibm
 END INTERFACE
+
+!------------------------------------------------------------------------------!
 
 INTERFACE
 FUNCTION c_ibm2ieee (data_type, num, ibm_num_in, offset_in, cri_num_out,       &
@@ -209,6 +208,7 @@ CHARACTER(KIND=C_CHAR, LEN=1), INTENT(INOUT) :: message(*)
 END FUNCTION c_ibm2ieee
 END INTERFACE
 
+!------------------------------------------------------------------------------!
 ! Generic (Fortran) Interfaces
 
 INTERFACE f_shum_ieee2ieg
@@ -252,7 +252,7 @@ END INTERFACE
 
 CONTAINS
 
-! -----------------------------------------------------------------------------!
+!------------------------------------------------------------------------------!
 ! ieg2ieee
 
 FUNCTION ieg2ieee_64 (data_type, num, ieg_num_in, offset_in, cri_num_out,      &
@@ -260,23 +260,23 @@ FUNCTION ieg2ieee_64 (data_type, num, ieg_num_in, offset_in, cri_num_out,      &
 
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T) ::                                                     &
+INTEGER(KIND=int64) ::                                                         &
   ieg2ieee_64
 
 INTEGER(KIND=f_shum_data_types), INTENT(IN) ::                                 &
   data_type
 
-INTEGER(KIND=C_INT64_T), INTENT(IN) ::                                         &
+INTEGER(KIND=int64), INTENT(IN) ::                                             &
   num,                                                                         &
   stride,                                                                      &
   offset_in,                                                                   &
   size_num_in,                                                                 &
   size_num_out
 
-INTEGER(KIND=C_INT64_T), INTENT(INOUT), TARGET ::                              &
+INTEGER(KIND=int64), INTENT(INOUT), TARGET ::                                  &
   cri_num_out(num)
 
-INTEGER(KIND=C_INT64_T), INTENT(IN), TARGET ::                                 &
+INTEGER(KIND=int64), INTENT(IN), TARGET ::                                     &
   ieg_num_in(CEILING(num*REAL(size_num_in, KIND=real64)/size_num_out))
 
 CHARACTER(LEN=*), INTENT(INOUT) :: message
@@ -300,23 +300,23 @@ FUNCTION ieee2ieg_64 (data_type, num, ieg_num_out, offset_out,  cri_num_in,    &
 
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T) ::                                                     &
+INTEGER(KIND=int64) ::                                                         &
   ieee2ieg_64
 
 INTEGER(KIND=f_shum_data_types), INTENT(IN) ::                                 &
   data_type
 
-INTEGER(KIND=C_INT64_T), INTENT(IN) ::                                         &
+INTEGER(KIND=int64), INTENT(IN) ::                                             &
   num,                                                                         &
   stride,                                                                      &
   offset_out,                                                                  &
   size_num_in,                                                                 &
   size_num_out
 
-INTEGER(KIND=C_INT64_T), INTENT(INOUT), TARGET ::                              &
+INTEGER(KIND=int64), INTENT(INOUT), TARGET ::                                  &
   ieg_num_out(num)
 
-INTEGER(KIND=C_INT64_T), INTENT(IN), TARGET ::                                 &
+INTEGER(KIND=int64), INTENT(IN), TARGET ::                                     &
   cri_num_in(CEILING(num*REAL(size_num_in, KIND=real64)/size_num_out))
 
 CHARACTER(LEN=*), INTENT(INOUT) :: message
@@ -339,13 +339,13 @@ FUNCTION ieee2ieg_real (data_type, num, ieg_num_out, offset_out, cri_num_in,   &
 
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T) ::                                                     &
+INTEGER(KIND=int64) ::                                                         &
   ieee2ieg_real
 
 INTEGER(KIND=f_shum_data_types), INTENT(IN) ::                                 &
   data_type
 
-INTEGER(KIND=C_INT64_T), INTENT(IN) ::                                         &
+INTEGER(KIND=int64), INTENT(IN) ::                                             &
   num,                                                                         &
   stride,                                                                      &
   offset_out,                                                                  &
@@ -379,13 +379,13 @@ FUNCTION ieee2ieg_int_to_real (data_type, num, ieg_num_out, offset_out,        &
 
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T) ::                                                     &
+INTEGER(KIND=int64) ::                                                         &
   ieee2ieg_int_to_real
 
 INTEGER(KIND=f_shum_data_types), INTENT(IN) ::                                 &
   data_type
 
-INTEGER(KIND=C_INT64_T), INTENT(IN) ::                                         &
+INTEGER(KIND=int64), INTENT(IN) ::                                             &
   num,                                                                         &
   stride,                                                                      &
   offset_out,                                                                  &
@@ -395,7 +395,7 @@ INTEGER(KIND=C_INT64_T), INTENT(IN) ::                                         &
 REAL(KIND=real64), INTENT(INOUT), TARGET ::                                    &
   ieg_num_out(num)
 
-INTEGER(KIND=C_INT64_T), INTENT(IN), TARGET ::                                 &
+INTEGER(KIND=int64), INTENT(IN), TARGET ::                                     &
   cri_num_in(CEILING(num*REAL(size_num_in, KIND=real64)/size_num_out))
 
 CHARACTER(LEN=*), INTENT(INOUT) :: message
@@ -419,13 +419,13 @@ FUNCTION ieee2ieg_real_to_int (data_type, num, ieg_num_out, offset_out,        &
 
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T) ::                                                     &
+INTEGER(KIND=int64) ::                                                         &
   ieee2ieg_real_to_int
 
 INTEGER(KIND=f_shum_data_types), INTENT(IN) ::                                 &
   data_type
 
-INTEGER(KIND=C_INT64_T), INTENT(IN) ::                                         &
+INTEGER(KIND=int64), INTENT(IN) ::                                             &
   num,                                                                         &
   stride,                                                                      &
   offset_out,                                                                  &
@@ -435,7 +435,7 @@ INTEGER(KIND=C_INT64_T), INTENT(IN) ::                                         &
 REAL(KIND=real64), INTENT(IN), TARGET ::                                       &
   cri_num_in(CEILING(num*REAL(size_num_in, KIND=real64)/size_num_out))
 
-INTEGER(KIND=C_INT64_T), INTENT(INOUT), TARGET ::                              &
+INTEGER(KIND=int64), INTENT(INOUT), TARGET ::                                  &
   ieg_num_out(num)
 
 CHARACTER(LEN=*), INTENT(INOUT) :: message
@@ -459,13 +459,13 @@ FUNCTION ieee2ieg_real_scalar (data_type, num, ieg_num_out, offset_out,        &
 
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T) ::                                                     &
+INTEGER(KIND=int64) ::                                                         &
   ieee2ieg_real_scalar
 
 INTEGER(KIND=f_shum_data_types), INTENT(IN) ::                                 &
   data_type
 
-INTEGER(KIND=C_INT64_T), INTENT(IN) ::                                         &
+INTEGER(KIND=int64), INTENT(IN) ::                                             &
   num,                                                                         &
   stride,                                                                      &
   offset_out,                                                                  &
@@ -499,20 +499,20 @@ FUNCTION ieee2ieg_int_to_real_scalar(data_type, num, ieg_num_out, offset_out,  &
 
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T) ::                                                     &
+INTEGER(KIND=int64) ::                                                         &
   ieee2ieg_int_to_real_scalar
 
 INTEGER(KIND=f_shum_data_types), INTENT(IN) ::                                 &
   data_type
 
-INTEGER(KIND=C_INT64_T), INTENT(IN) ::                                         &
+INTEGER(KIND=int64), INTENT(IN) ::                                             &
   num,                                                                         &
   stride,                                                                      &
   offset_out,                                                                  &
   size_num_in,                                                                 &
   size_num_out
 
-INTEGER(KIND=C_INT64_T), INTENT(IN), TARGET ::                                 &
+INTEGER(KIND=int64), INTENT(IN), TARGET ::                                     &
   cri_num_in
 
 REAL(KIND=real64), INTENT(INOUT), TARGET ::                                    &
@@ -531,7 +531,7 @@ message = f_shum_c2f_string(cmessage)
 
 END FUNCTION ieee2ieg_int_to_real_scalar
 
-! -----------------------------------------------------------------------------!
+!------------------------------------------------------------------------------!
 ! ieee2ibm
 
 FUNCTION ieee2ibm_64 (data_type, num, ibm_num_out, offset_out, cri_num_in,     &
@@ -539,23 +539,23 @@ FUNCTION ieee2ibm_64 (data_type, num, ibm_num_out, offset_out, cri_num_in,     &
 
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T) ::                                                     &
+INTEGER(KIND=int64) ::                                                         &
   ieee2ibm_64
 
 INTEGER(KIND=f_shum_data_types), INTENT(IN) ::                                 &
   data_type
 
-INTEGER(KIND=C_INT64_T), INTENT(IN) ::                                         &
+INTEGER(KIND=int64), INTENT(IN) ::                                             &
   num,                                                                         &
   stride,                                                                      &
   offset_out,                                                                  &
   size_num_in,                                                                 &
   size_num_out
 
-INTEGER(KIND=C_INT64_T), INTENT(INOUT), TARGET ::                              &
+INTEGER(KIND=int64), INTENT(INOUT), TARGET ::                                  &
   ibm_num_out(num)
 
-INTEGER(KIND=C_INT64_T), INTENT(IN), TARGET ::                                 &
+INTEGER(KIND=int64), INTENT(IN), TARGET ::                                     &
   cri_num_in(CEILING(num*REAL(size_num_in, KIND=real64)/size_num_out))
 
 CHARACTER(LEN=*), INTENT(INOUT) :: message
@@ -571,7 +571,7 @@ message = f_shum_c2f_string(cmessage)
 
 END FUNCTION ieee2ibm_64
 
-! -----------------------------------------------------------------------------!
+!------------------------------------------------------------------------------!
 
 FUNCTION ieee2ibm_real_scalar (data_type, num, ibm_num_out, offset_out,        &
                                cri_num_in, stride, size_num_in, size_num_out,  &
@@ -579,13 +579,13 @@ FUNCTION ieee2ibm_real_scalar (data_type, num, ibm_num_out, offset_out,        &
 
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T) ::                                                     &
+INTEGER(KIND=int64) ::                                                         &
   ieee2ibm_real_scalar
 
 INTEGER(KIND=f_shum_data_types), INTENT(IN) ::                                 &
   data_type
 
-INTEGER(KIND=C_INT64_T), INTENT(IN) ::                                         &
+INTEGER(KIND=int64), INTENT(IN) ::                                             &
   num,                                                                         &
   stride,                                                                      &
   offset_out,                                                                  &
@@ -611,20 +611,20 @@ message = f_shum_c2f_string(cmessage)
 
 END FUNCTION ieee2ibm_real_scalar
 
-! -----------------------------------------------------------------------------!
+!------------------------------------------------------------------------------!
 
 FUNCTION ieee2ibm_real (data_type, num, ibm_num_out, offset_out, cri_num_in,   &
                         stride, size_num_in, size_num_out, message)
 
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T) ::                                                     &
+INTEGER(KIND=int64) ::                                                         &
   ieee2ibm_real
 
 INTEGER(KIND=f_shum_data_types), INTENT(IN) ::                                 &
   data_type
 
-INTEGER(KIND=C_INT64_T), INTENT(IN) ::                                         &
+INTEGER(KIND=int64), INTENT(IN) ::                                             &
   num, stride, offset_out, size_num_in, size_num_out
 
 REAL(KIND=real64), INTENT(INOUT), TARGET ::                                    &
@@ -646,7 +646,7 @@ message = f_shum_c2f_string(cmessage)
 
 END FUNCTION ieee2ibm_real
 
-! -----------------------------------------------------------------------------!
+!------------------------------------------------------------------------------!
 
 FUNCTION ieee2ibm_real_to_int (data_type, num, ibm_num_out, offset_out,        &
                                cri_num_in, stride, size_num_in, size_num_out,  &
@@ -654,20 +654,20 @@ FUNCTION ieee2ibm_real_to_int (data_type, num, ibm_num_out, offset_out,        &
 
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T) ::                                                     &
+INTEGER(KIND=int64) ::                                                         &
   ieee2ibm_real_to_int
 
 INTEGER(KIND=f_shum_data_types), INTENT(IN) ::                                 &
   data_type
 
-INTEGER(KIND=C_INT64_T), INTENT(IN) ::                                         &
+INTEGER(KIND=int64), INTENT(IN) ::                                             &
   num,                                                                         &
   stride,                                                                      &
   offset_out,                                                                  &
   size_num_in,                                                                 &
   size_num_out
 
-INTEGER(KIND=C_INT64_T), INTENT(INOUT), TARGET ::                              &
+INTEGER(KIND=int64), INTENT(INOUT), TARGET ::                                  &
   ibm_num_out(num)
 
 REAL(KIND=real64), INTENT(IN), TARGET ::                                       &
@@ -686,30 +686,30 @@ message = f_shum_c2f_string(cmessage)
 
 END FUNCTION ieee2ibm_real_to_int
 
-! -----------------------------------------------------------------------------!
+!------------------------------------------------------------------------------!
 
 FUNCTION ieee2ibm_scalar (data_type, num, ibm_num_out, offset_out, cri_num_in, &
                           stride, size_num_in, size_num_out, message)
 
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T) ::                                                     &
+INTEGER(KIND=int64) ::                                                         &
   ieee2ibm_scalar
 
 INTEGER(KIND=f_shum_data_types), INTENT(IN) ::                                 &
   data_type
 
-INTEGER(KIND=C_INT64_T), INTENT(IN) ::                                         &
+INTEGER(KIND=int64), INTENT(IN) ::                                             &
   num,                                                                         &
   stride,                                                                      &
   offset_out,                                                                  &
   size_num_in,                                                                 &
   size_num_out
 
-INTEGER(KIND=C_INT64_T), INTENT(IN), TARGET ::                                 &
+INTEGER(KIND=int64), INTENT(IN), TARGET ::                                     &
   cri_num_in
 
-INTEGER(KIND=C_INT64_T), INTENT(INOUT), TARGET ::                              &
+INTEGER(KIND=int64), INTENT(INOUT), TARGET ::                                  &
   ibm_num_out
 
 CHARACTER(LEN=*), INTENT(INOUT) :: message
@@ -725,7 +725,7 @@ message = f_shum_c2f_string(cmessage)
 
 END FUNCTION ieee2ibm_scalar
 
-! -----------------------------------------------------------------------------!
+!------------------------------------------------------------------------------!
 
 FUNCTION ieee2ibm_32_scalar_32_to_64 (data_type, num, ibm_num_out, offset_out, &
                             cri_num_in, stride, size_num_in, size_num_out,     &
@@ -733,23 +733,23 @@ FUNCTION ieee2ibm_32_scalar_32_to_64 (data_type, num, ibm_num_out, offset_out, &
 
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT32_T) ::                                                     &
+INTEGER(KIND=int32) ::                                                         &
   ieee2ibm_32_scalar_32_to_64
 
 INTEGER(KIND=f_shum_data_types), INTENT(IN) ::                                 &
   data_type
 
-INTEGER(KIND=C_INT32_T), INTENT(IN) ::                                         &
+INTEGER(KIND=int32), INTENT(IN) ::                                             &
   num,                                                                         &
   stride,                                                                      &
   offset_out,                                                                  &
   size_num_in,                                                                 &
   size_num_out
 
-INTEGER(KIND=C_INT32_T), INTENT(IN), TARGET ::                                 &
+INTEGER(KIND=int32), INTENT(IN), TARGET ::                                     &
   cri_num_in
 
-INTEGER(KIND=C_INT64_T), INTENT(INOUT), TARGET ::                              &
+INTEGER(KIND=int64), INTENT(INOUT), TARGET ::                                  &
   ibm_num_out
 
 CHARACTER(LEN=*), INTENT(INOUT) :: message
@@ -757,20 +757,20 @@ CHARACTER(KIND=C_CHAR,LEN=1), ALLOCATABLE  :: cmessage(:)
 
 ALLOCATE(cmessage(LEN(message)))
 
-ieee2ibm_32_scalar_32_to_64 = c_ieee2ibm(data_type, INT(num,kind=C_INT64_T),   &
+ieee2ibm_32_scalar_32_to_64 = c_ieee2ibm(data_type, INT(num,kind=int64),       &
                                          C_LOC(ibm_num_out),                   &
-                                         INT(offset_out,kind=C_INT64_T),       &
+                                         INT(offset_out,kind=int64),           &
                                          C_LOC(cri_num_in),                    &
-                                         INT(stride,kind=C_INT64_T),           &
-                                         INT(size_num_in,kind=C_INT64_T),      &
-                                         INT(size_num_out,kind=C_INT64_T),     &
+                                         INT(stride,kind=int64),               &
+                                         INT(size_num_in,kind=int64),          &
+                                         INT(size_num_out,kind=int64),         &
                                          cmessage)
 
 message = f_shum_c2f_string(cmessage)
 
 END FUNCTION ieee2ibm_32_scalar_32_to_64
 
-! -----------------------------------------------------------------------------!
+!------------------------------------------------------------------------------!
 
 FUNCTION ieee2ibm_int_to_real_scalar (data_type, num, ibm_num_out, offset_out, &
                                       cri_num_in, stride, size_num_in,         &
@@ -778,20 +778,20 @@ FUNCTION ieee2ibm_int_to_real_scalar (data_type, num, ibm_num_out, offset_out, &
 
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T) ::                                                     &
+INTEGER(KIND=int64) ::                                                         &
   ieee2ibm_int_to_real_scalar
 
 INTEGER(KIND=f_shum_data_types), INTENT(IN) ::                                 &
   data_type
 
-INTEGER(KIND=C_INT64_T), INTENT(IN) ::                                         &
+INTEGER(KIND=int64), INTENT(IN) ::                                             &
   num,                                                                         &
   stride,                                                                      &
   offset_out,                                                                  &
   size_num_in,                                                                 &
   size_num_out
 
-INTEGER(KIND=C_INT64_T), INTENT(IN), TARGET ::                                 &
+INTEGER(KIND=int64), INTENT(IN), TARGET ::                                     &
   cri_num_in
 
 REAL(KIND=real64), INTENT(INOUT), TARGET ::                                    &
@@ -810,27 +810,27 @@ message = f_shum_c2f_string(cmessage)
 
 END FUNCTION ieee2ibm_int_to_real_scalar
 
-! -----------------------------------------------------------------------------!
+!------------------------------------------------------------------------------!
 
 FUNCTION ieee2ibm_int_to_real32_scalar (data_type, num, ibm_num_out,           &
      offset_out,cri_num_in, stride, size_num_in, size_num_out, message)
 
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T) ::                                                     &
+INTEGER(KIND=int64) ::                                                         &
   ieee2ibm_int_to_real32_scalar
 
 INTEGER(KIND=f_shum_data_types), INTENT(IN) ::                                 &
   data_type
 
-INTEGER(KIND=C_INT64_T), INTENT(IN) ::                                         &
+INTEGER(KIND=int64), INTENT(IN) ::                                             &
   num,                                                                         &
   stride,                                                                      &
   offset_out,                                                                  &
   size_num_in,                                                                 &
   size_num_out
 
-INTEGER(KIND=C_INT64_T), INTENT(IN), TARGET ::                                 &
+INTEGER(KIND=int64), INTENT(IN), TARGET ::                                     &
   cri_num_in
 
 REAL(KIND=real32), INTENT(INOUT), TARGET ::                                    &
@@ -849,7 +849,7 @@ message = f_shum_c2f_string(cmessage)
 
 END FUNCTION ieee2ibm_int_to_real32_scalar
 
-! -----------------------------------------------------------------------------!
+!------------------------------------------------------------------------------!
 ! ibm2ieee
 
 FUNCTION ibm2ieee_64 (data_type, num, ibm_num_in, offset_in, cri_num_out,      &
@@ -857,23 +857,23 @@ FUNCTION ibm2ieee_64 (data_type, num, ibm_num_in, offset_in, cri_num_out,      &
 
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T) ::                                                     &
+INTEGER(KIND=int64) ::                                                         &
   ibm2ieee_64
 
 INTEGER(KIND=f_shum_data_types), INTENT(IN) ::                                 &
   data_type
 
-INTEGER(KIND=C_INT64_T), INTENT(IN) ::                                         &
+INTEGER(KIND=int64), INTENT(IN) ::                                             &
   num,                                                                         &
   stride,                                                                      &
   offset_in,                                                                   &
   size_num_in,                                                                 &
   size_num_out
 
-INTEGER(KIND=C_INT64_T), INTENT(IN), TARGET ::                                 &
+INTEGER(KIND=int64), INTENT(IN), TARGET ::                                     &
   ibm_num_in(CEILING(num*REAL(size_num_in, KIND=real64)/size_num_out))
 
-INTEGER(KIND=C_INT64_T), INTENT(INOUT), TARGET ::                              &
+INTEGER(KIND=int64), INTENT(INOUT), TARGET ::                                  &
   cri_num_out(num)
 
 CHARACTER(LEN=*), INTENT(INOUT) :: message
@@ -889,30 +889,30 @@ message = f_shum_c2f_string(cmessage)
 
 END FUNCTION ibm2ieee_64
 
-! -----------------------------------------------------------------------------!
+!------------------------------------------------------------------------------!
 
 FUNCTION ibm2ieee_scalar (data_type, num, ibm_num_in, offset_in, cri_num_out,  &
                           stride, size_num_out, size_num_in, message)
 
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T) ::                                                     &
+INTEGER(KIND=int64) ::                                                         &
   ibm2ieee_scalar
 
 INTEGER(KIND=f_shum_data_types), INTENT(IN) ::                                 &
   data_type
 
-INTEGER(KIND=C_INT64_T), INTENT(IN) ::                                         &
+INTEGER(KIND=int64), INTENT(IN) ::                                             &
   num,                                                                         &
   stride,                                                                      &
   offset_in,                                                                   &
   size_num_in,                                                                 &
   size_num_out
 
-INTEGER(KIND=C_INT64_T), INTENT(IN), TARGET ::                                 &
+INTEGER(KIND=int64), INTENT(IN), TARGET ::                                     &
   ibm_num_in
 
-INTEGER(KIND=C_INT64_T), INTENT(INOUT), TARGET ::                              &
+INTEGER(KIND=int64), INTENT(INOUT), TARGET ::                                  &
   cri_num_out
 
 CHARACTER(LEN=*), INTENT(INOUT) :: message
@@ -936,23 +936,23 @@ FUNCTION ibm2ieee_32_scalar_64_to_32 (data_type, num, ibm_num_in, offset_in,   &
 
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT32_T) ::                                                     &
+INTEGER(KIND=int32) ::                                                         &
   ibm2ieee_32_scalar_64_to_32
 
 INTEGER(KIND=f_shum_data_types), INTENT(IN) ::                                 &
   data_type
 
-INTEGER(KIND=C_INT32_T), INTENT(IN) ::                                         &
+INTEGER(KIND=int32), INTENT(IN) ::                                             &
   num,                                                                         &
   stride,                                                                      &
   offset_in,                                                                   &
   size_num_in,                                                                 &
   size_num_out
 
-INTEGER(KIND=C_INT64_T), INTENT(IN), TARGET ::                                 &
+INTEGER(KIND=int64), INTENT(IN), TARGET ::                                     &
   ibm_num_in
 
-INTEGER(KIND=C_INT32_T), INTENT(INOUT), TARGET ::                              &
+INTEGER(KIND=int32), INTENT(INOUT), TARGET ::                                  &
   cri_num_out
 
 CHARACTER(LEN=*), INTENT(INOUT) :: message
@@ -960,13 +960,13 @@ CHARACTER(KIND=C_CHAR,LEN=1), ALLOCATABLE  :: cmessage(:)
 
 ALLOCATE(cmessage(LEN(message)))
 
-ibm2ieee_32_scalar_64_to_32 = c_ibm2ieee(data_type, INT(num,kind=C_INT64_T),   &
+ibm2ieee_32_scalar_64_to_32 = c_ibm2ieee(data_type, INT(num,kind=int64),       &
                                          C_LOC(ibm_num_in),                    &
-                                         INT(offset_in,kind=C_INT64_T),        &
+                                         INT(offset_in,kind=int64),            &
                                          C_LOC(cri_num_out),                   &
-                                         INT(stride,kind=C_INT64_T),           &
-                                         INT(size_num_out,kind=C_INT64_T),     &
-                                         INT(size_num_in,kind=C_INT64_T),      &
+                                         INT(stride,kind=int64),               &
+                                         INT(size_num_out,kind=int64),         &
+                                         INT(size_num_in,kind=int64),          &
                                          cmessage)
 
 message = f_shum_c2f_string(cmessage)
@@ -981,13 +981,13 @@ FUNCTION ibm2ieee_real32_real64 (data_type, num, ibm_num_in, offset_in,        &
 
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T) ::                                                     &
+INTEGER(KIND=int64) ::                                                         &
   ibm2ieee_real32_real64
 
 INTEGER(KIND=f_shum_data_types), INTENT(IN) ::                                 &
   data_type
 
-INTEGER(KIND=C_INT64_T), INTENT(IN) ::                                         &
+INTEGER(KIND=int64), INTENT(IN) ::                                             &
   num,                                                                         &
   stride,                                                                      &
   offset_in,                                                                   &
@@ -1021,20 +1021,20 @@ FUNCTION ibm2ieee_real_to_int_scalar (data_type, num, ibm_num_in, offset_in,   &
 
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T) ::                                                     &
+INTEGER(KIND=int64) ::                                                         &
   ibm2ieee_real_to_int_scalar
 
 INTEGER(KIND=f_shum_data_types), INTENT(IN) ::                                 &
   data_type
 
-INTEGER(KIND=C_INT64_T), INTENT(IN) ::                                         &
+INTEGER(KIND=int64), INTENT(IN) ::                                             &
   num,                                                                         &
   stride,                                                                      &
   offset_in,                                                                   &
   size_num_in,                                                                 &
   size_num_out
 
-INTEGER(KIND=C_INT64_T), INTENT(INOUT), TARGET ::                              &
+INTEGER(KIND=int64), INTENT(INOUT), TARGET ::                                  &
   cri_num_out
 
 REAL(KIND=real64), INTENT(IN), TARGET ::                                       &
@@ -1061,20 +1061,20 @@ FUNCTION ibm2ieee_real32_to_int_scalar (data_type, num, ibm_num_in, offset_in, &
 
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T) ::                                                     &
+INTEGER(KIND=int64) ::                                                         &
   ibm2ieee_real32_to_int_scalar
 
 INTEGER(KIND=f_shum_data_types), INTENT(IN) ::                                 &
   data_type
 
-INTEGER(KIND=C_INT64_T), INTENT(IN) ::                                         &
+INTEGER(KIND=int64), INTENT(IN) ::                                             &
   num,                                                                         &
   stride,                                                                      &
   offset_in,                                                                   &
   size_num_in,                                                                 &
   size_num_out
 
-INTEGER(KIND=C_INT64_T), INTENT(INOUT), TARGET ::                              &
+INTEGER(KIND=int64), INTENT(INOUT), TARGET ::                                  &
   cri_num_out
 
 REAL(KIND=real32), INTENT(IN), TARGET ::                                       &
@@ -1101,13 +1101,13 @@ FUNCTION ibm2ieee_real32_to_real64_2d (data_type, num, ibm_num_in, offset_in,  &
 
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T) ::                                                     &
+INTEGER(KIND=int64) ::                                                         &
   ibm2ieee_real32_to_real64_2d
 
 INTEGER(KIND=f_shum_data_types), INTENT(IN) ::                                 &
   data_type
 
-INTEGER(KIND=C_INT64_T), INTENT(IN) ::                                         &
+INTEGER(KIND=int64), INTENT(IN) ::                                             &
   num,                                                                         &
   stride,                                                                      &
   offset_in,                                                                   &
@@ -1150,13 +1150,13 @@ FUNCTION ibm2ieee_int_to_real (data_type, num, ibm_num_in, offset_in,          &
 
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T) ::                                                     &
+INTEGER(KIND=int64) ::                                                         &
   ibm2ieee_int_to_real
 
 INTEGER(KIND=f_shum_data_types), INTENT(IN) ::                                 &
   data_type
 
-INTEGER(KIND=C_INT64_T), INTENT(IN) ::                                         &
+INTEGER(KIND=int64), INTENT(IN) ::                                             &
   num,                                                                         &
   stride,                                                                      &
   offset_in,                                                                   &
@@ -1166,7 +1166,7 @@ INTEGER(KIND=C_INT64_T), INTENT(IN) ::                                         &
 REAL(KIND=real64), INTENT(INOUT), TARGET ::                                    &
   cri_num_out(num)
 
-INTEGER(KIND=C_INT64_T), INTENT(IN), TARGET ::                                 &
+INTEGER(KIND=int64), INTENT(IN), TARGET ::                                     &
   ibm_num_in(CEILING(num*REAL(size_num_in, KIND=real64)/size_num_out))
 
 CHARACTER(LEN=*), INTENT(INOUT) :: message
@@ -1181,6 +1181,8 @@ ibm2ieee_int_to_real = c_ibm2ieee(data_type, num, C_LOC(ibm_num_in), offset_in,&
 message = f_shum_c2f_string(cmessage)
 
 END FUNCTION ibm2ieee_int_to_real
+
+!------------------------------------------------------------------------------!
 
 END MODULE f_shum_data_conv_mod
 

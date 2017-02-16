@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include "c_shum_read_wgdos_header.h"
 #include "c_shum_data_conv.h"
+#include "precision_bomb.h"
 
 /* The important header quantities are stored in specific words of the
  * field data; these macros give the offest in bytes to these words

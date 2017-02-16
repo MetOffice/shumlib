@@ -24,7 +24,7 @@
 MODULE f_shum_read_wgdos_header_mod
 
 USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         &
-  C_LOC, C_PTR, C_INT64_T, C_INT32_T, C_CHAR
+  C_LOC, C_PTR, C_INT64_T, C_INT32_T, C_CHAR, C_FLOAT, C_DOUBLE
 
 USE f_shum_string_conv_mod, ONLY: f_shum_c2f_string
 
@@ -35,23 +35,19 @@ PRIVATE
 PUBLIC ::                                                                      &
   f_shum_read_wgdos_header
 
-!! -----------------------------------------------------------------------------!
-! 64 and 32-bit real types; since the ISO_C_BINDING module does not yet provide
-! these (for integers it does)
-!
-! Precision and range for 64 bit real
-INTEGER, PARAMETER :: prec64  = 15
-INTEGER, PARAMETER :: range64 = 307
-
-! Precision and range for 32 bit real
-INTEGER, PARAMETER :: prec32  = 6
-INTEGER, PARAMETER :: range32 = 37
-
-! Kind for 64 bit real
-INTEGER, PARAMETER :: real64 = SELECTED_REAL_KIND(prec64,range64)
-! Kind for 32 bit real
-INTEGER, PARAMETER :: real32 = SELECTED_REAL_KIND(prec32,range32)
-! -----------------------------------------------------------------------------!
+!------------------------------------------------------------------------------!
+! We're going to use the types from the ISO_C_BINDING module, since although   !
+! the REALs aren't 100% guaranteed to correspond to the sizes we want to       !
+! enforce, they should be good enough on the majority of systems.              !
+!                                                                              !
+! Additional protection for the case that FLOAT/DOUBLE do not conform to the   !
+! sizes we expect is provided via the "precision_bomb" macro-file              !
+!------------------------------------------------------------------------------!
+  INTEGER, PARAMETER :: int64  = C_INT64_T
+  INTEGER, PARAMETER :: int32  = C_INT32_T
+  INTEGER, PARAMETER :: real64 = C_DOUBLE
+  INTEGER, PARAMETER :: real32 = C_FLOAT                                       
+!------------------------------------------------------------------------------!
 ! Interfaces
 
 ! C Interfaces
@@ -80,6 +76,8 @@ CHARACTER(KIND=C_CHAR, LEN=1), INTENT(INOUT) :: message(*)
 END FUNCTION c_shum_read_wgdos_header
 END INTERFACE
 
+!------------------------------------------------------------------------------!
+
 INTERFACE f_shum_read_wgdos_header
 MODULE PROCEDURE                                                               &
   shum_read_wgdos_header_real64,                                               &
@@ -90,19 +88,19 @@ END INTERFACE
 
 CONTAINS
 
-! -----------------------------------------------------------------------------!
+!------------------------------------------------------------------------------!
 
 FUNCTION shum_read_wgdos_header_real64(data_in, accuracy, cols, rows, message)
                           
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T) ::                                                     &
+INTEGER(KIND=int64) ::                                                         &
   shum_read_wgdos_header_real64
 
 REAL(KIND=real64), TARGET, INTENT(IN) ::                                       &
   data_in(*)
 
-INTEGER(KIND=C_INT64_T), INTENT(OUT) ::                                        &
+INTEGER(KIND=int64), INTENT(OUT) ::                                            &
   accuracy, cols, rows
 
 CHARACTER(LEN=*), INTENT(INOUT) :: message
@@ -124,13 +122,13 @@ FUNCTION shum_read_wgdos_header_integer64(data_in, accuracy, cols, rows,       &
                           
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T) ::                                                     &
+INTEGER(KIND=int64) ::                                                         &
   shum_read_wgdos_header_integer64
 
-INTEGER(KIND=C_INT64_T), TARGET, INTENT(IN) ::                                 &
+INTEGER(KIND=int64), TARGET, INTENT(IN) ::                                     &
   data_in(*)
 
-INTEGER(KIND=C_INT64_T), INTENT(INOUT) ::                                      &
+INTEGER(KIND=int64), INTENT(INOUT) ::                                          &
   accuracy, cols, rows
 
 CHARACTER(LEN=*), INTENT(INOUT) :: message
@@ -151,13 +149,13 @@ FUNCTION shum_read_wgdos_header_real32(data_in, accuracy, cols, rows, message)
                           
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T) ::                                                     &
+INTEGER(KIND=int64) ::                                                         &
   shum_read_wgdos_header_real32
 
 REAL(KIND=real32), TARGET, INTENT(IN) ::                                       &
   data_in(*)
 
-INTEGER(KIND=C_INT64_T), INTENT(INOUT) ::                                      &
+INTEGER(KIND=int64), INTENT(INOUT) ::                                          &
   accuracy, cols, rows
 
 CHARACTER(LEN=*), INTENT(INOUT) :: message
@@ -179,13 +177,13 @@ FUNCTION shum_read_wgdos_header_integer32(data_in, accuracy, cols, rows,       &
                           
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T) ::                                                     &
+INTEGER(KIND=int64) ::                                                         &
   shum_read_wgdos_header_integer32
 
-INTEGER(KIND=C_INT32_T), TARGET, INTENT(IN) ::                                 &
+INTEGER(KIND=int32), TARGET, INTENT(IN) ::                                     &
   data_in(*)
 
-INTEGER(KIND=C_INT64_T), INTENT(INOUT) ::                                      &
+INTEGER(KIND=int64), INTENT(INOUT) ::                                          &
   accuracy, cols, rows
 
 CHARACTER(LEN=*), INTENT(INOUT) :: message
@@ -199,6 +197,8 @@ shum_read_wgdos_header_integer32 = c_shum_read_wgdos_header(                   &
 message = f_shum_c2f_string(cmessage)
 
 END FUNCTION shum_read_wgdos_header_integer32
+
+!------------------------------------------------------------------------------!
 
 END MODULE f_shum_read_wgdos_header_mod
 

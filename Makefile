@@ -28,6 +28,12 @@ ${OUTDIRS}:
 	mkdir -p ${LIBDIR_OUT}/lib
 	mkdir -p ${LIBDIR_OUT}/include
 
+# Precision Bomb (a C-header which will protect against compilation on
+# platforms where the assumptions about precision made in the libraries is
+# invalid)
+#--------------------------------------------------------------------------------
+PBOMB_DIR=${PWD}/pbomb
+
 # Libraries
 #--------------------------------------------------------------------------------
 # Drhook dummy
@@ -82,8 +88,8 @@ LIBFILES := $(wildcard ${LIBDIR_OUT}/lib/*.so)
 LIBNAMES := $(filter-out fruit, $(patsubst lib%.so, %, $(notdir $(LIBFILES))))
 
 # Names of libraries which defined FRUIT tests
-FRUITFILES := $(wildcard ${PWD}/shum_*/test/fruit_test_*.F90)
-FRUITNAMES := $(patsubst fruit_test_%.F90, %, $(notdir $(FRUITFILES)))
+FRUITFILES := $(wildcard ${PWD}/shum_*/test/fruit_test_*.f90)
+FRUITNAMES := $(patsubst fruit_test_%.f90, %, $(notdir $(FRUITFILES)))
 
 # Intersection of the above - i.e. names of libraries which are both compiled
 # and have tests available (so we can compile only tests that actually exist)

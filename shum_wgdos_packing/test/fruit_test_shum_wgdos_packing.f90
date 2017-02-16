@@ -28,10 +28,11 @@ IMPLICIT NONE
 
 !------------------------------------------------------------------------------!
 ! We're going to use the types from the ISO_C_BINDING module, since although   !
-! they aren't 100% guaranteed to correspond to the sizes we want to enforce    !
-! (particularly for REALs) they should be good enough on the majority of       !
-! systems. Additional protection for the case that FLOAT/DOUBLE do not conform !
-! to the sizes we expect is provided via the "shum_precision_bomb" macro-file  !
+! the REALs aren't 100% guaranteed to correspond to the sizes we want to       !
+! enforce, they should be good enough on the majority of systems.              !
+!                                                                              !
+! Additional protection for the case that FLOAT/DOUBLE do not conform to the   !
+! sizes we expect is provided via the "precision_bomb" macro-file              !
 !------------------------------------------------------------------------------!
   INTEGER, PARAMETER :: int64  = C_INT64_T
   INTEGER, PARAMETER :: int32  = C_INT32_T

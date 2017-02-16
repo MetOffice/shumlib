@@ -11,10 +11,10 @@ ${LIBTARGETS}: libshum_drhook_dummy.so libshum_drhook_dummy.a
 
 # Static library - uses archiver to create library
 #-------------------------------------------------------------------------------
-parkind1.o: parkind1.F90
+parkind1.o: parkind1.f90
 	${FC} ${FCFLAGS_PREC} -c $<
 
-yomhook.o: yomhook.F90 parkind1.o
+yomhook.o: yomhook.f90 parkind1.o
 	${FC} ${FCFLAGS_PREC} -c $<
 
 libshum_drhook_dummy.a: parkind1.o yomhook.o 
@@ -24,10 +24,10 @@ libshum_drhook_dummy.a: parkind1.o yomhook.o
 # are suffixed to keep them separate to the above (since the dynamic library
 # required position-independent-code flags whilst the static version does not)
 #-------------------------------------------------------------------------------
-parkind1_PIC.o: parkind1.F90
+parkind1_PIC.o: parkind1.f90
 	${FC} ${FCFLAGS_PREC} ${FCFLAGS_PIC} -c $< -o $@
 
-yomhook_PIC.o: yomhook.F90 parkind1.o
+yomhook_PIC.o: yomhook.f90 parkind1.o
 	${FC} ${FCFLAGS_PREC} ${FCFLAGS_PIC} -c $< -o $@
 
 libshum_drhook_dummy.so: parkind1_PIC.o yomhook_PIC.o 
