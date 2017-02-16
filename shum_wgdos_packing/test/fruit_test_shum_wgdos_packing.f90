@@ -87,8 +87,8 @@ accuracy = 1
 mdi      = -99.0
 
 status = f_shum_wgdos_pack(                                                    &
-                unpacked_data, packed_data, len1_unpacked*len2_unpacked,       &
-                len1_unpacked, len2_unpacked, num_words, accuracy, mdi, message)
+                unpacked_data, packed_data, len_packed, len1_unpacked,         &
+                len2_unpacked, num_words, accuracy, mdi, message)
 
 CALL assert_equals(status, 0, &
     "Packing of array returned non-zero exit status")
