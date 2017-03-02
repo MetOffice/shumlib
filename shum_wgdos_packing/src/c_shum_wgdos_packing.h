@@ -41,7 +41,6 @@ extern int64_t c_shum_wgdos_unpack(
                       int64_t *len_comp, 
                       int64_t *cols, 
                       int64_t *rows, 
-                      int64_t *acc, 
                       double  *rmdi, 
                       char    *err_msg);
 

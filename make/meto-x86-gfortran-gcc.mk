@@ -6,7 +6,7 @@
 # Compiler command
 FC=gfortran
 # Precision flags (passed to all compilation commands)
-FCFLAGS_PREC=-std=f2003 -pedantic -pedantic-errors
+FCFLAGS_PREC=-std=f2003 -pedantic -pedantic-errors -fno-range-check
 # Flag used to set PIC (Position-independent-code; required by dynamic lib 
 # and so will only be passed to compile objects destined for the dynamic lib)
 FCFLAGS_PIC=-fPIC

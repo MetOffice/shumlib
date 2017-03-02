@@ -84,7 +84,7 @@ int64_t c_shum_ieee2ieg (c_shum_datatypes *data_type, int64_t *num,
                          void *ieg_num_out, int64_t *offset_out, 
                          void *cri_num_in,  int64_t *stride, 
                          int64_t *size_num_in, int64_t *size_num_out, 
-                         char *message)
+                         char *message, int64_t message_len)
 {
 /* Local variables */
 int64_t errorcode=0 ;   /* Return error code (success=0) */
@@ -102,15 +102,14 @@ size_t mant_bits_read=0;
 cri_num_in_ptr = (uint64_t *)cri_num_in;
 ieg_num_out_ptr = (uint64_t *)ieg_num_out;
 
-/* Get error message string length */
-size_t message_len = strlen(message);
+size_t message_len_t = (size_t) message_len;
 
 /* Check for valid input */
 
 if (*num <= 0)
 {
   errorcode = -3 ;
-  snprintf(message, message_len,
+  snprintf(message, message_len_t,
      "IEEE2IEG: Error - Invalid num = %" PRId64 ". Return code = %" PRId64,
      *num, errorcode);
   return errorcode ;
@@ -119,7 +118,7 @@ if (*num <= 0)
 if (*stride != 1)
 {
   errorcode = -7 ;
-  snprintf(message, message_len,
+  snprintf(message, message_len_t,
      "IEEE2IEG: Error - Invalid stride = %" PRId64 ". Return code = %" PRId64,
      *stride, errorcode);
   return errorcode ;
@@ -137,7 +136,7 @@ if (offset < 0 || offset%(*size_num_out) != 0
                || *offset_out < 0)
 {
   errorcode = -4 ;
-  snprintf(message, message_len,
+  snprintf(message, message_len_t,
      "IEEE2IEG: Error - Invalid bitoff = %" PRId64 ". Return code = %"
      PRId64, *offset_out, errorcode);
   return errorcode ;
@@ -157,7 +156,7 @@ if (*data_type == C_SHUM_INTEGER){
     default:
     {
       errorcode = -5;
-      snprintf(message, message_len,
+      snprintf(message, message_len_t,
                "IEEE2IEG: Error - Invalid natlen = %" PRId64 ". Return code = %"
                PRId64, *size_num_in, errorcode);
       return errorcode ;
@@ -170,7 +169,7 @@ if (*data_type == C_SHUM_INTEGER){
     default:
     {
       errorcode = -6;
-      snprintf(message, message_len,
+      snprintf(message, message_len_t,
                "IEEE2IEG: Error - Invalid forlen = %" PRId64 ". Return code = %"
                PRId64, *size_num_out, errorcode);
       return errorcode;
@@ -187,7 +186,7 @@ else if (*data_type == C_SHUM_REAL){
     default:
     {
       errorcode = -5;
-      snprintf(message, message_len,
+      snprintf(message, message_len_t,
                "IEEE2IEG: Error - Invalid natlen = %" PRId64 ". Return code = %"
                PRId64, *size_num_in, errorcode);
       return errorcode;
@@ -199,7 +198,7 @@ else if (*data_type == C_SHUM_REAL){
     default:
     {
       errorcode = -6;
-      snprintf(message, message_len,
+      snprintf(message, message_len_t,
                "IEEE2IEG: Error - Invalid forlen %" PRId64 ". Return code = %"
                PRId64, *size_num_out, errorcode);
       return errorcode;
@@ -217,7 +216,7 @@ else if (*data_type == C_SHUM_LOGICAL){
     default:
     {
       errorcode = -5;
-      snprintf(message, message_len,
+      snprintf(message, message_len_t,
                "IEEE2IEG: Error - Invalid natlen = %" PRId64 ". Return code = %"
                PRId64, *size_num_in, errorcode);
       return errorcode;
@@ -230,7 +229,7 @@ else if (*data_type == C_SHUM_LOGICAL){
     default:
     {
       errorcode = -6;
-      snprintf(message, message_len,
+      snprintf(message, message_len_t,
                "IEEE2IEG: Error - Invalid forlen = %" PRId64 ". Return code = %"
                PRId64, *size_num_out, errorcode);
       return errorcode;
@@ -241,7 +240,7 @@ else
 {
   /* ERROR - unsupported type */
   errorcode = -2;
-  snprintf(message, message_len,
+  snprintf(message, message_len_t,
            "IEEE2IEG: Error - unsupported data type = %d. Return code = %"
            PRId64, *data_type, errorcode);
   return errorcode;
@@ -279,7 +278,7 @@ int64_t c_shum_ieg2ieee (c_shum_datatypes *data_type, int64_t *num,
                          void *ieg_num_in, int64_t *offset_in, 
                          void *cri_num_out, int64_t *stride, 
                          int64_t *size_num_out, int64_t *size_num_in, 
-                         char *message)
+                         char *message, int64_t message_len)
 {
 /* Local variables */
 int64_t errorcode=0 ;  /* Return error code (success=0) */
@@ -297,15 +296,14 @@ size_t mant_bits_read=0;
 cri_num_out_ptr = (uint64_t *)cri_num_out;
 ieg_num_in_ptr = (uint64_t *)ieg_num_in;
 
-/* Get error message string length */
-size_t message_len = strlen(message);
+size_t message_len_t = (size_t) message_len;
 
 /* Check for valid input */
 
 if (*num <= 0)
 {
   errorcode = -3;
-  snprintf(message, message_len,
+  snprintf(message, message_len_t,
            "IEG2IEEE: Error - Invalid num = %" PRId64 ". Return code = %"
            PRId64, *num, errorcode);
   return errorcode ;
@@ -314,7 +312,7 @@ if (*num <= 0)
 if (*stride != 1)
 {
   errorcode = -7;
-  snprintf(message, message_len,
+  snprintf(message, message_len_t,
            "IEG2IEEE: Error - Invalid stride = %" PRId64 ". Return code = %"
            PRId64, *stride, errorcode);
   return errorcode ;
@@ -332,7 +330,7 @@ if (offset < 0 || offset%( *size_num_in ) != 0
                || *offset_in < 0)
 {
   errorcode = -4;
-  snprintf(message, message_len,
+  snprintf(message, message_len_t,
            "IEG2IEEE: Error - Invalid bitoff = %" PRId64 ". Return code = %"
            PRId64, *offset_in, errorcode);
   return errorcode;
@@ -353,7 +351,7 @@ if (*data_type == C_SHUM_INTEGER){
     default:
     {
       errorcode = -5;
-      snprintf(message, message_len,
+      snprintf(message, message_len_t,
                "IEG2IEEE: Error - Invalid natlen = %" PRId64 ". Return code = %"
                PRId64, *size_num_in, errorcode);
       return errorcode;
@@ -366,7 +364,7 @@ if (*data_type == C_SHUM_INTEGER){
     default:
     {
       errorcode = -6;
-      snprintf(message, message_len,
+      snprintf(message, message_len_t,
                "IEG2IEEE: Error - Invalid forlen = %" PRId64 ". Return code = %"
                PRId64, *size_num_out, errorcode);
       return errorcode;
@@ -383,7 +381,7 @@ else if (*data_type == C_SHUM_REAL){
     default:
     {
       errorcode = -5;
-      snprintf(message, message_len,
+      snprintf(message, message_len_t,
                "IEG2IEEE: Error - Invalid natlen = %" PRId64 ". Return code = %"
                PRId64, *size_num_in, errorcode);
       return errorcode;
@@ -395,7 +393,7 @@ else if (*data_type == C_SHUM_REAL){
     default:
     {
       errorcode = -6;
-      snprintf(message, message_len,
+      snprintf(message, message_len_t,
                "IEG2IEEE: Error - Invalid forlen %" PRId64 ". Return code = %"
                PRId64, *size_num_out, errorcode);
       return errorcode;
@@ -413,7 +411,7 @@ else if (*data_type == C_SHUM_LOGICAL){
     default:
     {
       errorcode = -5;
-      snprintf(message, message_len,
+      snprintf(message, message_len_t,
                "IEG2IEEE: Error - Invalid natlen = %" PRId64 ". Return code = %"
                PRId64, *size_num_in, errorcode);
       return errorcode;
@@ -426,7 +424,7 @@ else if (*data_type == C_SHUM_LOGICAL){
     default:
     {
       errorcode = -6;
-      snprintf(message, message_len,
+      snprintf(message, message_len_t,
                "IEG2IEEE: Error - Invalid forlen = %" PRId64 ". Return code = %"
                PRId64, *size_num_out, errorcode);
       return errorcode;
@@ -437,7 +435,7 @@ else
 {
   /* ERROR - unsupported data type */
   errorcode = -2;
-  snprintf(message, message_len,
+  snprintf(message, message_len_t,
            "IEG2IEEE: Error - unsupported data type = %d. Return code = %"
            PRId64, *data_type, errorcode);
   return errorcode ;
@@ -476,7 +474,7 @@ int64_t c_shum_ieee2ibm (c_shum_datatypes *data_type, int64_t *num,
                          void *ibm_num_out, int64_t *offset_out,
                          void *cri_num_in, int64_t *stride,
                          int64_t *size_num_in, int64_t *size_num_out,
-                         char *message)
+                         char *message, int64_t message_len)
 {
 /* local variables */
 int64_t errorcode=0 ;  /* Return error code (success=0) */
@@ -494,15 +492,14 @@ size_t mant_bits_read=0;
 cri_num_in_ptr = (uint64_t *)cri_num_in;
 ibm_num_out_ptr = (uint64_t *)ibm_num_out;
 
-/* Get error message string length */
-size_t message_len = strlen(message);
+size_t message_len_t = (size_t) message_len;
 
 /* Check for valid input */
 
 if (*num <= 0)
 {
   errorcode = -3;
-  snprintf(message, message_len,
+  snprintf(message, message_len_t,
            "IEEE2IBM: Error - Invalid num = %" PRId64 ". Return code = %"
            PRId64, *num, errorcode);
   return errorcode ;
@@ -511,7 +508,7 @@ if (*num <= 0)
 if (*stride != 1)
 {
   errorcode = -7;
-  snprintf(message, message_len,
+  snprintf(message, message_len_t,
            "IEEE2IBM: Error - Invalid stride = %" PRId64 ". Return code = %"
            PRId64, *stride, errorcode);
   return errorcode ;
@@ -528,7 +525,7 @@ if (offset < 0 || offset%(*size_num_out ) != 0
                || *offset_out < 0)
 {
   errorcode = -4;
-  snprintf(message, message_len,
+  snprintf(message, message_len_t,
            "IEEE2IBM: Error - Invalid bitoff = %" PRId64 ". Return code = %"
            PRId64, *offset_out, errorcode);
   return errorcode;
@@ -548,7 +545,7 @@ if (*data_type == C_SHUM_INTEGER){
     default:
     {
       errorcode = -5;
-      snprintf(message, message_len,
+      snprintf(message, message_len_t,
               "IEEE2IBM: Error - Invalid natlen = %" PRId64 ". Return code = %"
               PRId64, *size_num_in, errorcode);
       return errorcode;
@@ -561,7 +558,7 @@ if (*data_type == C_SHUM_INTEGER){
     default:
     {
       errorcode = -6;
-      snprintf(message, message_len,
+      snprintf(message, message_len_t,
                "IEEE2IBM: Error - Invalid forlen = %" PRId64 ". Return code = %"
                PRId64, *size_num_out, errorcode);
       return errorcode;
@@ -578,7 +575,7 @@ else if (*data_type == C_SHUM_REAL){
     default:
     {
       errorcode = -5;
-      snprintf(message, message_len,
+      snprintf(message, message_len_t,
                "IEEE2IBM: Error - Invalid natlen = %" PRId64 ". Return code = %"
                PRId64, *size_num_in, errorcode);
       return errorcode;
@@ -590,7 +587,7 @@ else if (*data_type == C_SHUM_REAL){
     default:
     {
       errorcode = -6;
-      snprintf(message, message_len,
+      snprintf(message, message_len_t,
                "IEEE2IBM: Error - Invalid forlen %" PRId64 ". Return code = %"
                PRId64, *size_num_out, errorcode);
       return errorcode ;
@@ -608,7 +605,7 @@ else if (*data_type == C_SHUM_LOGICAL){
     default:
     {
       errorcode = -5;
-      snprintf(message, message_len,
+      snprintf(message, message_len_t,
                "IEEE2IBM: Error - Invalid natlen = %" PRId64 " . Return code = %"
                PRId64, *size_num_in, errorcode);
       return errorcode;
@@ -621,7 +618,7 @@ else if (*data_type == C_SHUM_LOGICAL){
     default:
     {
       errorcode = -6;
-      snprintf(message, message_len,
+      snprintf(message, message_len_t,
                "IEEE2IBM: Error - Invalid forlen = %" PRId64 ". Return code = %"
                PRId64, *size_num_out,  errorcode);
       return errorcode;
@@ -632,7 +629,7 @@ else
 {
   /* ERROR - unsupported type */
   errorcode = -2;
-  snprintf(message, message_len,
+  snprintf(message, message_len_t,
            "IEEE2IBM: Error - unsupported data type = %d. Return code = %"
            PRId64, *data_type, errorcode);
   return errorcode;
@@ -672,7 +669,7 @@ int64_t c_shum_ibm2ieee (c_shum_datatypes *data_type, int64_t *num,
                          void *ibm_num_in, int64_t *offset_in,
                          void *cri_num_out, int64_t *stride,
                          int64_t *size_num_out,int64_t *size_num_in,
-                         char *message)
+                         char *message, int64_t message_len)
 {
 /* Local variables */
 int64_t errorcode=0 ;   /* Return error code (success=0) */
@@ -690,15 +687,14 @@ size_t mant_bits_read=0;
 ibm_num_in_ptr = (uint64_t *)ibm_num_in;
 cri_num_out_ptr = (uint64_t *)cri_num_out;
 
-/* Get error message string length */
-size_t message_len = strlen(message);
+size_t message_len_t = (size_t) message_len;
 
 /* Check for valid input */
 
 if (*num <= 0)
 {
   errorcode = -3;
-  snprintf(message, message_len,
+  snprintf(message, message_len_t,
            "IBM2IEEE: Error - Invalid num = %" PRId64 ". Return code = %"
            PRId64, *num, errorcode);
   return errorcode;
@@ -707,7 +703,7 @@ if (*num <= 0)
 if (*stride != 1)
 {
   errorcode = -7;
-  snprintf(message, message_len,
+  snprintf(message, message_len_t,
            "IBM2IEEE: Error - Invalid stride = %" PRId64 ". Return code = %"
            PRId64, *stride, errorcode);
   return errorcode ;
@@ -724,7 +720,7 @@ if (offset < 0 || offset%(*size_num_in) != 0
                || *offset_in < 0)
 {
   errorcode = -4;
-  snprintf(message, message_len,
+  snprintf(message, message_len_t,
            "IBM2IEEE: Error - Invalid bitoff = %" PRId64 ". Return code = %"
            PRId64, *offset_in, errorcode);
   return errorcode ;
@@ -744,7 +740,7 @@ if (*data_type == C_SHUM_INTEGER){
     default:
     {
       errorcode = -5;
-      snprintf(message, message_len,
+      snprintf(message, message_len_t,
                "IBM2IEEE: Error - Invalid natlen = %" PRId64 ". Return code = %"
                PRId64, *size_num_in, errorcode);
       return errorcode;
@@ -757,7 +753,7 @@ if (*data_type == C_SHUM_INTEGER){
     default:
     {
       errorcode = -6;
-      snprintf(message, message_len,
+      snprintf(message, message_len_t,
                "IBM2IEEE: Error - Invalid forlen = %" PRId64 ". Return code = %"
                PRId64, *size_num_out, errorcode);
       return errorcode;
@@ -774,7 +770,7 @@ else if (*data_type == C_SHUM_REAL){
     default:
     {
       errorcode = -5;
-      snprintf(message, message_len,
+      snprintf(message, message_len_t,
               "IBM2IEEE: Error - Invalid natlen = %" PRId64 ". Return code = %"
               PRId64, *size_num_in, errorcode);
       return errorcode;
@@ -786,7 +782,7 @@ else if (*data_type == C_SHUM_REAL){
     default:
     {
       errorcode = -6;
-      snprintf(message, message_len,
+      snprintf(message, message_len_t,
                "IBM2IEEE: Error - Invalid forlen %" PRId64 ". Return code = %"
                PRId64, *size_num_out, errorcode);
       return errorcode;
@@ -804,7 +800,7 @@ else if (*data_type == C_SHUM_LOGICAL){
     default:
     {
       errorcode = -5;
-      snprintf(message, message_len,
+      snprintf(message, message_len_t,
                "IBM2IEEE: Error - Invalid natlen = %" PRId64 ". Return code = %"
                PRId64, *size_num_in, errorcode);
       return errorcode;
@@ -817,7 +813,7 @@ else if (*data_type == C_SHUM_LOGICAL){
     default:
     {
       errorcode = -6;
-      snprintf(message, message_len,
+      snprintf(message, message_len_t,
               "IBM2IEEE: Error - Invalid forlen = %" PRId64 ". Return code = %"
               PRId64, *size_num_out, errorcode);
       return errorcode;
@@ -828,7 +824,7 @@ else
 {
   /* ERROR - unsupported type */
   errorcode = -2;
-  snprintf(message, message_len,
+  snprintf(message, message_len_t,
            "IBM2IEEE: Error - unsupported data type = %d. Return code = %"
            PRId64, *data_type, errorcode);
   return errorcode;

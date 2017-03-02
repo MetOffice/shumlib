@@ -124,7 +124,8 @@ extern int64_t c_shum_ibm2ieee(
                              int64_t   *stride, 
                              int64_t   *size_num_out, 
                              int64_t   *size_num_in,
-                             char      *message);
+                             char      *message,
+                             int64_t    message_len);
 
 extern int64_t c_shum_ieee2ibm(
                       c_shum_datatypes *data_type, 
@@ -135,7 +136,8 @@ extern int64_t c_shum_ieee2ibm(
                              int64_t   *stride,
                              int64_t   *size_num_in, 
                              int64_t   *size_num_out,
-                             char      *message);
+                             char      *message,
+                             int64_t    message_len);
 
 extern int64_t c_shum_ieee2ieg(
                       c_shum_datatypes *data_type, 
@@ -146,7 +148,8 @@ extern int64_t c_shum_ieee2ieg(
                              int64_t   *stride,
                              int64_t   *size_num_in, 
                              int64_t   *size_num_out,
-                             char      *message);
+                             char      *message,
+                             int64_t    message_len);
 
 extern int64_t c_shum_ieg2ieee(
                       c_shum_datatypes *data_type, 
@@ -157,7 +160,8 @@ extern int64_t c_shum_ieg2ieee(
                              int64_t   *stride,
                              int64_t   *size_num_out, 
                              int64_t   *size_num_in,
-                             char      *message);
+                             char      *message,
+                             int64_t    message_len);
 
 /* Number of bytes in a word of a specific bit size */
 #define WORD8BYTES  1 /*  8 bit */

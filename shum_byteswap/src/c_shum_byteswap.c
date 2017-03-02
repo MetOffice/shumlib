@@ -38,10 +38,10 @@
 /* -------------------------------------------------------------------------- */
 
 int64_t c_shum_byteswap(void *array, int64_t len, int64_t word_len, 
-                        char *message)
+                        char *message, int64_t message_len)
 {
 
-  size_t message_len = strlen(message);
+  size_t message_len_t = (size_t) message_len;
 
   int64_t status = 0;
 
@@ -88,7 +88,7 @@ int64_t c_shum_byteswap(void *array, int64_t len, int64_t word_len,
   else
   {
     status = 1;
-    snprintf(message, message_len,
+    snprintf(message, message_len_t,
              "c_shum_byteswap: Word length of %" PRId64 " bytes not allowed. "
              "Supported word lengths are 2, 4 or 8 bytes", 
              word_len);

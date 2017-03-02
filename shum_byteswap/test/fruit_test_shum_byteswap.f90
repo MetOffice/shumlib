@@ -58,7 +58,7 @@ END SUBROUTINE fruit_test_shum_byteswap
 
 SUBROUTINE test_returns_valid_endian
 
-USE f_shum_byteswap_mod, ONLY: f_shum_byteswap, f_shum_get_machine_endianism, &
+USE f_shum_byteswap_mod, ONLY: f_shum_get_machine_endianism,                   &
                                f_shum_littleendian, f_shum_bigendian
 IMPLICIT NONE 
 

@@ -66,26 +66,245 @@ INTEGER(KIND=int64), PARAMETER ::                                              &
 INTEGER(KIND=int64), PARAMETER ::                                              &
                      mask_sign_ibm = INT(z'80000000', KIND=int64)
 
+INTERFACE f_shum_wgdos_pack
+  MODULE PROCEDURE                                                             &
+      f_shum_wgdos_pack_expl_arg64,                                            &
+      f_shum_wgdos_pack_expl_arg32,                                            &
+      f_shum_wgdos_pack_2d_arg64,                                              &
+      f_shum_wgdos_pack_2d_arg32,                                              &
+      f_shum_wgdos_pack_1d_arg64,                                              &
+      f_shum_wgdos_pack_1d_arg32
+END INTERFACE
+
+INTERFACE f_shum_wgdos_unpack
+  MODULE PROCEDURE                                                             &
+      f_shum_wgdos_unpack_expl_arg64,                                          &
+      f_shum_wgdos_unpack_expl_arg32,                                          &
+      f_shum_wgdos_unpack_2d_arg64,                                            &
+      f_shum_wgdos_unpack_2d_arg32,                                            &
+      f_shum_wgdos_unpack_1d_arg64,                                            &
+      f_shum_wgdos_unpack_1d_arg32
+END INTERFACE
+
 CONTAINS
 
 !------------------------------------------------------------------------------!
 
-FUNCTION f_shum_wgdos_pack(field, packed_field, len_packed_field, cols, rows,  &
-                           n_packed_words, accuracy, rmdi, message)            &
-                           RESULT(status)
+FUNCTION f_shum_wgdos_pack_2d_arg64(field, accuracy, rmdi, packed_field,       &
+                                    n_packed_words, message) RESULT(status)
+IMPLICIT NONE 
+
+INTEGER(KIND=int64) :: status
+
+REAL(KIND=real64),   INTENT(IN)  :: field(:, :)
+INTEGER(KIND=int64), INTENT(IN)  :: accuracy
+REAL(KIND=real64),   INTENT(IN)  :: rmdi
+INTEGER(KIND=int64), INTENT(OUT) :: packed_field(:)
+INTEGER(KIND=int64), INTENT(OUT) :: n_packed_words
+CHARACTER(LEN=*),    INTENT(OUT) :: message    
+
+INTEGER(KIND=int64) :: cols
+INTEGER(KIND=int64) :: rows
+INTEGER(KIND=int64) :: len_packed_field
+
+cols = SIZE(field, 1, KIND=int64)
+rows = SIZE(field, 2, KIND=int64)
+len_packed_field = SIZE(packed_field, 1, KIND=int64)
+
+status = f_shum_wgdos_pack_expl_arg64(                                         &
+                      field, cols, rows, accuracy, rmdi, packed_field,         &
+                      len_packed_field, n_packed_words, message)
+
+END FUNCTION f_shum_wgdos_pack_2d_arg64
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_wgdos_pack_2d_arg32(field, accuracy, rmdi, packed_field,       &
+                                    n_packed_words, message) RESULT(status)
+IMPLICIT NONE 
+
+INTEGER(KIND=int32) :: status
+
+REAL(KIND=real64),   INTENT(IN)  :: field(:, :)
+INTEGER(KIND=int32), INTENT(IN)  :: accuracy
+REAL(KIND=real32),   INTENT(IN)  :: rmdi
+INTEGER(KIND=int64), INTENT(OUT) :: packed_field(:)
+INTEGER(KIND=int32), INTENT(OUT) :: n_packed_words
+CHARACTER(LEN=*),    INTENT(OUT) :: message    
+
+INTEGER(KIND=int64) :: status64
+INTEGER(KIND=int64) :: n_packed_words64
+INTEGER(KIND=int64) :: accuracy64
+REAL(KIND=real64)   :: rmdi64
+INTEGER(KIND=int64) :: cols
+INTEGER(KIND=int64) :: rows
+INTEGER(KIND=int64) :: len_packed_field 
+
+accuracy64 = INT(accuracy, KIND=int64)
+rmdi64 = REAL(rmdi, KIND=real64)
+cols = SIZE(field, 1, KIND=int64)
+rows = SIZE(field, 2, KIND=int64)
+len_packed_field = SIZE(packed_field, 1, KIND=int64)
+
+status64 = f_shum_wgdos_pack_expl_arg64(                                       &
+                        field, cols, rows, accuracy64, rmdi64, packed_field,   &
+                        len_packed_field, n_packed_words64, message)
+
+status         = INT(status64, KIND=int32)
+n_packed_words = INT(n_packed_words64, KIND=int32)
+
+END FUNCTION f_shum_wgdos_pack_2d_arg32
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_wgdos_pack_1d_arg64(field, stride, accuracy, rmdi,             &
+                                    packed_field, n_packed_words, message)     &
+                                    RESULT(status)
+IMPLICIT NONE 
+
+INTEGER(KIND=int64) :: status
+
+REAL(KIND=real64),   INTENT(IN), TARGET :: field(:)
+INTEGER(KIND=int64), INTENT(IN)         :: stride
+INTEGER(KIND=int64), INTENT(IN)         :: accuracy
+REAL(KIND=real64),   INTENT(IN)         :: rmdi
+INTEGER(KIND=int64), INTENT(OUT)        :: packed_field(:)
+INTEGER(KIND=int64), INTENT(OUT)        :: n_packed_words
+CHARACTER(LEN=*),    INTENT(OUT)        :: message    
+
+INTEGER(KIND=int64)        :: cols
+INTEGER(KIND=int64)        :: rows
+REAL(KIND=real64), POINTER :: field2d(:, :)
+INTEGER(KIND=int64)        :: len_packed_field
+
+
+IF (MOD(SIZE(field, KIND=int64), stride) /= 0) THEN
+  status = 1_int64
+  message = "1d Field length not divisible by given stride"
+  RETURN
+END IF
+
+cols = stride
+rows = SIZE(field)/cols
+field2d(1:cols, 1:rows) => field(:)
+len_packed_field = SIZE(packed_field, 1, KIND=int64)
+
+status = f_shum_wgdos_pack_expl_arg64(                                         &
+                      field2d, cols, rows, accuracy, rmdi, packed_field,       &
+                      len_packed_field, n_packed_words, message)
+
+END FUNCTION f_shum_wgdos_pack_1d_arg64
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_wgdos_pack_1d_arg32(field, stride, accuracy, rmdi,             &
+                                    packed_field, n_packed_words, message)     &
+                                    RESULT(status)
+IMPLICIT NONE 
+
+INTEGER(KIND=int32) :: status
+
+REAL(KIND=real64),   INTENT(IN), TARGET  :: field(:)
+INTEGER(KIND=int32), INTENT(IN)          :: stride
+INTEGER(KIND=int32), INTENT(IN)          :: accuracy
+REAL(KIND=real32),   INTENT(IN)          :: rmdi
+INTEGER(KIND=int64), INTENT(OUT)         :: packed_field(:)
+INTEGER(KIND=int32), INTENT(OUT)         :: n_packed_words
+CHARACTER(LEN=*),    INTENT(OUT)         :: message    
+
+INTEGER(KIND=int64)        :: status64
+INTEGER(KIND=int64)        :: n_packed_words64
+INTEGER(KIND=int64)        :: accuracy64
+REAL(KIND=real64)          :: rmdi64
+INTEGER(KIND=int64)        :: cols
+INTEGER(KIND=int64)        :: rows
+REAL(KIND=real64), POINTER :: field2d(:, :)
+INTEGER(KIND=int64)        :: len_packed_field
+
+IF (MOD(SIZE(field, KIND=int32), stride) /= 0) THEN
+  status = 1_int32
+  message = "1d Field length not divisible by given stride"
+  RETURN
+END IF
+
+accuracy64 = INT(accuracy, KIND=int64)
+rmdi64 = REAL(rmdi, KIND=real64)
+cols = INT(stride, KIND=int64)
+rows = INT(SIZE(field)/cols, KIND=int64)
+field2d(1:cols, 1:rows) => field(:)
+len_packed_field = SIZE(packed_field, 1, KIND=int64)
+
+status64 = f_shum_wgdos_pack_expl_arg64(                                       &
+                        field2d, cols, rows, accuracy64, rmdi64, packed_field, &
+                        len_packed_field, n_packed_words64, message)
+
+status         = INT(status64, KIND=int32)
+n_packed_words = INT(n_packed_words64, KIND=int32)
+
+END FUNCTION f_shum_wgdos_pack_1d_arg32
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_wgdos_pack_expl_arg32(                                         &
+    field, cols, rows, accuracy, rmdi, packed_field, len_packed_field,         &
+    n_packed_words, message) RESULT(status)
+
+IMPLICIT NONE
+
+INTEGER(KIND=int32) :: status
+
+INTEGER(KIND=int32), INTENT(IN)  :: cols
+INTEGER(KIND=int32), INTENT(IN)  :: rows
+REAL(KIND=real64),   INTENT(IN)  :: field(cols, rows)
+INTEGER(KIND=int32), INTENT(IN)  :: accuracy
+REAL(KIND=real32),   INTENT(IN)  :: rmdi
+INTEGER(KIND=int32), INTENT(IN)  :: len_packed_field
+INTEGER(KIND=int64), INTENT(OUT) :: packed_field(len_packed_field)
+INTEGER(KIND=int32), INTENT(OUT) :: n_packed_words
+CHARACTER(LEN=*),    INTENT(OUT) :: message
+
+INTEGER(KIND=int64) :: status64
+INTEGER(KIND=int64) :: cols64
+INTEGER(KIND=int64) :: rows64
+INTEGER(KIND=int64) :: accuracy64
+REAL(KIND=real64)   :: rmdi64
+INTEGER(KIND=int64) :: len_packed_field64
+INTEGER(KIND=int64) :: n_packed_words64
+
+accuracy64 = INT(accuracy, KIND=int64)
+rmdi64 = REAL(rmdi, KIND=real64)
+cols64 = INT(cols, KIND=int64)
+rows64 = INT(rows, KIND=int64)
+len_packed_field64 = INT(len_packed_field, KIND=int64)
+
+status64 = f_shum_wgdos_pack_expl_arg64(                                       &
+                        field, cols64, rows64, accuracy64, rmdi64,             &
+                        packed_field, len_packed_field64, n_packed_words64,    &
+                        message)
+
+status = INT(status64, KIND=int32)
+n_packed_words = INT(n_packed_words64, KIND=int32)
+
+END FUNCTION f_shum_wgdos_pack_expl_arg32
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_wgdos_pack_expl_arg64(                                         &
+    field, cols, rows, accuracy, rmdi, packed_field, len_packed_field,         &
+    n_packed_words, message) RESULT(status)
 
 IMPLICIT NONE
 
 INTEGER(KIND=int64) :: status
 
-INTEGER(KIND=int64), INTENT(IN)  :: len_packed_field
 INTEGER(KIND=int64), INTENT(IN)  :: cols
 INTEGER(KIND=int64), INTENT(IN)  :: rows
 REAL(KIND=real64),   INTENT(IN)  :: field(cols, rows)
 INTEGER(KIND=int64), INTENT(IN)  :: accuracy
 REAL(KIND=real64),   INTENT(IN)  :: rmdi
-INTEGER(KIND=int64), INTENT(OUT) :: n_packed_words
+INTEGER(KIND=int64), INTENT(IN)  :: len_packed_field
 INTEGER(KIND=int64), INTENT(OUT) :: packed_field(len_packed_field)
+INTEGER(KIND=int64), INTENT(OUT) :: n_packed_words
 CHARACTER(LEN=*),    INTENT(OUT) :: message    
 
 INTEGER(KIND=int64) :: i, j, npoint, nshft, ival
@@ -491,24 +710,200 @@ status = 0
 
 IF (lhook) CALL dr_hook(RoutineName,zhook_out,zhook_handle)
 
-END FUNCTION f_shum_wgdos_pack
+END FUNCTION f_shum_wgdos_pack_expl_arg64
 
 !------------------------------------------------------------------------------!
 
-FUNCTION f_shum_wgdos_unpack(field, packed_field, len_packed_field, cols,      &
-                             rows, accuracy, rmdi, message)                    &
-                             RESULT(status)
+FUNCTION f_shum_wgdos_unpack_2d_arg64(                                         &
+    packed_field, rmdi, field, message) RESULT(status)
+
+IMPLICIT NONE
+
+INTEGER(KIND=int64) :: status
+
+INTEGER(KIND=int64), INTENT(IN)  :: packed_field(:)
+REAL(KIND=real64),   INTENT(IN)  :: rmdi
+REAL(KIND=real64),   INTENT(OUT) :: field(:, :)
+CHARACTER(LEN=*),    INTENT(OUT) :: message
+
+INTEGER(KIND=int64) :: cols
+INTEGER(KIND=int64) :: rows
+INTEGER(KIND=int64) :: len_packed_field
+
+cols = SIZE(field, 1, KIND=int64)
+rows = SIZE(field, 2, KIND=int64)
+len_packed_field = SIZE(packed_field, 1, KIND=int64)
+
+status = f_shum_wgdos_unpack_expl_arg64(                                       &
+                        packed_field, len_packed_field, rmdi,                  &
+                        field, cols, rows, message)
+
+END FUNCTION f_shum_wgdos_unpack_2d_arg64
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_wgdos_unpack_2d_arg32(                                         &
+    packed_field, rmdi, field, message) RESULT(status)
+
+IMPLICIT NONE
+
+INTEGER(KIND=int32) :: status
+
+INTEGER(KIND=int64), INTENT(IN)  :: packed_field(:)
+REAL(KIND=real32),   INTENT(IN)  :: rmdi
+REAL(KIND=real64),   INTENT(OUT) :: field(:, :)
+CHARACTER(LEN=*),    INTENT(OUT) :: message
+
+INTEGER(KIND=int64) :: status64
+REAL(KIND=real64)   :: rmdi64
+INTEGER(KIND=int64) :: cols
+INTEGER(KIND=int64) :: rows
+INTEGER(KIND=int64) :: len_packed_field
+
+rmdi64 = REAL(rmdi, KIND=real64)
+cols = SIZE(field, 1, KIND=int64)
+rows = SIZE(field, 2, KIND=int64)
+len_packed_field = SIZE(packed_field, 1, KIND=int64)
+
+status64 = f_shum_wgdos_unpack_expl_arg64(                                     &
+                        packed_field, len_packed_field, rmdi64,                &
+                        field, cols, rows, message)
+
+status = INT(status64, KIND=int32)
+    
+END FUNCTION f_shum_wgdos_unpack_2d_arg32
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_wgdos_unpack_1d_arg64(                                         &
+    packed_field, rmdi, field, stride, message) RESULT(status)
+
+IMPLICIT NONE
+
+INTEGER(KIND=int64) :: status
+
+INTEGER(KIND=int64), INTENT(IN)          :: packed_field(:)
+REAL(KIND=real64),   INTENT(IN)          :: rmdi
+INTEGER(KIND=int64), INTENT(IN)          :: stride
+REAL(KIND=real64),   INTENT(OUT), TARGET :: field(:)
+CHARACTER(LEN=*),    INTENT(OUT)         :: message
+
+INTEGER(KIND=int64)        :: cols
+INTEGER(KIND=int64)        :: rows
+REAL(KIND=real64), POINTER :: field2d(:, :)
+INTEGER(KIND=int64)        :: len_packed_field
+
+IF (MOD(SIZE(field, KIND=int64), stride) /= 0) THEN
+  status = 1_int64
+  message = "1d Field length not divisible by given stride"
+  RETURN
+END IF
+
+cols = stride
+rows = SIZE(field)/cols
+field2d(1:cols, 1:rows) => field(:)
+len_packed_field = SIZE(packed_field, 1, KIND=int64)
+
+status = f_shum_wgdos_unpack_expl_arg64(                                       &
+                        packed_field, len_packed_field, rmdi,                  &
+                        field, cols, rows, message)
+
+END FUNCTION f_shum_wgdos_unpack_1d_arg64
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_wgdos_unpack_1d_arg32(                                         &
+    packed_field, rmdi, field, stride, message) RESULT(status)
+
+IMPLICIT NONE
+
+INTEGER(KIND=int32) :: status
+
+INTEGER(KIND=int64), INTENT(IN)          :: packed_field(:)
+REAL(KIND=real32),   INTENT(IN)          :: rmdi
+INTEGER(KIND=int32), INTENT(IN)          :: stride
+REAL(KIND=real64),   INTENT(OUT), TARGET :: field(:)
+CHARACTER(LEN=*),    INTENT(OUT)         :: message
+
+INTEGER(KIND=int64)        :: status64
+REAL(KIND=real64)          :: rmdi64
+INTEGER(KIND=int64)        :: cols
+INTEGER(KIND=int64)        :: rows
+REAL(KIND=real64), POINTER :: field2d(:, :)
+INTEGER(KIND=int64)        :: len_packed_field
+
+IF (MOD(SIZE(field, KIND=int32), stride) /= 0) THEN
+  status = 1_int32
+  message = "1d Field length not divisible by given stride"
+  RETURN
+END IF
+
+rmdi64 = REAL(rmdi, KIND=real64)
+cols = INT(stride, KIND=int64)
+rows = INT(SIZE(field)/cols, KIND=int64)
+field2d(1:cols, 1:rows) => field(:)
+len_packed_field = SIZE(packed_field, 1, KIND=int64)
+
+status64 = f_shum_wgdos_unpack_expl_arg64(                                     &
+                        packed_field, len_packed_field, rmdi64,                &
+                        field, cols, rows, message)
+
+status = INT(status64, KIND=int32)
+    
+END FUNCTION f_shum_wgdos_unpack_1d_arg32
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_wgdos_unpack_expl_arg32(                                       &
+    packed_field, len_packed_field, rmdi, field, cols, rows, message)          &
+    RESULT(status)
+
+IMPLICIT NONE
+
+INTEGER(KIND=int32) :: status
+
+INTEGER(KIND=int32), INTENT(IN)  :: len_packed_field
+INTEGER(KIND=int64), INTENT(IN)  :: packed_field(len_packed_field)
+REAL(KIND=real32),   INTENT(IN)  :: rmdi
+INTEGER(KIND=int32), INTENT(IN)  :: cols
+INTEGER(KIND=int32), INTENT(IN)  :: rows
+REAL(KIND=real64),   INTENT(OUT) :: field(cols, rows)
+CHARACTER(LEN=*),    INTENT(OUT) :: message
+
+INTEGER(KIND=int64) :: status64
+INTEGER(KIND=int64) :: cols64
+INTEGER(KIND=int64) :: rows64
+REAL(KIND=real64)   :: rmdi64
+INTEGER(KIND=int64) :: len_packed_field64
+
+rmdi64 = REAL(rmdi, KIND=real64)
+cols64 = INT(cols, KIND=int64)
+rows64 = INT(rows, KIND=int64)
+len_packed_field64 = INT(len_packed_field, KIND=int64)
+
+status64 = f_shum_wgdos_unpack_expl_arg64(                                     &
+                        packed_field, len_packed_field64, rmdi64,              &
+                        field, cols64, rows64, message)
+
+status = INT(status64, KIND=int32)
+
+END FUNCTION f_shum_wgdos_unpack_expl_arg32
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_wgdos_unpack_expl_arg64(                                       &
+    packed_field, len_packed_field, rmdi, field, cols, rows, message)          &
+    RESULT(status)
 
 IMPLICIT NONE
 
 INTEGER(KIND=int64) :: status
 
 INTEGER(KIND=int64), INTENT(IN)  :: len_packed_field
+INTEGER(KIND=int64), INTENT(IN)  :: packed_field(len_packed_field)
+REAL(KIND=real64),   INTENT(IN)  :: rmdi
 INTEGER(KIND=int64), INTENT(IN)  :: cols
 INTEGER(KIND=int64), INTENT(IN)  :: rows
-INTEGER(KIND=int64), INTENT(IN)  :: packed_field(len_packed_field)
-INTEGER(KIND=int64), INTENT(IN)  :: accuracy
-REAL(KIND=real64),   INTENT(IN)  :: rmdi
 REAL(KIND=real64),   INTENT(OUT) :: field(cols, rows)
 CHARACTER(LEN=*),    INTENT(OUT) :: message
 
@@ -524,8 +919,9 @@ INTEGER(KIND=int64) :: istart(rows), nop(rows), nbits(rows)
 INTEGER(KIND=int64) :: ibase(rows)
 INTEGER(KIND=int64) :: icomp(rows*(2*cols+2)+4)
 
-REAL(KIND=real64)       :: aprec
-REAL(KIND=real64)       :: base(rows)
+INTEGER(KIND=int64) :: accuracy
+REAL(KIND=real64)   :: aprec
+REAL(KIND=real64)   :: base(rows)
 
 LOGICAL ::                                                                     &
   obtzer(rows), obtmin(rows), obtmis(rows), obtmap(rows)
@@ -548,10 +944,6 @@ IF (first) THEN
   first = .FALSE.
 END IF
 
-! Scale factor
-
-aprec = 2.0**accuracy
-
 ! All lengths and alignments in WGDOS packing are for 32-bit words,
 ! so life gets much easier when we treat the packed data as 32-bit
 ! words.
@@ -573,6 +965,10 @@ END DO
 ! The following word MUST be 0, it is used during decomposition!
 icomp(num+1) = 0
 icomp(num+2) = 0
+
+! Get the precision from the header
+accuracy = icomp(2)
+aprec = 2.0**accuracy
 
 ! Get start word and length of every row
 
@@ -754,7 +1150,7 @@ status = 0
 IF (lhook) CALL dr_hook(RoutineName,zhook_out,zhook_handle)
 RETURN
 
-END FUNCTION f_shum_wgdos_unpack
+END FUNCTION f_shum_wgdos_unpack_expl_arg64
 
 !------------------------------------------------------------------------------!
 

@@ -28,5 +28,6 @@ extern int64_t c_shum_read_wgdos_header(char    *bytes_in,
                                         int64_t *accuracy,
                                         int64_t *cols,
                                         int64_t *rows,
-                                        char    * message);
+                                        char    *message,
+                                        int64_t  message_len);
 #endif

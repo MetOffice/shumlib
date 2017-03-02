@@ -68,6 +68,8 @@ END INTERFACE
 
 CONTAINS
 
+!------------------------------------------------------------------------------!
+
 FUNCTION c_strlen_integer_cstr(cstr)
 
 USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         &
@@ -81,6 +83,8 @@ INTEGER(KIND=C_INT64_T)              :: c_strlen_integer_cstr
 c_strlen_integer_cstr = INT(c_std_strlen(cstr), KIND=C_INT64_T)
 
 END FUNCTION c_strlen_integer_cstr
+
+!------------------------------------------------------------------------------!
 
 !Trivially turn a c string (a \0 terminated array of LEN=1 characters)
 !into a single character (LEN=something) variable.
@@ -100,6 +104,8 @@ DO i=1,cstr_len
 END DO
 
 END FUNCTION c2f_string_cstr
+
+!------------------------------------------------------------------------------!
 
 FUNCTION c2f_string_cptr(cptr, cstr_len)
 
@@ -121,6 +127,8 @@ END DO
 
 END FUNCTION c2f_string_cptr
 
+!------------------------------------------------------------------------------!
+
 FUNCTION c2f_string_cstr_nolen(cstr)
 
 USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         &
@@ -141,6 +149,8 @@ c2f_string_cstr_nolen = c2f_string_cstr(cstr,cstr_len)
 
 END FUNCTION c2f_string_cstr_nolen
 
+!------------------------------------------------------------------------------!
+
 FUNCTION f_shum_f2c_string(fstr)
 
 USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         &
@@ -148,12 +158,13 @@ USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         &
 
 IMPLICIT NONE
 
-CHARACTER(LEN=*), INTENT(IN)                 :: fstr
-CHARACTER(KIND=C_CHAR,LEN=1), ALLOCATABLE    :: f_shum_f2c_string(:)
+CHARACTER(LEN=*), INTENT(IN)               :: fstr
+CHARACTER(KIND=C_CHAR,LEN=1), ALLOCATABLE  :: f_shum_f2c_string(:)
 
 INTEGER(KIND=C_INT64_T) :: strlen,i
 
-strlen=LEN_TRIM(fstr)
+strlen=LEN(fstr)
+
 ALLOCATE(f_shum_f2c_string(strlen+1))
 DO i=1,strlen
   f_shum_f2c_string(i)=fstr(i:i)
@@ -161,6 +172,8 @@ END DO
 f_shum_f2c_string(strlen+1)=C_NULL_CHAR
 
 END FUNCTION f_shum_f2c_string
+
+!------------------------------------------------------------------------------!
 
 END MODULE f_shum_string_conv_mod
 

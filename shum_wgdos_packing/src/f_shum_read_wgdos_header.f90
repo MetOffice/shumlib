@@ -26,7 +26,7 @@ MODULE f_shum_read_wgdos_header_mod
 USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         &
   C_LOC, C_PTR, C_INT64_T, C_INT32_T, C_CHAR, C_FLOAT, C_DOUBLE
 
-USE f_shum_string_conv_mod, ONLY: f_shum_c2f_string
+USE f_shum_string_conv_mod, ONLY: f_shum_c2f_string, f_shum_f2c_string
 
 IMPLICIT NONE
 
@@ -53,7 +53,8 @@ PUBLIC ::                                                                      &
 ! C Interfaces
 
 INTERFACE
-FUNCTION c_shum_read_wgdos_header (bytes_in, accuracy, cols, rows, message)    &
+FUNCTION c_shum_read_wgdos_header (bytes_in, accuracy, cols, rows, message,    &
+                                   message_len)                                &
                                    BIND(c, NAME="c_shum_read_wgdos_header")
 
 IMPORT :: C_INT64_T, C_PTR, C_CHAR
@@ -71,7 +72,9 @@ INTEGER(KIND=C_INT64_T), INTENT(INOUT) ::                                      &
     cols,                                                                      &
     rows
 
-CHARACTER(KIND=C_CHAR, LEN=1), INTENT(INOUT) :: message(*)
+CHARACTER(KIND=C_CHAR, LEN=1), INTENT(OUT) :: message(*)
+
+INTEGER(KIND=C_INT64_T), INTENT(IN), VALUE :: message_len
 
 END FUNCTION c_shum_read_wgdos_header
 END INTERFACE
@@ -103,13 +106,15 @@ REAL(KIND=real64), TARGET, INTENT(IN) ::                                       &
 INTEGER(KIND=int64), INTENT(OUT) ::                                            &
   accuracy, cols, rows
 
-CHARACTER(LEN=*), INTENT(INOUT) :: message
+CHARACTER(LEN=*), INTENT(OUT) :: message
 CHARACTER(KIND=C_CHAR,LEN=1), ALLOCATABLE  :: cmessage(:)
 
-ALLOCATE(cmessage(LEN(message)))
+message = ""
+cmessage = f_shum_f2c_string(message)
 
 shum_read_wgdos_header_real64 = c_shum_read_wgdos_header(                      &
-        C_LOC(data_in(1)), accuracy, cols, rows, cmessage)
+        C_LOC(data_in(1)), accuracy, cols, rows, cmessage,                     &
+        LEN(message, KIND=int64) + 1)
 
 message = f_shum_c2f_string(cmessage)
 
@@ -131,13 +136,15 @@ INTEGER(KIND=int64), TARGET, INTENT(IN) ::                                     &
 INTEGER(KIND=int64), INTENT(INOUT) ::                                          &
   accuracy, cols, rows
 
-CHARACTER(LEN=*), INTENT(INOUT) :: message
+CHARACTER(LEN=*), INTENT(OUT) :: message
 CHARACTER(KIND=C_CHAR,LEN=1), ALLOCATABLE  :: cmessage(:)
 
-ALLOCATE(cmessage(LEN(message)))
+message = ""
+cmessage = f_shum_f2c_string(message)
 
 shum_read_wgdos_header_integer64 = c_shum_read_wgdos_header(                   &
-        C_LOC(data_in(1)), accuracy, cols, rows, cmessage)
+        C_LOC(data_in(1)), accuracy, cols, rows, cmessage,                     &
+        LEN(message, KIND=int64) + 1)
 
 message = f_shum_c2f_string(cmessage)
 
@@ -158,13 +165,15 @@ REAL(KIND=real32), TARGET, INTENT(IN) ::                                       &
 INTEGER(KIND=int64), INTENT(INOUT) ::                                          &
   accuracy, cols, rows
 
-CHARACTER(LEN=*), INTENT(INOUT) :: message
+CHARACTER(LEN=*), INTENT(OUT) :: message
 CHARACTER(KIND=C_CHAR,LEN=1), ALLOCATABLE  :: cmessage(:)
 
-ALLOCATE(cmessage(LEN(message)))
+message = ""
+cmessage = f_shum_f2c_string(message)
 
 shum_read_wgdos_header_real32 = c_shum_read_wgdos_header(                      &
-        C_LOC(data_in(1)), accuracy, cols, rows, cmessage)
+        C_LOC(data_in(1)), accuracy, cols, rows, cmessage,                     &
+        LEN(message, KIND=int64) + 1)
 
 message = f_shum_c2f_string(cmessage)
 
@@ -174,7 +183,6 @@ END FUNCTION shum_read_wgdos_header_real32
 
 FUNCTION shum_read_wgdos_header_integer32(data_in, accuracy, cols, rows,       &
                                           message)
-                          
 IMPLICIT NONE
 
 INTEGER(KIND=int64) ::                                                         &
@@ -186,13 +194,15 @@ INTEGER(KIND=int32), TARGET, INTENT(IN) ::                                     &
 INTEGER(KIND=int64), INTENT(INOUT) ::                                          &
   accuracy, cols, rows
 
-CHARACTER(LEN=*), INTENT(INOUT) :: message
+CHARACTER(LEN=*), INTENT(OUT) :: message
 CHARACTER(KIND=C_CHAR,LEN=1), ALLOCATABLE  :: cmessage(:)
 
-ALLOCATE(cmessage(LEN(message)))
+message = ""
+cmessage = f_shum_f2c_string(message)
 
 shum_read_wgdos_header_integer32 = c_shum_read_wgdos_header(                   &
-        C_LOC(data_in(1)), accuracy, cols, rows, cmessage)
+        C_LOC(data_in(1)), accuracy, cols, rows, cmessage,                     &
+        LEN(message, KIND=int64) + 1)
 
 message = f_shum_c2f_string(cmessage)
 

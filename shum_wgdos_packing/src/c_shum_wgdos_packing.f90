@@ -50,24 +50,24 @@ PUBLIC :: c_shum_wgdos_pack, c_shum_wgdos_unpack
 
 CONTAINS
 
-FUNCTION c_shum_wgdos_pack(field, comp_field, len_comp, cols, rows, acc,       &
-                           rmdi, num_words, message_len, cmessage)             &
+FUNCTION c_shum_wgdos_pack(field, cols, rows, acc, rmdi, comp_field, len_comp, &
+                           num_words, cmessage, message_len)                   &
                            RESULT(status)                                      &
                            BIND(c, NAME="c_shum_wgdos_pack")
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T),       INTENT(IN)         :: len_comp
-INTEGER(KIND=C_INT64_T),       INTENT(OUT)        :: comp_field(len_comp)
+INTEGER(KIND=C_INT64_T) :: status
+
 INTEGER(KIND=C_INT64_T),       INTENT(IN)         :: cols
 INTEGER(KIND=C_INT64_T),       INTENT(IN)         :: rows
 REAL(KIND=C_DOUBLE),           INTENT(IN), TARGET :: field(cols*rows)
 INTEGER(KIND=C_INT64_T),       INTENT(IN)         :: acc
 REAL(KIND=C_DOUBLE),           INTENT(IN)         :: rmdi
+INTEGER(KIND=C_INT64_T),       INTENT(IN)         :: len_comp
+INTEGER(KIND=C_INT64_T),       INTENT(OUT)        :: comp_field(len_comp)
 INTEGER(KIND=C_INT64_T),       INTENT(OUT)        :: num_words
 INTEGER(KIND=C_INT64_T),       INTENT(IN)         :: message_len
-CHARACTER(KIND=C_CHAR, LEN=1), INTENT(OUT)        :: cmessage(message_len +1)
-
-INTEGER(KIND=C_INT64_T) :: status
+CHARACTER(KIND=C_CHAR, LEN=1), INTENT(OUT)        :: cmessage(message_len + 1)
 
 CHARACTER(LEN=message_len) :: message
 
@@ -78,33 +78,32 @@ REAL(KIND=real64), POINTER :: field2d(:,:)
 ! going to need to be able to read from that address
 CALL C_F_POINTER (C_LOC(field(1)), field2d, [cols,rows])
 
-status = f_shum_wgdos_pack(field2d, comp_field, len_comp, cols, rows,          &
-                           num_words, acc, rmdi, message)
+status = f_shum_wgdos_pack(field2d, cols, rows, acc, rmdi, comp_field,    &
+                           len_comp, num_words, message)
 NULLIFY(field2d)
 
 ! If something went wrong allow the calling program to catch the non-zero 
 ! exit code and error message then act accordingly
 IF (status /= 0) THEN
-  cmessage = f_shum_f2c_string(message)
+  cmessage = f_shum_f2c_string(TRIM(message))
 END IF
 
 END FUNCTION c_shum_wgdos_pack
 
 !------------------------------------------------------------------------------!
 
-FUNCTION c_shum_wgdos_unpack(field, comp_field, len_comp, cols, rows,          &
-                               acc, rmdi, message_len, cmessage)               &
-                               RESULT(status)                                  &
-                               BIND(c, NAME="c_shum_wgdos_unpack")
+FUNCTION c_shum_wgdos_unpack(comp_field, len_comp, cols, rows, rmdi,           &
+                             field, cmessage, message_len)                     &
+                             RESULT(status)                                    &
+                             BIND(c, NAME="c_shum_wgdos_unpack")
 IMPLICIT NONE
 
 INTEGER(KIND=C_INT64_T),       INTENT(IN)          :: len_comp
 INTEGER(KIND=C_INT64_T),       INTENT(IN)          :: comp_field(len_comp)
 INTEGER(KIND=C_INT64_T),       INTENT(IN)          :: cols
 INTEGER(KIND=C_INT64_T),       INTENT(IN)          :: rows
-REAL(KIND=C_DOUBLE),           INTENT(OUT), TARGET :: field(cols*rows)
-INTEGER(KIND=C_INT64_T),       INTENT(IN)          :: acc
 REAL(KIND=C_DOUBLE),           INTENT(IN)          :: rmdi
+REAL(KIND=C_DOUBLE),           INTENT(OUT), TARGET :: field(cols*rows)
 INTEGER(KIND=C_INT64_T),       INTENT(IN)          :: message_len
 CHARACTER(KIND=C_CHAR, LEN=1), INTENT(OUT)         :: cmessage(message_len +1)
 
@@ -119,14 +118,14 @@ REAL(KIND=real64), POINTER :: field2d(:,:)
 ! is going to need to be able to write to that address
 CALL C_F_POINTER (C_LOC(field(1)), field2d, [cols,rows])
 
-status = f_shum_wgdos_unpack(field2d, comp_field, len_comp, cols, rows, acc,   &
-                             rmdi, message)
+status = f_shum_wgdos_unpack(comp_field, len_comp, rmdi, field2d, cols,        &
+                             rows, message)
 NULLIFY(field2d)
 
 ! If something went wrong allow the calling program to catch the non-zero 
 ! exit code and error message then act accordingly
 IF (status /= 0) THEN
-  cmessage = f_shum_f2c_string(message)
+  cmessage = f_shum_f2c_string(TRIM(message))
 END IF
 
 END FUNCTION c_shum_wgdos_unpack

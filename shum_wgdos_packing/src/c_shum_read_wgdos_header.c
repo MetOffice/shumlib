@@ -39,7 +39,8 @@ int64_t c_shum_read_wgdos_header(char    *bytes_in,
                                  int64_t *accuracy,
                                  int64_t *cols,
                                  int64_t *rows,
-                                 char    *message)
+                                 char    *message,
+                                 int64_t message_len)
 {
   // Fixed parameters for IBM2IEEE calls
   c_shum_datatypes int_type = C_SHUM_INTEGER;
@@ -57,7 +58,7 @@ int64_t c_shum_read_wgdos_header(char    *bytes_in,
   size_in = 32;
   status = c_shum_ibm2ieee(&int_type, &num, &bytes_in[first_word_offset], 
                            &offset_in, accuracy, &stride, &size_out, &size_in, 
-                           message);
+                           message, message_len);
   if (status != 0) return status;
 
   // Extract number of columns from field-header with IBM2IEEE
@@ -65,7 +66,7 @@ int64_t c_shum_read_wgdos_header(char    *bytes_in,
   size_in = 16;
   status = c_shum_ibm2ieee(&int_type, &num, &bytes_in[second_word_offset], 
                            &offset_in, cols, &stride, &size_out, &size_in, 
-                           message);
+                           message, message_len);
   if (status != 0) return status;
 
   // Extract number of rows from field-header with IBM2IEEE
@@ -73,7 +74,7 @@ int64_t c_shum_read_wgdos_header(char    *bytes_in,
   size_in = 16;
   status = c_shum_ibm2ieee(&int_type, &num, &bytes_in[second_word_offset], 
                            &offset_in, rows, &stride, &size_out, &size_in, 
-                           message);
+                           message, message_len);
   return status;
 }
 
