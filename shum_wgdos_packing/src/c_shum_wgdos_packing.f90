@@ -23,16 +23,17 @@
 MODULE c_shum_wgdos_packing_mod
 
 USE f_shum_string_conv_mod,   ONLY: f_shum_f2c_string
-USE f_shum_wgdos_packing_mod, ONLY: f_shum_wgdos_pack, f_shum_wgdos_unpack
+USE f_shum_wgdos_packing_mod, ONLY:                                            &
+    f_shum_wgdos_pack, f_shum_wgdos_unpack, f_shum_read_wgdos_header
 
 USE, INTRINSIC :: iso_c_binding, ONLY: &
-    C_F_POINTER, C_LOC, C_INT64_T, C_INT32_T, C_CHAR, C_FLOAT, C_DOUBLE
+    C_F_POINTER, C_LOC, C_INT64_T, C_INT32_T, C_CHAR, C_FLOAT, C_DOUBLE, C_PTR
 
 IMPLICIT NONE 
 
 PRIVATE
 
-PUBLIC :: c_shum_wgdos_pack, c_shum_wgdos_unpack
+PUBLIC :: c_shum_wgdos_pack, c_shum_wgdos_unpack, c_shum_read_wgdos_header
 
 !------------------------------------------------------------------------------!
 ! We're going to use the types from the ISO_C_BINDING module, since although   !
@@ -50,6 +51,40 @@ PUBLIC :: c_shum_wgdos_pack, c_shum_wgdos_unpack
 
 CONTAINS
 
+!------------------------------------------------------------------------------!
+
+FUNCTION c_shum_read_wgdos_header(                                             &
+    comp_field_ptr, num_words, accuracy, cols, rows, cmessage, message_len)    &
+    RESULT(status) BIND(c, NAME="c_shum_read_wgdos_header")
+
+IMPLICIT NONE
+
+INTEGER(KIND=C_INT64_T)      :: status
+
+TYPE(C_PTR), VALUE,            INTENT(IN)  :: comp_field_ptr
+INTEGER(KIND=C_INT64_T),       INTENT(OUT) :: num_words
+INTEGER(KIND=C_INT64_T),       INTENT(OUT) :: accuracy
+INTEGER(KIND=C_INT64_T),       INTENT(OUT) :: cols
+INTEGER(KIND=C_INT64_T),       INTENT(OUT) :: rows
+INTEGER(KIND=C_INT64_T),       INTENT(IN)  :: message_len
+CHARACTER(KIND=C_CHAR, LEN=1), INTENT(OUT) :: cmessage(message_len + 1)
+
+CHARACTER(LEN=message_len)   :: message
+INTEGER(KIND=int32), POINTER :: comp_field(:)
+
+CALL C_F_POINTER(comp_field_ptr, comp_field, [3])
+
+status = f_shum_read_wgdos_header(                                             &
+    comp_field, num_words, accuracy, cols, rows, message)
+
+IF (status /= 0) THEN
+  cmessage = f_shum_f2c_string(TRIM(message))
+END IF
+
+END FUNCTION c_shum_read_wgdos_header
+
+!------------------------------------------------------------------------------!
+
 FUNCTION c_shum_wgdos_pack(field, cols, rows, acc, rmdi, comp_field, len_comp, &
                            num_words, cmessage, message_len)                   &
                            RESULT(status)                                      &
@@ -64,7 +99,7 @@ REAL(KIND=C_DOUBLE),           INTENT(IN), TARGET :: field(cols*rows)
 INTEGER(KIND=C_INT64_T),       INTENT(IN)         :: acc
 REAL(KIND=C_DOUBLE),           INTENT(IN)         :: rmdi
 INTEGER(KIND=C_INT64_T),       INTENT(IN)         :: len_comp
-INTEGER(KIND=C_INT64_T),       INTENT(OUT)        :: comp_field(len_comp)
+INTEGER(KIND=C_INT32_T),       INTENT(OUT)        :: comp_field(len_comp)
 INTEGER(KIND=C_INT64_T),       INTENT(OUT)        :: num_words
 INTEGER(KIND=C_INT64_T),       INTENT(IN)         :: message_len
 CHARACTER(KIND=C_CHAR, LEN=1), INTENT(OUT)        :: cmessage(message_len + 1)
@@ -78,8 +113,8 @@ REAL(KIND=real64), POINTER :: field2d(:,:)
 ! going to need to be able to read from that address
 CALL C_F_POINTER (C_LOC(field(1)), field2d, [cols,rows])
 
-status = f_shum_wgdos_pack(field2d, cols, rows, acc, rmdi, comp_field,    &
-                           len_comp, num_words, message)
+status = f_shum_wgdos_pack(field2d, acc, rmdi, comp_field,                     &
+                           num_words, message)
 NULLIFY(field2d)
 
 ! If something went wrong allow the calling program to catch the non-zero 
@@ -99,7 +134,7 @@ FUNCTION c_shum_wgdos_unpack(comp_field, len_comp, cols, rows, rmdi,           &
 IMPLICIT NONE
 
 INTEGER(KIND=C_INT64_T),       INTENT(IN)          :: len_comp
-INTEGER(KIND=C_INT64_T),       INTENT(IN)          :: comp_field(len_comp)
+INTEGER(KIND=C_INT32_T),       INTENT(IN)          :: comp_field(len_comp)
 INTEGER(KIND=C_INT64_T),       INTENT(IN)          :: cols
 INTEGER(KIND=C_INT64_T),       INTENT(IN)          :: rows
 REAL(KIND=C_DOUBLE),           INTENT(IN)          :: rmdi
@@ -118,8 +153,7 @@ REAL(KIND=real64), POINTER :: field2d(:,:)
 ! is going to need to be able to write to that address
 CALL C_F_POINTER (C_LOC(field(1)), field2d, [cols,rows])
 
-status = f_shum_wgdos_unpack(comp_field, len_comp, rmdi, field2d, cols,        &
-                             rows, message)
+status = f_shum_wgdos_unpack(comp_field, rmdi, field2d, message)
 NULLIFY(field2d)
 
 ! If something went wrong allow the calling program to catch the non-zero 

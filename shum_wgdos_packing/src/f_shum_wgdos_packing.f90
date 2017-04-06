@@ -33,7 +33,7 @@ IMPLICIT NONE
 
 PRIVATE
 
-PUBLIC :: f_shum_wgdos_pack, f_shum_wgdos_unpack
+PUBLIC :: f_shum_read_wgdos_header, f_shum_wgdos_pack, f_shum_wgdos_unpack
 
 !------------------------------------------------------------------------------!
 ! We're going to use the types from the ISO_C_BINDING module, since although   !
@@ -55,8 +55,8 @@ INTEGER(KIND=jpim), PARAMETER :: zhook_in  = 0
 INTEGER(KIND=jpim), PARAMETER :: zhook_out = 1
 
 ! Define various masks used to manipulate values later
-INTEGER(KIND=int64), PARAMETER ::                                              &
-                     mask16  = INT(HUGE(0_int16), KIND=int64)*2 + 1
+INTEGER(KIND=int32), PARAMETER ::                                              &
+                     mask16  = INT(HUGE(0_int16), KIND=int32)*2 + 1
 INTEGER(KIND=int64), PARAMETER ::                                              &
                      mask32  = INT(HUGE(0_int32), KIND=int64)*2 + 1
 INTEGER(KIND=int64), PARAMETER ::                                              &
@@ -66,20 +66,26 @@ INTEGER(KIND=int64), PARAMETER ::                                              &
 INTEGER(KIND=int64), PARAMETER ::                                              &
                      mask_sign_ibm = INT(z'80000000', KIND=int64)
 
+INTERFACE f_shum_read_wgdos_header
+  MODULE PROCEDURE                                                             &
+      f_shum_read_wgdos_header_arg32,                                          &
+      f_shum_read_wgdos_header_arg64
+END INTERFACE
+
 INTERFACE f_shum_wgdos_pack
   MODULE PROCEDURE                                                             &
-      f_shum_wgdos_pack_expl_arg64,                                            &
-      f_shum_wgdos_pack_expl_arg32,                                            &
       f_shum_wgdos_pack_2d_arg64,                                              &
       f_shum_wgdos_pack_2d_arg32,                                              &
+      f_shum_wgdos_pack_2d_alloc_arg64,                                        &
+      f_shum_wgdos_pack_2d_alloc_arg32,                                        &
       f_shum_wgdos_pack_1d_arg64,                                              &
-      f_shum_wgdos_pack_1d_arg32
+      f_shum_wgdos_pack_1d_arg32,                                              &
+      f_shum_wgdos_pack_1d_alloc_arg64,                                        &
+      f_shum_wgdos_pack_1d_alloc_arg32
 END INTERFACE
 
 INTERFACE f_shum_wgdos_unpack
   MODULE PROCEDURE                                                             &
-      f_shum_wgdos_unpack_expl_arg64,                                          &
-      f_shum_wgdos_unpack_expl_arg32,                                          &
       f_shum_wgdos_unpack_2d_arg64,                                            &
       f_shum_wgdos_unpack_2d_arg32,                                            &
       f_shum_wgdos_unpack_1d_arg64,                                            &
@@ -87,6 +93,152 @@ INTERFACE f_shum_wgdos_unpack
 END INTERFACE
 
 CONTAINS
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_read_wgdos_header_arg32(                                       &
+          packed_field, num_words, accuracy, cols, rows, message) RESULT(status)
+
+IMPLICIT NONE 
+
+INTEGER(KIND=int32), INTENT(IN)  :: packed_field(:)
+INTEGER(KIND=int32), INTENT(OUT) :: num_words
+INTEGER(KIND=int32), INTENT(OUT) :: accuracy
+INTEGER(KIND=int32), INTENT(OUT) :: cols
+INTEGER(KIND=int32), INTENT(OUT) :: rows
+CHARACTER(LEN=*),    INTENT(OUT) :: message
+
+INTEGER(KIND=int32) :: status
+
+IF (SIZE(packed_field) < 3_int32) THEN
+  status = 1_int32
+  WRITE(message, "(A,I0,A)")                                                   &
+      "Packed field is shorter than 3 elements (length= ", SIZE(packed_field), &
+      ") cannot extract header"
+  RETURN
+END IF
+
+num_words = packed_field(1)
+accuracy = packed_field(2)
+cols = ISHFT(packed_field(3), -16_int32)
+rows = IAND(packed_field(3), mask16)
+
+status = 0_int32
+
+END FUNCTION f_shum_read_wgdos_header_arg32
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_read_wgdos_header_arg64(                                       &
+          packed_field, num_words, accuracy, cols, rows, message) RESULT(status)
+
+IMPLICIT NONE
+
+INTEGER(KIND=int32), INTENT(IN)  :: packed_field(:)
+INTEGER(KIND=int64), INTENT(OUT) :: num_words
+INTEGER(KIND=int64), INTENT(OUT) :: accuracy
+INTEGER(KIND=int64), INTENT(OUT) :: cols
+INTEGER(KIND=int64), INTENT(OUT) :: rows
+CHARACTER(LEN=*),    INTENT(OUT) :: message
+
+INTEGER(KIND=int64) :: status
+
+INTEGER(KIND=int32) :: num_words_32
+INTEGER(KIND=int32) :: accuracy_32
+INTEGER(KIND=int32) :: cols_32
+INTEGER(KIND=int32) :: rows_32
+
+status = f_shum_read_wgdos_header_arg32(                                       &
+    packed_field, num_words_32, accuracy_32, cols_32, rows_32, message)
+
+IF (status /= 0_int64) RETURN
+
+num_words = INT(num_words_32, KIND=int64)
+accuracy = INT(accuracy_32, KIND=int64)
+cols = INT(cols_32, KIND=int64)
+rows = INT(rows_32, KIND=int64)
+
+END FUNCTION
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_wgdos_pack_2d_alloc_arg64(field, accuracy, rmdi, packed_field, &
+                                          message) RESULT(status)
+IMPLICIT NONE 
+
+INTEGER(KIND=int64) :: status
+
+REAL(KIND=real64),                INTENT(IN)    :: field(:, :)
+INTEGER(KIND=int64),              INTENT(IN)    :: accuracy
+REAL(KIND=real64),                INTENT(IN)    :: rmdi
+INTEGER(KIND=int32), ALLOCATABLE, INTENT(INOUT) :: packed_field(:)
+CHARACTER(LEN=*),                 INTENT(OUT)   :: message
+
+INTEGER(KIND=int32), ALLOCATABLE :: packed_field_temp(:)
+INTEGER(KIND=int64) :: cols
+INTEGER(KIND=int64) :: rows
+INTEGER(KIND=int64) :: len_packed_field
+INTEGER(KIND=int64) :: n_packed_words
+
+IF (ALLOCATED(packed_field)) DEALLOCATE(packed_field)
+IF (ALLOCATED(packed_field_temp)) DEALLOCATE(packed_field_temp)
+
+cols = SIZE(field, 1, KIND=int64)
+rows = SIZE(field, 2, KIND=int64)
+
+len_packed_field = cols*rows
+ALLOCATE(packed_field_temp(len_packed_field))
+
+status = f_shum_wgdos_pack_expl_arg64(                                         &
+                      field, cols, rows, accuracy, rmdi, packed_field_temp,    &
+                      len_packed_field, n_packed_words, message)
+
+IF (status == 0) THEN
+  ALLOCATE(packed_field(n_packed_words))
+  packed_field = packed_field_temp(1:n_packed_words)
+END IF
+
+END FUNCTION f_shum_wgdos_pack_2d_alloc_arg64
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_wgdos_pack_2d_alloc_arg32(field, accuracy, rmdi, packed_field, &
+                                          message) RESULT(status)
+IMPLICIT NONE 
+
+INTEGER(KIND=int64) :: status
+
+REAL(KIND=real64),                INTENT(IN)    :: field(:, :)
+INTEGER(KIND=int32),              INTENT(IN)    :: accuracy
+REAL(KIND=real32),                INTENT(IN)    :: rmdi
+INTEGER(KIND=int32), ALLOCATABLE, INTENT(INOUT) :: packed_field(:)
+CHARACTER(LEN=*),                 INTENT(OUT)   :: message
+
+INTEGER(KIND=int32), ALLOCATABLE :: packed_field_temp(:)
+INTEGER(KIND=int32) :: cols
+INTEGER(KIND=int32) :: rows
+INTEGER(KIND=int32) :: len_packed_field
+INTEGER(KIND=int32) :: n_packed_words
+
+IF (ALLOCATED(packed_field)) DEALLOCATE(packed_field)
+IF (ALLOCATED(packed_field_temp)) DEALLOCATE(packed_field_temp)
+
+cols = SIZE(field, 1, KIND=int32)
+rows = SIZE(field, 2, KIND=int32)
+
+len_packed_field = cols*rows
+ALLOCATE(packed_field_temp(len_packed_field))
+
+status = f_shum_wgdos_pack_expl_arg32(                                         &
+                      field, cols, rows, accuracy, rmdi, packed_field_temp,    &
+                      len_packed_field, n_packed_words, message)
+
+IF (status == 0) THEN
+  ALLOCATE(packed_field(n_packed_words))
+  packed_field = packed_field_temp(1:n_packed_words)
+END IF
+
+END FUNCTION f_shum_wgdos_pack_2d_alloc_arg32
 
 !------------------------------------------------------------------------------!
 
@@ -99,7 +251,7 @@ INTEGER(KIND=int64) :: status
 REAL(KIND=real64),   INTENT(IN)  :: field(:, :)
 INTEGER(KIND=int64), INTENT(IN)  :: accuracy
 REAL(KIND=real64),   INTENT(IN)  :: rmdi
-INTEGER(KIND=int64), INTENT(OUT) :: packed_field(:)
+INTEGER(KIND=int32), INTENT(OUT) :: packed_field(:)
 INTEGER(KIND=int64), INTENT(OUT) :: n_packed_words
 CHARACTER(LEN=*),    INTENT(OUT) :: message    
 
@@ -128,32 +280,121 @@ INTEGER(KIND=int32) :: status
 REAL(KIND=real64),   INTENT(IN)  :: field(:, :)
 INTEGER(KIND=int32), INTENT(IN)  :: accuracy
 REAL(KIND=real32),   INTENT(IN)  :: rmdi
-INTEGER(KIND=int64), INTENT(OUT) :: packed_field(:)
+INTEGER(KIND=int32), INTENT(OUT) :: packed_field(:)
 INTEGER(KIND=int32), INTENT(OUT) :: n_packed_words
 CHARACTER(LEN=*),    INTENT(OUT) :: message    
 
-INTEGER(KIND=int64) :: status64
-INTEGER(KIND=int64) :: n_packed_words64
-INTEGER(KIND=int64) :: accuracy64
-REAL(KIND=real64)   :: rmdi64
-INTEGER(KIND=int64) :: cols
-INTEGER(KIND=int64) :: rows
-INTEGER(KIND=int64) :: len_packed_field 
+INTEGER(KIND=int32) :: cols
+INTEGER(KIND=int32) :: rows
+INTEGER(KIND=int32) :: len_packed_field 
 
-accuracy64 = INT(accuracy, KIND=int64)
-rmdi64 = REAL(rmdi, KIND=real64)
-cols = SIZE(field, 1, KIND=int64)
-rows = SIZE(field, 2, KIND=int64)
-len_packed_field = SIZE(packed_field, 1, KIND=int64)
+cols = SIZE(field, 1, KIND=int32)
+rows = SIZE(field, 2, KIND=int32)
+len_packed_field = SIZE(packed_field, 1, KIND=int32)
 
-status64 = f_shum_wgdos_pack_expl_arg64(                                       &
-                        field, cols, rows, accuracy64, rmdi64, packed_field,   &
-                        len_packed_field, n_packed_words64, message)
-
-status         = INT(status64, KIND=int32)
-n_packed_words = INT(n_packed_words64, KIND=int32)
+status = f_shum_wgdos_pack_expl_arg32(                                         &
+                        field, cols, rows, accuracy, rmdi, packed_field,       &
+                        len_packed_field, n_packed_words, message)
 
 END FUNCTION f_shum_wgdos_pack_2d_arg32
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_wgdos_pack_1d_alloc_arg64(field, stride, accuracy, rmdi,       &
+                                          packed_field, message) RESULT(status)
+IMPLICIT NONE 
+
+INTEGER(KIND=int64) :: status
+
+REAL(KIND=real64),        TARGET, INTENT(IN)    :: field(:)
+INTEGER(KIND=int64),              INTENT(IN)    :: stride
+INTEGER(KIND=int64),              INTENT(IN)    :: accuracy
+REAL(KIND=real64),                INTENT(IN)    :: rmdi
+INTEGER(KIND=int32), ALLOCATABLE, INTENT(INOUT) :: packed_field(:)
+CHARACTER(LEN=*),                 INTENT(OUT)   :: message
+
+INTEGER(KIND=int32), ALLOCATABLE :: packed_field_temp(:)
+
+INTEGER(KIND=int64)        :: cols
+INTEGER(KIND=int64)        :: rows
+REAL(KIND=real64), POINTER :: field2d(:, :)
+INTEGER(KIND=int64)        :: len_packed_field
+INTEGER(KIND=int64)        :: n_packed_words
+
+IF (MOD(SIZE(field, KIND=int64), stride) /= 0) THEN
+  status = 1_int64
+  message = "1d Field length not divisible by given stride"
+  RETURN
+END IF
+
+IF (ALLOCATED(packed_field)) DEALLOCATE(packed_field)
+IF (ALLOCATED(packed_field_temp)) DEALLOCATE(packed_field_temp)
+
+cols = stride
+rows = SIZE(field)/cols
+field2d(1:cols, 1:rows) => field(:)
+len_packed_field = cols*rows
+ALLOCATE(packed_field_temp(len_packed_field))
+
+status = f_shum_wgdos_pack_expl_arg64(                                         &
+                      field2d, cols, rows, accuracy, rmdi, packed_field_temp,  &
+                      len_packed_field, n_packed_words, message)
+
+IF (status == 0) THEN
+  ALLOCATE(packed_field(n_packed_words))
+  packed_field = packed_field_temp(1:n_packed_words)
+END IF
+
+END FUNCTION f_shum_wgdos_pack_1d_alloc_arg64
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_wgdos_pack_1d_alloc_arg32(field, stride, accuracy, rmdi,       &
+                                          packed_field, message) RESULT(status)
+IMPLICIT NONE 
+
+INTEGER(KIND=int32) :: status
+
+REAL(KIND=real64),        TARGET, INTENT(IN)    :: field(:)
+INTEGER(KIND=int32),              INTENT(IN)    :: stride
+INTEGER(KIND=int32),              INTENT(IN)    :: accuracy
+REAL(KIND=real32),                INTENT(IN)    :: rmdi
+INTEGER(KIND=int32), ALLOCATABLE, INTENT(INOUT) :: packed_field(:)
+CHARACTER(LEN=*),                 INTENT(OUT)   :: message
+
+INTEGER(KIND=int32), ALLOCATABLE :: packed_field_temp(:)
+
+INTEGER(KIND=int32)        :: cols
+INTEGER(KIND=int32)        :: rows
+REAL(KIND=real64), POINTER :: field2d(:, :)
+INTEGER(KIND=int32)        :: len_packed_field
+INTEGER(KIND=int32)        :: n_packed_words
+
+IF (MOD(SIZE(field, KIND=int32), stride) /= 0) THEN
+  status = 1_int32
+  message = "1d Field length not divisible by given stride"
+  RETURN
+END IF
+
+IF (ALLOCATED(packed_field)) DEALLOCATE(packed_field)
+IF (ALLOCATED(packed_field_temp)) DEALLOCATE(packed_field_temp)
+
+cols = stride
+rows = SIZE(field, KIND=int32)/cols
+field2d(1:cols, 1:rows) => field(:)
+len_packed_field = cols*rows
+ALLOCATE(packed_field_temp(len_packed_field))
+
+status = f_shum_wgdos_pack_expl_arg32(                                         &
+                      field2d, cols, rows, accuracy, rmdi, packed_field_temp,  &
+                      len_packed_field, n_packed_words, message)
+
+IF (status == 0) THEN
+  ALLOCATE(packed_field(n_packed_words))
+  packed_field = packed_field_temp(1:n_packed_words)
+END IF
+
+END FUNCTION f_shum_wgdos_pack_1d_alloc_arg32
 
 !------------------------------------------------------------------------------!
 
@@ -168,7 +409,7 @@ REAL(KIND=real64),   INTENT(IN), TARGET :: field(:)
 INTEGER(KIND=int64), INTENT(IN)         :: stride
 INTEGER(KIND=int64), INTENT(IN)         :: accuracy
 REAL(KIND=real64),   INTENT(IN)         :: rmdi
-INTEGER(KIND=int64), INTENT(OUT)        :: packed_field(:)
+INTEGER(KIND=int32), INTENT(OUT)        :: packed_field(:)
 INTEGER(KIND=int64), INTENT(OUT)        :: n_packed_words
 CHARACTER(LEN=*),    INTENT(OUT)        :: message    
 
@@ -208,18 +449,14 @@ REAL(KIND=real64),   INTENT(IN), TARGET  :: field(:)
 INTEGER(KIND=int32), INTENT(IN)          :: stride
 INTEGER(KIND=int32), INTENT(IN)          :: accuracy
 REAL(KIND=real32),   INTENT(IN)          :: rmdi
-INTEGER(KIND=int64), INTENT(OUT)         :: packed_field(:)
+INTEGER(KIND=int32), INTENT(OUT)         :: packed_field(:)
 INTEGER(KIND=int32), INTENT(OUT)         :: n_packed_words
 CHARACTER(LEN=*),    INTENT(OUT)         :: message    
 
-INTEGER(KIND=int64)        :: status64
-INTEGER(KIND=int64)        :: n_packed_words64
-INTEGER(KIND=int64)        :: accuracy64
-REAL(KIND=real64)          :: rmdi64
-INTEGER(KIND=int64)        :: cols
-INTEGER(KIND=int64)        :: rows
+INTEGER(KIND=int32)        :: cols
+INTEGER(KIND=int32)        :: rows
 REAL(KIND=real64), POINTER :: field2d(:, :)
-INTEGER(KIND=int64)        :: len_packed_field
+INTEGER(KIND=int32)        :: len_packed_field
 
 IF (MOD(SIZE(field, KIND=int32), stride) /= 0) THEN
   status = 1_int32
@@ -227,19 +464,15 @@ IF (MOD(SIZE(field, KIND=int32), stride) /= 0) THEN
   RETURN
 END IF
 
-accuracy64 = INT(accuracy, KIND=int64)
-rmdi64 = REAL(rmdi, KIND=real64)
-cols = INT(stride, KIND=int64)
-rows = INT(SIZE(field)/cols, KIND=int64)
+cols = INT(stride, KIND=int32)
+rows = INT(SIZE(field)/cols, KIND=int32)
 field2d(1:cols, 1:rows) => field(:)
+
 len_packed_field = SIZE(packed_field, 1, KIND=int64)
 
-status64 = f_shum_wgdos_pack_expl_arg64(                                       &
-                        field2d, cols, rows, accuracy64, rmdi64, packed_field, &
-                        len_packed_field, n_packed_words64, message)
-
-status         = INT(status64, KIND=int32)
-n_packed_words = INT(n_packed_words64, KIND=int32)
+status = f_shum_wgdos_pack_expl_arg32(                                         &
+                        field2d, cols, rows, accuracy, rmdi, packed_field,     &
+                        len_packed_field, n_packed_words, message)
 
 END FUNCTION f_shum_wgdos_pack_1d_arg32
 
@@ -259,7 +492,7 @@ REAL(KIND=real64),   INTENT(IN)  :: field(cols, rows)
 INTEGER(KIND=int32), INTENT(IN)  :: accuracy
 REAL(KIND=real32),   INTENT(IN)  :: rmdi
 INTEGER(KIND=int32), INTENT(IN)  :: len_packed_field
-INTEGER(KIND=int64), INTENT(OUT) :: packed_field(len_packed_field)
+INTEGER(KIND=int32), INTENT(OUT) :: packed_field(len_packed_field)
 INTEGER(KIND=int32), INTENT(OUT) :: n_packed_words
 CHARACTER(LEN=*),    INTENT(OUT) :: message
 
@@ -303,7 +536,7 @@ REAL(KIND=real64),   INTENT(IN)  :: field(cols, rows)
 INTEGER(KIND=int64), INTENT(IN)  :: accuracy
 REAL(KIND=real64),   INTENT(IN)  :: rmdi
 INTEGER(KIND=int64), INTENT(IN)  :: len_packed_field
-INTEGER(KIND=int64), INTENT(OUT) :: packed_field(len_packed_field)
+INTEGER(KIND=int32), INTENT(OUT) :: packed_field(len_packed_field)
 INTEGER(KIND=int64), INTENT(OUT) :: n_packed_words
 CHARACTER(LEN=*),    INTENT(OUT) :: message    
 
@@ -312,7 +545,7 @@ INTEGER(KIND=int64) :: iexp, iman
 INTEGER(KIND=int64) :: is1, is2, is3
 INTEGER(KIND=int64) :: nbits_bmap, nwords_bmap, nwords_data
 INTEGER(KIND=int64) :: nbits_pack, nvals_pack
-INTEGER(KIND=int64) :: i1, i2, j1, j2
+INTEGER(KIND=int64) :: i1, i2
 
 REAL(KIND=real64)       :: aprec, bprec
 
@@ -657,8 +890,8 @@ itmp(2) = IAND(accuracy,mask32)
 itmp(3) = IOR(ISHFT(cols,16),rows)
 IF (rows>0) icomp(iword(rows),rows) = 0
 
-!     Compress to 64 bit words
-IF ((n_packed_words+1)/2 > len_packed_field) THEN
+! Compress to 64 bit words
+IF (n_packed_words > len_packed_field) THEN
   status = 2
   message='Array for returning packed data is not large enough'
   IF (lhook) CALL dr_hook(RoutineName,zhook_out,zhook_handle)
@@ -667,41 +900,20 @@ END IF
 
 
 ! First put the header information and the first word into packed_field
-packed_field(1) = IOR(ISHFT(itmp(1),32),IAND(itmp(2),mask32))
-packed_field(2) = IOR(ISHFT(itmp(3),32),IAND(icomp(1,1),mask32))
+packed_field(1) = INT(itmp(1), KIND=int32)
+packed_field(2) = INT(itmp(2), KIND=int32)
+packed_field(3) = INT(itmp(3), KIND=int32)
 
 IF (rows>0) THEN
-
-  ! Setup addressing
-  i1 = 2           ! column for first word to pack
-  j1 = 1           ! row for first word to pack
-  IF (iword(1) > 3) THEN
-    i2 = 3         ! column for second word if on same row
-    j2 = 1
-  ELSE
-    i2 = 1         ! column/row for second word if on next row
-    j2 = 2
-  END IF
-
-  ! Put the rest of the data into packed_field
-  DO i = 3, (n_packed_words+1)/2
-    packed_field(i) = IOR(ISHFT(icomp(i1,j1),32),IAND(icomp(i2,j2),mask32))
-
-    ! Increment addressing by 2 as we've put 2 words of icomp into packed_field
-    i1 = i1 + 2
-    i2 = i2 + 2
-
-    ! If we've gone past the end of a row for 1st word, adjust addressing
-    IF (i1 >= iword(j1)) THEN
-      i1 = i1 - iword(j1) + 1
-      j1 = j1 + 1
-    END IF
-
-    ! If we've gone past the end of a row for 2nd word, adjust addressing
-    IF (i2 >= iword(j2) .AND. j2 /= rows) THEN
-      i2 = i2 - iword(j2) + 1
-      j2 = j2 + 1
-    END IF
+  ! Set the offset to the final word set above (3)
+  i1 = 3
+  ! Now extract the filled part of each row into the single packed array
+  DO i = 1, rows
+    DO j = 1, iword(i) - 1
+      packed_field(i1 + j) = IAND(icomp(j, i), mask32)
+    END DO
+    ! Update the offset for the next row
+    i1 = i1 + iword(i) - 1
   END DO
 
 END IF
@@ -721,7 +933,7 @@ IMPLICIT NONE
 
 INTEGER(KIND=int64) :: status
 
-INTEGER(KIND=int64), INTENT(IN)  :: packed_field(:)
+INTEGER(KIND=int32), INTENT(IN)  :: packed_field(:)
 REAL(KIND=real64),   INTENT(IN)  :: rmdi
 REAL(KIND=real64),   INTENT(OUT) :: field(:, :)
 CHARACTER(LEN=*),    INTENT(OUT) :: message
@@ -749,28 +961,23 @@ IMPLICIT NONE
 
 INTEGER(KIND=int32) :: status
 
-INTEGER(KIND=int64), INTENT(IN)  :: packed_field(:)
+INTEGER(KIND=int32), INTENT(IN)  :: packed_field(:)
 REAL(KIND=real32),   INTENT(IN)  :: rmdi
 REAL(KIND=real64),   INTENT(OUT) :: field(:, :)
 CHARACTER(LEN=*),    INTENT(OUT) :: message
 
-INTEGER(KIND=int64) :: status64
-REAL(KIND=real64)   :: rmdi64
-INTEGER(KIND=int64) :: cols
-INTEGER(KIND=int64) :: rows
-INTEGER(KIND=int64) :: len_packed_field
+INTEGER(KIND=int32) :: cols
+INTEGER(KIND=int32) :: rows
+INTEGER(KIND=int32) :: len_packed_field
 
-rmdi64 = REAL(rmdi, KIND=real64)
-cols = SIZE(field, 1, KIND=int64)
-rows = SIZE(field, 2, KIND=int64)
-len_packed_field = SIZE(packed_field, 1, KIND=int64)
+cols = SIZE(field, 1, KIND=int32)
+rows = SIZE(field, 2, KIND=int32)
+len_packed_field = SIZE(packed_field, 1, KIND=int32)
 
-status64 = f_shum_wgdos_unpack_expl_arg64(                                     &
-                        packed_field, len_packed_field, rmdi64,                &
+status = f_shum_wgdos_unpack_expl_arg32(                                       &
+                        packed_field, len_packed_field, rmdi,                  &
                         field, cols, rows, message)
 
-status = INT(status64, KIND=int32)
-    
 END FUNCTION f_shum_wgdos_unpack_2d_arg32
 
 !------------------------------------------------------------------------------!
@@ -782,7 +989,7 @@ IMPLICIT NONE
 
 INTEGER(KIND=int64) :: status
 
-INTEGER(KIND=int64), INTENT(IN)          :: packed_field(:)
+INTEGER(KIND=int32), INTENT(IN)          :: packed_field(:)
 REAL(KIND=real64),   INTENT(IN)          :: rmdi
 INTEGER(KIND=int64), INTENT(IN)          :: stride
 REAL(KIND=real64),   INTENT(OUT), TARGET :: field(:)
@@ -819,18 +1026,16 @@ IMPLICIT NONE
 
 INTEGER(KIND=int32) :: status
 
-INTEGER(KIND=int64), INTENT(IN)          :: packed_field(:)
+INTEGER(KIND=int32), INTENT(IN)          :: packed_field(:)
 REAL(KIND=real32),   INTENT(IN)          :: rmdi
 INTEGER(KIND=int32), INTENT(IN)          :: stride
 REAL(KIND=real64),   INTENT(OUT), TARGET :: field(:)
 CHARACTER(LEN=*),    INTENT(OUT)         :: message
 
-INTEGER(KIND=int64)        :: status64
-REAL(KIND=real64)          :: rmdi64
-INTEGER(KIND=int64)        :: cols
-INTEGER(KIND=int64)        :: rows
+INTEGER(KIND=int32)        :: cols
+INTEGER(KIND=int32)        :: rows
 REAL(KIND=real64), POINTER :: field2d(:, :)
-INTEGER(KIND=int64)        :: len_packed_field
+INTEGER(KIND=int32)        :: len_packed_field
 
 IF (MOD(SIZE(field, KIND=int32), stride) /= 0) THEN
   status = 1_int32
@@ -838,18 +1043,15 @@ IF (MOD(SIZE(field, KIND=int32), stride) /= 0) THEN
   RETURN
 END IF
 
-rmdi64 = REAL(rmdi, KIND=real64)
-cols = INT(stride, KIND=int64)
-rows = INT(SIZE(field)/cols, KIND=int64)
+cols = stride
+rows = INT(SIZE(field)/cols, KIND=int32)
 field2d(1:cols, 1:rows) => field(:)
-len_packed_field = SIZE(packed_field, 1, KIND=int64)
+len_packed_field = SIZE(packed_field, 1, KIND=int32)
 
-status64 = f_shum_wgdos_unpack_expl_arg64(                                     &
-                        packed_field, len_packed_field, rmdi64,                &
+status = f_shum_wgdos_unpack_expl_arg32(                                       &
+                        packed_field, len_packed_field, rmdi,                  &
                         field, cols, rows, message)
 
-status = INT(status64, KIND=int32)
-    
 END FUNCTION f_shum_wgdos_unpack_1d_arg32
 
 !------------------------------------------------------------------------------!
@@ -863,7 +1065,7 @@ IMPLICIT NONE
 INTEGER(KIND=int32) :: status
 
 INTEGER(KIND=int32), INTENT(IN)  :: len_packed_field
-INTEGER(KIND=int64), INTENT(IN)  :: packed_field(len_packed_field)
+INTEGER(KIND=int32), INTENT(IN)  :: packed_field(len_packed_field)
 REAL(KIND=real32),   INTENT(IN)  :: rmdi
 INTEGER(KIND=int32), INTENT(IN)  :: cols
 INTEGER(KIND=int32), INTENT(IN)  :: rows
@@ -900,7 +1102,7 @@ IMPLICIT NONE
 INTEGER(KIND=int64) :: status
 
 INTEGER(KIND=int64), INTENT(IN)  :: len_packed_field
-INTEGER(KIND=int64), INTENT(IN)  :: packed_field(len_packed_field)
+INTEGER(KIND=int32), INTENT(IN)  :: packed_field(len_packed_field)
 REAL(KIND=real64),   INTENT(IN)  :: rmdi
 INTEGER(KIND=int64), INTENT(IN)  :: cols
 INTEGER(KIND=int64), INTENT(IN)  :: rows
@@ -917,7 +1119,6 @@ INTEGER(KIND=int64) :: idx(cols), imap(cols)
 INTEGER(KIND=int64) :: istart(rows), nop(rows), nbits(rows)
 
 INTEGER(KIND=int64) :: ibase(rows)
-INTEGER(KIND=int64) :: icomp(rows*(2*cols+2)+4)
 
 INTEGER(KIND=int64) :: accuracy
 REAL(KIND=real64)   :: aprec
@@ -944,41 +1145,31 @@ IF (first) THEN
   first = .FALSE.
 END IF
 
-! All lengths and alignments in WGDOS packing are for 32-bit words,
-! so life gets much easier when we treat the packed data as 32-bit
-! words.
-! We split therefore the 64-bit compressed data into two 32 bit words
+! The first word of the field header gives the total words in the packed field, 
+! so we can confirm the field we have been passed is the right length
+num = SIZE(packed_field, KIND=int64)
 
-num = ISHFT(packed_field(1),-32) ! Number of 32 bit words
-
-IF (num > SIZE(icomp, KIND=int64)-2) THEN
+IF (num /= packed_field(1)) THEN
   status = 2
-  message='Compressed data has too many elements'
-  IF (lhook) CALL dr_hook(RoutineName,zhook_out,zhook_handle)
+  WRITE(message, "(A,I0,A,I0,A)") &
+      'Packed field header reports ', packed_field(1), ' words, but '        //&
+      'provided field is ', num, ' words in length'
+    IF (lhook) CALL dr_hook(RoutineName,zhook_out,zhook_handle)
   RETURN
 END IF
 
-DO i=1,(num+1)/2
-  icomp(2*i-1) = IAND(ISHFT(packed_field(i),-32),mask32)
-  icomp(2*i)   = IAND(packed_field(i),mask32)
-END DO
-! The following word MUST be 0, it is used during decomposition!
-icomp(num+1) = 0
-icomp(num+2) = 0
-
-! Get the precision from the header
-accuracy = icomp(2)
+! Get the precision from the second word in the field header
+accuracy = packed_field(2)
 aprec = 2.0**accuracy
 
 ! Get start word and length of every row
-
 istart(1) = 6
-nop(1) = IAND(icomp(5),mask16)
+nop(1) = IAND(packed_field(5),mask16)
 
 DO j=2,rows
   istart(j) = istart(j-1) + nop(j-1) + 2
-  nop(j) = IAND(icomp(istart(j)-1),mask16)
-  IF (istart(j)+nop(j)-1>num) THEN
+  nop(j) = IAND(packed_field(istart(j)-1),mask16)
+  IF (istart(j)+nop(j)-1 > num) THEN
     status = 2
     message='Compressed data inconsistent'
     IF (lhook) CALL dr_hook(RoutineName,zhook_out,zhook_handle)
@@ -990,15 +1181,15 @@ END DO
 ! for every row and convert IBM floats to native floats
 ! The routine IBM2IEEE does a rather bad job, so we code it explicitly
 
-!$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE)                        &
-!$OMP&         SHARED(rows, obtmis, obtmin, obtzer, obtmap, nbits, ibase, &
-!$OMP&                base, cols, mask_bits, field, icomp, rmdi, istart,  &
-!$OMP&                aprec)                                            &
-!$OMP&         PRIVATE(j, nbits_bmap, mant, iexp, ival, iword, itmp,    &
+!$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE)                               &
+!$OMP&         SHARED(rows, obtmis, obtmin, obtzer, obtmap, nbits, ibase,      &
+!$OMP&                base, cols, mask_bits, field, packed_field, rmdi, istart,&
+!$OMP&                aprec)                                                   &
+!$OMP&         PRIVATE(j, nbits_bmap, mant, iexp, ival, iword, itmp,           &
 !$OMP&                 nshft, i1, i2, i, num, imap, idx, ioff)
 DO j=1,rows
-  ibase(j) = icomp(istart(j)-2)
-  nbits(j) = IAND(ISHFT(icomp(istart(j)-1),-16),mask16)
+  ibase(j) = packed_field(istart(j)-2)
+  nbits(j) = IAND(ISHFT(packed_field(istart(j)-1),-16),mask16)
 
   mant = IAND(ibase(j),mask_mant_ibm)
   iexp = ISHFT(IAND(ibase(j),mask_expt_ibm),-24)-64-6
@@ -1012,11 +1203,8 @@ DO j=1,rows
   obtmap(j) = obtzer(j) .OR. obtmin(j) .OR. obtmis(j)
   nbits(j)  = IAND(nbits(j), INT(31, KIND=int64))
 
-
   ! Decode data row by row
-
-
-          ! Care about bitmaps
+  ! Care about bitmaps
 
   imap(:) = 1 ! Data present indicator
 
@@ -1028,7 +1216,9 @@ DO j=1,rows
   IF (nbits_bmap > 0) THEN
     iword = istart(j)
     DO i1=1,nbits_bmap,64
-      ival  = IOR(ISHFT(icomp(iword),32),icomp(iword+1))
+      ival  = IOR(ISHFT(                                                       &
+                  IAND(INT(packed_field(iword),   KIND=int64), mask32), 32),   &
+                  IAND(INT(packed_field(iword+1), KIND=int64), mask32))
       iword = iword+2
       DO i2=0,MIN(nbits_bmap-i1, INT(63, KIND=int64))
         itmp(i1+i2) = MERGE(1,0,IAND(ival,mask_bits(i2))/=0)
@@ -1102,13 +1292,15 @@ DO j=1,rows
         ! Bit offset to value:
         ioff  = (i-1)*nbits(j)
 
-        ! Number of word in icomp which contains first bit:
+        ! Number of word in packed_field which contains first bit:
         iword = ISHFT(ioff,-5)+istart(j)
 
         ! We load this word and the following into ival,
         ! this way we don't have to care if a word boundary
         ! is crossed. This requires that ival is a 64 bit word!
-        ival  = IOR(ISHFT(icomp(iword),32),icomp(iword+1))
+        ival  = IOR(ISHFT(                                                     &
+                  IAND(INT(packed_field(iword),   KIND=int64), mask32), 32),   &
+                  IAND(INT(packed_field(iword+1), KIND=int64), mask32))
 
         ! Number of bits we have to shift to the right:
         nshft = 64 - IAND(ioff, INT(31, KIND=int64)) - nbits(j)
@@ -1123,13 +1315,15 @@ DO j=1,rows
         ! Bit offset to value:
         ioff  = (i-1)*nbits(j)
 
-        ! Number of word in icomp which contains first bit:
+        ! Number of word in packed_field which contains first bit:
         iword = ISHFT(ioff,-5)+istart(j)
 
         ! We load this word and the following into ival,
         ! this way we don't have to care if a word boundary
         ! is crossed. This requires that ival is a 64 bit word!
-        ival  = IOR(ISHFT(icomp(iword),32),icomp(iword+1))
+        ival  = IOR(ISHFT(                                                     &
+                  IAND(INT(packed_field(iword),   KIND=int64), mask32), 32),   &
+                  IAND(INT(packed_field(iword+1), KIND=int64), mask32))
 
         ! Number of bits we have to shift to the right:
         nshft = 64 - IAND(ioff, INT(31, KIND=int64)) - nbits(j)

@@ -11,14 +11,6 @@ ${LIBTARGETS}: libshum_wgdos_packing.so libshum_wgdos_packing.a
 
 # Static library - uses archiver to create library
 #-------------------------------------------------------------------------------
-c_shum_read_wgdos_header.o: c_shum_read_wgdos_header.c \
-	                    c_shum_read_wgdos_header.h
-	${CC} ${CCFLAGS_PREC} -c -I${LIBDIR_OUT}/include -I${PBOMB_DIR} $<
-
-f_shum_read_wgdos_header.o: f_shum_read_wgdos_header.f90 \
-                            c_shum_read_wgdos_header.o
-	${FC} ${FCFLAGS_PREC} -c -I${LIBDIR_OUT}/include $<
-
 f_shum_wgdos_packing.o: f_shum_wgdos_packing.f90
 	${FC} ${FCFLAGS_PREC} -c -I${LIBDIR_OUT}/include $<
 
@@ -26,8 +18,6 @@ c_shum_wgdos_packing.o: c_shum_wgdos_packing.f90 f_shum_wgdos_packing.o
 	${FC} ${FCFLAGS_PREC} -c -I${LIBDIR_OUT}/include $<
 
 libshum_wgdos_packing.a: \
-	c_shum_read_wgdos_header.o \
-	f_shum_read_wgdos_header.o \
 	f_shum_wgdos_packing.o \
 	c_shum_wgdos_packing.o 
 	${AR} $@ $^
@@ -36,15 +26,6 @@ libshum_wgdos_packing.a: \
 # are suffixed to keep them separate to the above (since the dynamic library
 # required position-independent-code flags whilst the static version does not)
 #-------------------------------------------------------------------------------
-c_shum_read_wgdos_header_PIC.o: c_shum_read_wgdos_header.c \
-	                        c_shum_read_wgdos_header.h
-	${CC} ${CCFLAGS_PREC} ${CCFLAGS_PIC} -c \
-                                 -I${LIBDIR_OUT}/include -I${PBOMB_DIR} $< -o $@
-
-f_shum_read_wgdos_header_PIC.o: f_shum_read_wgdos_header.f90 \
-                                c_shum_read_wgdos_header_PIC.o
-	${FC} ${FCFLAGS_PREC} ${FCFLAGS_PIC} -c -I${LIBDIR_OUT}/include $< -o $@
-
 f_shum_wgdos_packing_PIC.o: f_shum_wgdos_packing.f90
 	${FC} ${FCFLAGS_PREC} ${FCFLAGS_PIC} -c -I${LIBDIR_OUT}/include $< -o $@
 
@@ -52,8 +33,6 @@ c_shum_wgdos_packing_PIC.o: c_shum_wgdos_packing.f90 f_shum_wgdos_packing_PIC.o
 	${FC} ${FCFLAGS_PREC} ${FCFLAGS_PIC} -c -I${LIBDIR_OUT}/include $< -o $@
 
 libshum_wgdos_packing.so: \
-	c_shum_read_wgdos_header_PIC.o \
-	f_shum_read_wgdos_header_PIC.o \
 	f_shum_wgdos_packing_PIC.o \
 	c_shum_wgdos_packing_PIC.o
 	${FC} ${FCFLAGS_SHARED} ${FCFLAGS_PREC} ${FCFLAGS_PIC} $^ -o $@

@@ -6,7 +6,7 @@
 # Compiler command
 FC=ifort
 # Precision flags (passed to all compilation commands)
-FCFLAGS_PREC=-standard-semantics -assume nostd_mod_proc_name -std03
+FCFLAGS_PREC=-standard-semantics -assume nostd_mod_proc_name -std03 -openmp
 # Flag used to set PIC (Position-independent-code; required by dynamic lib 
 # and so will only be passed to compile objects destined for the dynamic lib)
 FCFLAGS_PIC=-fPIC

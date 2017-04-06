@@ -65,7 +65,7 @@ ${DATA_CONV}: ${STR_CONV} ${OUTDIRS}
 # WGDOS packing
 #--------------
 PACK=shum_wgdos_packing
-${PACK}: ${STR_CONV} ${HOOK} ${DATA_CONV} ${OUTDIRS}
+${PACK}: ${STR_CONV} ${HOOK} ${OUTDIRS}
 	make -C ${PACK}/src
 ${PACK}_tests: fruit ${PACK}
 	make -C ${PACK}/test

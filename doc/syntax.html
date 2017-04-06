@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body { font-family: Helvetica; }
+code, h1 { color: #28e; }
+h1 { background: #bbb; }
+h2 { background: #ccc; }
+h3 { background: #ddd; }
+li { list-style: none; }
+</style>
+</head>
+<body>
+<h1>Shumlib Documentation</h1>
+  <p>This document is the early stages of full documentation for the
+  project; for now a listing of the exposed interfaces/syntax.</p>
+
+  <h2>shum_wgdos_packing_mod</h2>
+    <h3>f_shum_read_wgdos_header</h3>
+    <p>This function extracts several values from the WGDOS file header of a 
+      packed data array.  The main reason for this is to query the packed data
+      for appropriate sizes to use for allocating the return arrays of the 
+      unpacking routines</p>
+    <ul>
+      <li><b>Syntax:</b>
+          <ul>
+            <li><code>status = f_shum_read_wgdos_header(packed_field, num_words, 
+                accuracy, cols, rows, message)</code></li>
+      </ul></li>
+      <li><b>Inputs (<code>INTENT(IN)</code>):</b>
+          <ul>
+            <li><code>packed_field</code> 
+                - The packed field data, a 1D array of 32-bit 
+                <code>INTEGER</code>s</li>
+          </ul></li>
+      <li><b>Outputs (<code>INTENT(OUT)</code>):</b>
+          <ul>
+            <li><code>num_words</code> 
+                - Total number of 32-bit words in packed array 
+                (<code>INTEGER</code>, see below)</li>
+            <li><code>accuracy</code> 
+                - Packing accuracy (<code>INTEGER</code>, see below)</li> 
+            <li><code>cols</code> 
+                - Number of columns (row length) 
+                (<code>INTEGER</code>, see below)</li>
+            <li><code>rows</code> 
+                - Number of rows (<code>INTEGER</code>, see below)</li>
+            <li><code>message</code> 
+                - Error message if <code>status</code> is non-zero</li>
+          </ul></li>
+      <li><b>Return Value (<code>RESULT</code>)</b>
+        <ul>
+          <li><code>status</code>
+              - Exit status; <code>0</code> means success, anything else should
+              be accompanied by a message returned to <code>message</code></li>
+      </ul></li>
+      <li><b>Notes:</b>
+        <ul>
+          <li>The <code>INTEGER</code> return arguments may either <i>all</i> 
+              be 32-bit or <i>all</i> be 64-bit.  Their "true" values in the 
+              file header are actually 32-bit (for <code>num_words</code> and
+              <code>accuracy</code>) and 16-bit (for <code>cols</code> and 
+              <code>rows</code>)</li>
+        </ul></li>
+    </ul>
+
+    <h3>f_shum_wgdos_pack</h3>
+    <p>This function accepts unpacked field data and packs it using the WGDOS
+      algorithm</p>
+    <ul>
+      <li><b>Syntax:</b>
+          <ul>
+            <li><code>status = f_shum_wgdos_pack(field, [stride,] accuracy, 
+                rmdi, packed_field, [n_packed_words,] message)</code></li>
+      </ul></li>
+      <li><b>Inputs (<code>INTENT(IN)</code>):</b>
+          <ul>
+            <li><code>field</code> - The unpacked field data (64-bit 
+                <code>REAL</code> array which may be either 1D or 2D)</li>
+            <li><code>stride</code> - If <code>field</code> is 1D this gives
+                the stride (number of points in a row) for packing 
+                (<code>INTEGER</code>, see below)</li>
+            <li><code>accuracy</code> - Packing accuracy 
+                (<code>INTEGER</code>, see below)</li>
+            <li><code>rmdi</code> - Real missing data indicator, any values
+                in the field equal to this value will be considered missing
+                (<code>REAL</code>, see below)</li>
+          </ul></li>
+      <li><b>Outputs (<code>INTENT(OUT)</code>):</b>
+          <ul>
+            <li><code>packed_field</code> - The WGDOS packed field (1D 32-bit 
+                <code>INTEGER</code> array which may either be 
+                <code>ALLOCTABLE</code> and will be allocated to the final
+                packed size, or fixed and will be filled by the packed data
+                (must be large enough!))</li>
+            <li><code>n_packed_words</code> - In the case the 
+                <code>packed_field</code> is <i>not</i> 
+                <code>ALLOCATABLE</code>, this gives the length of 
+                <code>packed_field</code> which contains the packed data 
+                on exit</li>
+            <li><code>message</code> 
+                - Error message if <code>status</code> is non-zero</li>
+          </ul></li>
+      <li><b>Return Value (<code>RESULT</code>)</b>
+        <ul>
+          <li><code>status</code>
+              - Exit status; <code>0</code> means success, anything else should
+              be accompanied by a message returned to <code>message</code></li>
+      </ul></li>
+      <li><b>Notes:</b>
+        <ul>
+          <li>The scaler <code>INTEGER</code> and <code>REAL</code> arguments
+              may either <i>all</i> be 32-bit or <i>all</i> be 64-bit</li>
+        </ul></li>
+    </ul>    
+
+    <h3>f_shum_wgdos_unpack</h3>
+    <p>This function accepts a WGDOS packed field and unpacks it to return the
+      data</p>
+    <ul>
+      <li><b>Syntax:</b>
+          <ul>
+            <li><code>status = f_shum_wgdos_unpack(packed_field, mdi, 
+                field, [stride,] message)</code></li>
+      </ul></li>
+      <li><b>Inputs (<code>INTENT(IN)</code>):</b>
+          <ul>
+            <li><code>packed_field</code> - WGDOS packed input field (1D 32-bit 
+                <code>INTEGER</code> array)</li>
+            <li><code>rmdi</code> - Real missing data indicator, any values
+                in the field tagged as missing will be filled by this value
+                (<code>REAL</code>, see below)</li>
+          </ul></li>
+      <li><b>Outputs (<code>INTENT(OUT)</code>):</b>
+          <ul>
+            <li><code>field</code> - The unpacked field data (64-bit 
+                <code>REAL</code> array which may be either 1D or 2D)</li>
+            <li><code>stride</code> - If <code>field</code> is 1D this gives
+                the stride (number of points in a row) 
+                (<code>INTEGER</code>, see below)</li>
+            <li><code>message</code>
+                - Error message if <code>status</code> is non-zero</li>
+          </ul></li>
+      <li><b>Return Value (<code>RESULT</code>)</b>
+        <ul>
+          <li><code>status</code>
+              - Exit status; <code>0</code> means success, anything else should
+              be accompanied by a message returned to <code>message</code></li>
+      </ul></li>
+      <li><b>Notes:</b>
+        <ul>
+          <li>The <code>INTEGER</code> return arguments may either <i>all</i>
+              be 32-bit or <i>all</i> be 64-bit</li>
+        </ul></li>
+    </ul>
+
+</body>
+</html>
