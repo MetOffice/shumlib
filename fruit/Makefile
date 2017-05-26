@@ -12,7 +12,7 @@ ${LIBTARGETS}: libfruit.so libfruit.a
 # Static library - uses archiver to create library
 #-------------------------------------------------------------------------------
 fruit.o: fruit.f90
-	${FC} ${FCFLAGS_PREC} -c $< -o $@
+	${FC} ${FCFLAGS} -c $< -o $@
 
 libfruit.a: fruit.o
 	${AR} $@ $^
@@ -22,10 +22,10 @@ libfruit.a: fruit.o
 # required position-independent-code flags whilst the static version does not)
 #-------------------------------------------------------------------------------
 fruit_PIC.o: fruit.f90
-	${FC} ${FCFLAGS_PREC} ${FCFLAGS_PIC} -c $< -o $@
+	${FC} ${FCFLAGS} ${FCFLAGS_PIC} -c $< -o $@
 
 libfruit.so: fruit_PIC.o 
-	${FC} ${FCFLAGS_SHARED} ${FCFLAGS_PREC} ${FCFLAGS_PIC} $^ -o $@
+	${FC} ${FCFLAGS_SHARED} ${FCFLAGS} ${FCFLAGS_PIC} $^ -o $@
 
 # Cleanup
 #-------------------------------------------------------------------------------

@@ -8,13 +8,13 @@ test: fruit_test_shum_byteswap.o fruit_test_shum_byteswap_PIC.o
 # Static version
 #-------------------------------------------------------------------------------
 fruit_test_shum_byteswap.o: fruit_test_shum_byteswap.f90 
-	${FC} -c ${FCFLAGS_STATIC} ${FCFLAGS_PREC} $< \
+	${FC} -c ${FCFLAGS_STATIC} ${FCFLAGS} $< \
 	-I${LIBDIR_OUT}/include -o $@ ${FCFLAGS_STATIC_TRAIL}
 
 # Dynamic version
 #-------------------------------------------------------------------------------
 fruit_test_shum_byteswap_PIC.o: fruit_test_shum_byteswap.f90 
-	${FC} -c ${FCFLAGS_DYNAMIC} ${FCFLAGS_PREC} ${FCFLAGS_PIC} $< \
+	${FC} -c ${FCFLAGS_DYNAMIC} ${FCFLAGS} ${FCFLAGS_PIC} $< \
 	-I${LIBDIR_OUT}/include -o $@ ${FCFLAGS_DYNAMIC_TRAIL}
 
 # Cleanup

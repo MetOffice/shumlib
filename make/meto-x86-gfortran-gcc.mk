@@ -11,7 +11,11 @@ MAKE=make
 # Compiler command
 FC=gfortran
 # Precision flags (passed to all compilation commands)
-FCFLAGS_PREC=-std=f2003 -pedantic -pedantic-errors -fno-range-check -fopenmp
+FCFLAGS_PREC=
+# Flag used to set OpenMP (passed to all compilation commands)
+FCFLAGS_OPENMP=-fopenmp
+# Any other flags (to be passed to all compliation commands)
+FCFLAGS_EXTRA=-std=f2003 -pedantic -pedantic-errors -fno-range-check
 # Flag used to set PIC (Position-independent-code; required by dynamic lib 
 # and so will only be passed to compile objects destined for the dynamic lib)
 FCFLAGS_PIC=-fPIC
@@ -33,7 +37,11 @@ FCFLAGS_STATIC_TRAIL=-Wl,-Bdynamic
 # Compiler command
 CC=gcc
 # Precision flags (passed to all compilation commands)
-CCFLAGS_PREC=-fopenmp
+CCFLAGS_PREC=
+# Flag used to set OpenMP (passed to all compilation commands)
+CCFLAGS_OPENMP=-fopenmp
+# Any other flags (to be passed to all compilation commands)
+CCFLAGS_EXTRA=
 # Flag used to set PIC (Position-independent-code; required by dynamic lib 
 # and so will only be passed to compile objects destined for the dynamic lib)
 CCFLAGS_PIC=-fPIC

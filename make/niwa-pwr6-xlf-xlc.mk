@@ -11,7 +11,11 @@ MAKE=gmake
 # Compiler command
 FC=xlf2003_r
 # Precision flags (passed to all compilation commands)
-FCFLAGS_PREC=-qsmp=omp
+FCFLAGS_PREC=
+# Flag used to set OpenMP (passed to all compilation commands)
+FCFLAGS_OPENMP=-qsmp=omp
+# Any other flags (to be passed to all compliation commands)
+FCFLAGS_EXTRA=
 # Flag used to set PIC (Position-independent-code; required by dynamic lib 
 # and so will only be passed to compile objects destined for the dynamic lib)
 FCFLAGS_PIC=-qmkshrobj
@@ -33,7 +37,11 @@ FCFLAGS_STATIC_TRAIL=
 # Compiler command
 CC=xlc_r
 # Precision flags (passed to all compilation commands)
-CCFLAGS_PREC=-qsmp=omp
+CCFLAGS_PREC=
+# Flag used to set OpenMP (passed to all compilation commands)
+CCFLAGS_OPENMP=-qsmp=omp
+# Any other flags (to be passed to all compilation commands)
+CCFLAGS_EXTRA=
 # Flag used to set PIC (Position-independent-code; required by dynamic lib 
 # and so will only be passed to compile objects destined for the dynamic lib)
 CCFLAGS_PIC=-qmkshrobj

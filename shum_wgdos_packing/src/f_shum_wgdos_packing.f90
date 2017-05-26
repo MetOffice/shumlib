@@ -23,9 +23,6 @@
 !
 MODULE f_shum_wgdos_packing_mod
 
-USE yomhook, ONLY: lhook, dr_hook
-USE parkind1, ONLY: jprb, jpim
-
 USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         &
   C_INT64_T, C_INT32_T, C_INT16_T, C_FLOAT, C_DOUBLE
 
@@ -49,10 +46,6 @@ PUBLIC :: f_shum_read_wgdos_header, f_shum_wgdos_pack, f_shum_wgdos_unpack
   INTEGER, PARAMETER :: real64 = C_DOUBLE
   INTEGER, PARAMETER :: real32 = C_FLOAT                                       
 !------------------------------------------------------------------------------!
-
-! Drhook handles
-INTEGER(KIND=jpim), PARAMETER :: zhook_in  = 0
-INTEGER(KIND=jpim), PARAMETER :: zhook_out = 1
 
 ! Define various masks used to manipulate values later
 INTEGER(KIND=int32), PARAMETER ::                                              &
@@ -570,12 +563,6 @@ REAL(KIND=real64)    :: atmp(cols)
 REAL(KIND=real64)    :: base
 REAL(KIND=real64)    :: fmax
 
-! Drhook variables
-CHARACTER(LEN=*),   PARAMETER :: RoutineName='UM_WGDOS_PACK'
-REAL(KIND=jprb)               :: zhook_handle
-
-IF (lhook) CALL dr_hook(RoutineName,zhook_in,zhook_handle)
-
 ! GENERAL REMARK:
 ! All lengths and alignments in WGDOS packing are for 32-bit words,
 ! so life gets much easier when we treat the packed data as 32-bit
@@ -875,7 +862,6 @@ END DO ! j
 IF (l_thread_error) THEN
   status = 2
   message = "Unable to WGDOS pack to this accuracy"
-  IF (lhook) CALL dr_hook(RoutineName,zhook_out,zhook_handle)
   RETURN
 END IF
 
@@ -896,7 +882,6 @@ IF (n_packed_words > len_packed_field) THEN
   WRITE(message, "(A,I0,A,I0,A)")                                              &
     "Provided array for returning packed data is too small; found ",           &
     len_packed_field, " words, but requires ", n_packed_words, " words"        
-  IF (lhook) CALL dr_hook(RoutineName,zhook_out,zhook_handle)
   RETURN
 END IF
 
@@ -921,8 +906,6 @@ IF (rows>0) THEN
 END IF
 
 status = 0
-
-IF (lhook) CALL dr_hook(RoutineName,zhook_out,zhook_handle)
 
 END FUNCTION f_shum_wgdos_pack_expl_arg64
 
@@ -1134,12 +1117,6 @@ INTEGER(KIND=int64), PARAMETER :: One64 = 1
 INTEGER(KIND=int64), SAVE :: mask_bits(0:63)
 LOGICAL, SAVE :: first = .TRUE.
 
-! Drhook variables
-CHARACTER(LEN=*), PARAMETER :: RoutineName = "UM_WGDOS_UNPACK"
-REAL(KIND=jprb)             :: zhook_handle
-
-IF (lhook) CALL dr_hook(RoutineName,zhook_in,zhook_handle)
-
 IF (first) THEN
   DO i=0,63
     mask_bits(i) = ISHFT(One64,63-i)
@@ -1156,7 +1133,6 @@ IF (num < packed_field(1)) THEN
   WRITE(message, "(A,I0,A,I0,A)") &
       'Packed field header reports ', packed_field(1), ' words, but '        //&
       'provided field is ', num, ' words in length'
-    IF (lhook) CALL dr_hook(RoutineName,zhook_out,zhook_handle)
   RETURN
 END IF
 
@@ -1174,7 +1150,6 @@ DO j=2,rows
   IF (istart(j)+nop(j)-1 > num) THEN
     status = 2
     message='Compressed data inconsistent'
-    IF (lhook) CALL dr_hook(RoutineName,zhook_out,zhook_handle)
     RETURN
   END IF
 END DO
@@ -1342,9 +1317,6 @@ END DO
 !$OMP END PARALLEL DO
 
 status = 0
-
-IF (lhook) CALL dr_hook(RoutineName,zhook_out,zhook_handle)
-RETURN
 
 END FUNCTION f_shum_wgdos_unpack_expl_arg64
 

@@ -12,10 +12,10 @@ ${LIBTARGETS}: libshum_wgdos_packing.so libshum_wgdos_packing.a
 # Static library - uses archiver to create library
 #-------------------------------------------------------------------------------
 f_shum_wgdos_packing.o: f_shum_wgdos_packing.f90
-	${FC} ${FCFLAGS_PREC} -c -I${LIBDIR_OUT}/include $<
+	${FC} ${FCFLAGS} -c -I${LIBDIR_OUT}/include $<
 
 c_shum_wgdos_packing.o: c_shum_wgdos_packing.f90 f_shum_wgdos_packing.o
-	${FC} ${FCFLAGS_PREC} -c -I${LIBDIR_OUT}/include $<
+	${FC} ${FCFLAGS} -c -I${LIBDIR_OUT}/include $<
 
 libshum_wgdos_packing.a: \
 	f_shum_wgdos_packing.o \
@@ -27,15 +27,15 @@ libshum_wgdos_packing.a: \
 # required position-independent-code flags whilst the static version does not)
 #-------------------------------------------------------------------------------
 f_shum_wgdos_packing_PIC.o: f_shum_wgdos_packing.f90
-	${FC} ${FCFLAGS_PREC} ${FCFLAGS_PIC} -c -I${LIBDIR_OUT}/include $< -o $@
+	${FC} ${FCFLAGS} ${FCFLAGS_PIC} -c -I${LIBDIR_OUT}/include $< -o $@
 
 c_shum_wgdos_packing_PIC.o: c_shum_wgdos_packing.f90 f_shum_wgdos_packing_PIC.o
-	${FC} ${FCFLAGS_PREC} ${FCFLAGS_PIC} -c -I${LIBDIR_OUT}/include $< -o $@
+	${FC} ${FCFLAGS} ${FCFLAGS_PIC} -c -I${LIBDIR_OUT}/include $< -o $@
 
 libshum_wgdos_packing.so: \
 	f_shum_wgdos_packing_PIC.o \
 	c_shum_wgdos_packing_PIC.o
-	${FC} ${FCFLAGS_SHARED} ${FCFLAGS_PREC} ${FCFLAGS_PIC} $^ -o $@
+	${FC} ${FCFLAGS_SHARED} ${FCFLAGS} ${FCFLAGS_PIC} $^ -o $@
 
 # Cleanup
 #-------------------------------------------------------------------------------

@@ -12,10 +12,10 @@ ${LIBTARGETS}: libshum_byteswap.so libshum_byteswap.a
 # Static library - uses archiver to create library
 #-------------------------------------------------------------------------------
 c_shum_byteswap.o: c_shum_byteswap.c c_shum_byteswap.h c_shum_byteswap_opt.h
-	${CC} ${CCFLAGS_PREC} -I${PBOMB_DIR} -c $<
+	${CC} ${CCFLAGS} -I${PBOMB_DIR} -c $<
 
 f_shum_byteswap.o: f_shum_byteswap.f90
-	${FC} ${FCFLAGS_PREC} -c -I${LIBDIR_OUT}/include $<
+	${FC} ${FCFLAGS} -c -I${LIBDIR_OUT}/include $<
 
 libshum_byteswap.a: c_shum_byteswap.o f_shum_byteswap.o
 	${AR} $@ $^
@@ -25,13 +25,13 @@ libshum_byteswap.a: c_shum_byteswap.o f_shum_byteswap.o
 # required position-independent-code flags whilst the static version does not)
 #-------------------------------------------------------------------------------
 c_shum_byteswap_PIC.o: c_shum_byteswap.c c_shum_byteswap.h c_shum_byteswap_opt.h
-	${CC} ${CCFLAGS_PREC} ${CCFLAGS_PIC} -c -I${PBOMB_DIR} $< -o $@
+	${CC} ${CCFLAGS} ${CCFLAGS_PIC} -c -I${PBOMB_DIR} $< -o $@
 
 f_shum_byteswap_PIC.o: f_shum_byteswap.f90
-	${FC} ${FCFLAGS_PREC} ${FCFLAGS_PIC} -c -I${LIBDIR_OUT}/include $< -o $@
+	${FC} ${FCFLAGS} ${FCFLAGS_PIC} -c -I${LIBDIR_OUT}/include $< -o $@
 
 libshum_byteswap.so: c_shum_byteswap_PIC.o f_shum_byteswap_PIC.o
-	${FC} ${FCFLAGS_SHARED} ${FCFLAGS_PREC} ${FCFLAGS_PIC} $^ -o $@
+	${FC} ${FCFLAGS_SHARED} ${FCFLAGS} ${FCFLAGS_PIC} $^ -o $@
 
 # Cleanup
 #-------------------------------------------------------------------------------

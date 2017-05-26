@@ -11,7 +11,11 @@ MAKE=make
 # Compiler command
 FC=ftn
 # Precision flags (passed to all compilation commands)
-FCFLAGS_PREC=-standard-semantics -assume nostd_mod_proc_name -std03 -openmp
+FCFLAGS_PREC=
+# Flag used to set OpenMP (passed to all compilation commands)
+FCFLAGS_OPENMP=-openmp
+# Any other flags (to be passed to all compliation commands)
+FCFLAGS_EXTRA=-standard-semantics -assume nostd_mod_proc_name -std03
 # Flag used to set PIC (Position-independent-code; required by dynamic lib 
 # and so will only be passed to compile objects destined for the dynamic lib)
 FCFLAGS_PIC=-fPIC
@@ -33,7 +37,11 @@ FCFLAGS_STATIC_TRAIL=
 # Compiler command
 CC=cc
 # Precision flags (passed to all compilation commands)
-CCFLAGS_PREC=-qopenmp
+CCFLAGS_PREC=
+# Flag used to set OpenMP (passed to all compilation commands)
+CCFLAGS_OPENMP=-qopenmp
+# Any other flags (to be passed to all compilation commands)
+CCFLAGS_EXTRA=
 # Flag used to set PIC (Position-independent-code; required by dynamic lib 
 # and so will only be passed to compile objects destined for the dynamic lib)
 CCFLAGS_PIC=-fPIC

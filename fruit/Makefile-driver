@@ -55,7 +55,7 @@ $(DRIVER): ${TEST_DYNAMIC} ${TEST_STATIC}
 # Static executable
 #------------------
 $(STATIC_EXEC): $(DRIVER)
-	${FC} ${FCFLAGS_PREC} ${FCFLAGS_STATIC} \
+	${FC} ${FCFLAGS} ${FCFLAGS_STATIC} \
 	$< $(TEST_STATIC) ${TEST_FLAGS_INCL} \
 	-I${LIBDIR_OUT}/include -L${LIBDIR_OUT}/lib \
 	${TEST_FLAGS_LINK} ${TEST_FLAGS_LINK} \
@@ -64,7 +64,7 @@ $(STATIC_EXEC): $(DRIVER)
 # Dynamic executable
 #-------------------
 $(DYNAMIC_EXEC): $(DRIVER)
-	${FC} ${FCFLAGS_PREC} ${FCFLAGS_DYNAMIC} \
+	${FC} ${FCFLAGS} ${FCFLAGS_DYNAMIC} \
 	$< $(TEST_DYNAMIC) ${TEST_FLAGS_INCL} \
 	-I${LIBDIR_OUT}/include -L${LIBDIR_OUT}/lib \
 	${TEST_FLAGS_LINK} ${TEST_FLAGS_LINK} \

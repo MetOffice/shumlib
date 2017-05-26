@@ -16,6 +16,20 @@ LIBDIR_ROOT ?= ${PWD}/build
 LIBDIR_OUT ?= ${LIBDIR_ROOT}/${PLATFORM}
 export
 
+# Setup the flags which will be passed to all compilations - add the openMP
+# flags based on the setting below (defaults to true)
+SHUM_OPENMP ?= true
+ifeq (${SHUM_OPENMP}, true)
+FCFLAGS=${FCFLAGS_PREC} ${FCFLAGS_OPENMP} ${FCFLAGS_EXTRA}
+CCFLAGS=${CCFLAGS_PREC} ${CCFLAGS_OPENMP} ${CCFLAGS_EXTRA}
+else ifeq (${SHUM_OPENMP}, false)
+FCFLAGS=${FCFLAGS_PREC} ${FCFLAGS_EXTRA}
+CCFLAGS=${CCFLAGS_PREC} ${CCFLAGS_EXTRA}
+else
+$(error If specified in the environment SHUM_OPENMP environment variable must \
+be set to either "true" or "false")
+endif
+
 # Default target - build all available libraries
 #--------------------------------------------------------------------------------
 .PHONY: default 
@@ -36,11 +50,6 @@ PBOMB_DIR=${PWD}/pbomb
 
 # Libraries
 #--------------------------------------------------------------------------------
-# Drhook dummy
-#-------------
-HOOK=shum_drhook_dummy
-${HOOK}: ${OUTDIRS}
-	${MAKE} -C ${HOOK}/src
 
 # String conv
 #------------
@@ -65,12 +74,12 @@ ${DATA_CONV}: ${STR_CONV} ${OUTDIRS}
 # WGDOS packing
 #--------------
 PACK=shum_wgdos_packing
-${PACK}: ${STR_CONV} ${HOOK} ${OUTDIRS}
+${PACK}: ${STR_CONV} ${OUTDIRS}
 	${MAKE} -C ${PACK}/src
 ${PACK}_tests: fruit ${PACK}
 	${MAKE} -C ${PACK}/test
 
-ALL_LIBS=${BSWAP} ${HOOK} ${STR_CONV} ${DATA_CONV} ${PACK}
+ALL_LIBS=${BSWAP} ${STR_CONV} ${DATA_CONV} ${PACK}
 .PHONY: libs ${ALL_LIBS} $(addsuffix, _test, ${ALL_LIBS})
 
 # Add a target which points to all libraries
@@ -128,7 +137,6 @@ fruit: ${OUTDIRS}
 clean-temp:
 	${MAKE} -C ${BSWAP}/src clean
 	${MAKE} -C ${BSWAP}/test clean
-	${MAKE} -C ${HOOK}/src clean
 	${MAKE} -C ${STR_CONV}/src clean
 	${MAKE} -C ${DATA_CONV}/src clean
 	${MAKE} -C ${PACK}/src clean
@@ -139,7 +147,7 @@ clean-temp:
 clean-build: 
 	rm -rf ${OUTDIRS} ${OUTDIR_TESTS}
 	rm -rf ${LIBDIR_OUT}
-	rm -rf ${LIBDIR_ROOT}
+	rmdir ${LIBDIR_ROOT} || :
 
 clean: clean-temp clean-build 
 
