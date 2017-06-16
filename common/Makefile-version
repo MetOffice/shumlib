@@ -29,9 +29,9 @@ f_${VERSION_LIBNAME}_version_mod.f90:
 	echo "END MODULE f_${VERSION_LIBNAME}_version_mod" >> $@
 
 c_${VERSION_LIBNAME}_version.h:
-	echo "define SHUMLIB_LIBNAME ${VERSION_LIBNAME}" > $@
-	echo "include \"shumlib_version.h\"" >> $@
-	echo "undef SHUMLIB_LIBNAME" >> $@
+	echo "#define SHUMLIB_LIBNAME ${VERSION_LIBNAME}" > $@
+	echo "#include \"shumlib_version.h\"" >> $@
+	echo "#undef SHUMLIB_LIBNAME" >> $@
 
 f_${VERSION_LIBNAME}_version_mod.o: \
         f_${VERSION_LIBNAME}_version_mod.f90 \
