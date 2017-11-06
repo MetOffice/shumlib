@@ -16,6 +16,9 @@ LIBDIR_ROOT ?= ${PWD}/build
 LIBDIR_OUT ?= ${LIBDIR_ROOT}/${PLATFORM}
 export
 
+# Setup Base directory. This is included as the base in all paths
+DIR_ROOT ?= ${PWD}
+
 # Setup the flags which will be passed to all compilations - add the openMP
 # flags based on the setting below (defaults to true)
 SHUM_OPENMP ?= true
@@ -37,7 +40,7 @@ default: libs
 
 # Output directories
 #--------------------------------------------------------------------------------
-OUTDIRS=${LIBDIR_OUT}/lib ${LIBDIR_OUT}/include 
+OUTDIRS=${LIBDIR_OUT}/lib ${LIBDIR_OUT}/include
 ${OUTDIRS}:
 	mkdir -p ${LIBDIR_OUT}/lib
 	mkdir -p ${LIBDIR_OUT}/include
@@ -52,14 +55,14 @@ ${OUTDIR_TESTS}:
 # (which will protect against compilation on platforms where the assumptions 
 # about precision made in the libraries is invalid)
 #--------------------------------------------------------------------------------
-COMMON_DIR=${PWD}/common
+COMMON_DIR=${DIR_ROOT}/common
 
 # The FRUIT source itself
 #------------------------
 FRUIT=fruit
 .PHONY: ${FRUIT}
 ${FRUIT}: ${OUTDIRS}
-	${MAKE} -C ${FRUIT}
+	${MAKE} -C ${DIR_ROOT}/${FRUIT}
 
 # Libraries
 #--------------------------------------------------------------------------------
@@ -67,57 +70,74 @@ ${FRUIT}: ${OUTDIRS}
 # String conv
 #------------
 STR_CONV=shum_string_conv
-${STR_CONV}: ${OUTDIRS}
-	${MAKE} -C ${STR_CONV}/src
+STR_CONV_PREREQ=
 
 # Byte-swapping
 #--------------
 BSWAP=shum_byteswap
-${BSWAP}: ${STR_CONV} ${OUTDIRS}
-	${MAKE} -C ${BSWAP}/src
+BSWAP_PREREQ=STR_CONV
 
 # Data conv
 #----------
 DATA_CONV=shum_data_conv
-${DATA_CONV}: ${STR_CONV} ${OUTDIRS}
-	${MAKE} -C ${DATA_CONV}/src
+DATA_CONV_PREREQ=STR_CONV
 
 # WGDOS packing
 #--------------
 PACK=shum_wgdos_packing
-${PACK}: ${STR_CONV} ${OUTDIRS}
-	${MAKE} -C ${PACK}/src
+PACK_PREREQ=STR_CONV
 
 # Thread Utils
 #--------------
 THREAD_UTILS=shum_thread_utils
-${THREAD_UTILS}: ${OUTDIRS}
-	${MAKE} -C ${THREAD_UTILS}/src
+THREAD_UTILS_PREREQ=
 
 # LL to/from EQ transformation and wind rotation
 #-----------------------------------------------
 LLEQ=shum_latlon_eq_grids
-${LLEQ}: ${OUTDIRS}
-	${MAKE} -C ${LLEQ}/src
+LLEQ_PREREQ=
 
 # Fieldsfile API
 #---------------
 FFILE=shum_fieldsfile
-${FFILE}: ${OUTDIRS}
-	${MAKE} -C ${FFILE}/src
+FFILE_PREREQ=
 
 # All libs targets
 #--------------
-ALL_LIBS=${BSWAP} ${STR_CONV} ${DATA_CONV} ${PACK} ${THREAD_UTILS} ${LLEQ} ${FFILE}
+ALL_LIBS_VARS=BSWAP STR_CONV DATA_CONV PACK THREAD_UTILS LLEQ FFILE
+ALL_LIBS=$(foreach lib,${ALL_LIBS_VARS},${${lib}})
+
+# auto-generate main targets
+${ALL_LIBS_VARS}: %: %_PREREQ ${OUTDIRS}
+	${MAKE} -C ${DIR_ROOT}/${$@}/src
+
+# auto-generate prerequisite targets
+$(addsuffix _PREREQ, ${ALL_LIBS_VARS}): %:
+	$(foreach prereq,${$@},${MAKE} -C ${DIR_ROOT} ${prereq};)
 
 # auto-generate test targets
-$(wildcard $(addsuffix /test, ${ALL_LIBS})): %/test: ${FRUIT} %
+$(wildcard $(addprefix ${DIR_ROOT}/, $(addsuffix /test, ${ALL_LIBS}))): ${DIR_ROOT}/%/test: ${FRUIT} %
 	${MAKE} -C $@
 
-$(addsuffix _tests, ${ALL_LIBS}): %_tests: ${OUTDIR_TESTS} %/test
-	${MAKE} test_generic
+# auto-generate test prerequisite targets
+$(addsuffix _tests, ${ALL_LIBS_VARS}): %_tests: % ${OUTDIR_TESTS}
+	$(foreach prereq,${$(subst _tests,,$@)_PREREQ},${MAKE} -C ${DIR_ROOT} ${prereq}_tests;)
+	${MAKE} -C ${DIR_ROOT} ${DIR_ROOT}/${$(subst _tests,,$@)}/test
 
-.PHONY: libs ${ALL_LIBS} $(wildcard $(addsuffix /test, ${ALL_LIBS})) $(addsuffix _tests, ${ALL_LIBS})
+# reverse targets
+
+REVERSE_template = $(strip $(foreach revlib,${ALL_LIBS_VARS},$(if $(findstring $(1),${${revlib}}),${revlib},)))
+
+# auto-generate reverse targets
+${ALL_LIBS}: %:
+	${MAKE} -C ${DIR_ROOT} $(call REVERSE_template,$@)
+
+# auto-generate reverse test targets
+$(addsuffix _tests, ${ALL_LIBS}): %:
+	${MAKE} -C ${DIR_ROOT} $(call REVERSE_template,$(subst _tests,,$@))_tests
+	${MAKE} -C ${DIR_ROOT} test_generic
+
+.PHONY: libs ${ALL_LIBS} ${ALL_LIBS_VARS} $(addsuffix _PREREQ, ${ALL_LIBS_VARS}) $(wildcard $(addprefix ${DIR_ROOT}/, $(addsuffix /test, ${ALL_LIBS}))) $(addsuffix _tests, ${ALL_LIBS_VARS}) $(addsuffix _tests, ${ALL_LIBS})
 
 # Add a target which points to all libraries
 libs: ${ALL_LIBS}
@@ -129,11 +149,11 @@ libs: ${ALL_LIBS}
 
 check: test
 
-test: ${OUTDIR_TESTS} $(wildcard $(addsuffix /test, ${ALL_LIBS}))
-	${MAKE} test_generic
+test: ${OUTDIR_TESTS} $(wildcard $(addprefix ${DIR_ROOT}/, $(addsuffix /test, ${ALL_LIBS})))
+	${MAKE} -C ${DIR_ROOT} test_generic
 
 test_generic:
-	${MAKE} -f ${FRUIT}/Makefile-driver
+	${MAKE} -C ${DIR_ROOT} -f ${DIR_ROOT}/${FRUIT}/Makefile-driver
 	${LIBDIR_OUT}/tests/fruit_tests_static.exe
 	${LIBDIR_OUT}/tests/fruit_tests_dynamic.exe
 
@@ -141,10 +161,10 @@ test_generic:
 #--------------------------------------------------------------------------------
 .PHONY: clean clean-temp clean-build
 clean-temp:
-	@$(foreach libname,${ALL_LIBS},${MAKE} -C $(libname)/src clean;)
-	@$(foreach libname_test,$(wildcard $(addsuffix /test, ${ALL_LIBS})),${MAKE} -C $(libname_test) clean;)
-	${MAKE} -C ${FRUIT} clean
-	${MAKE} -f ${FRUIT}/Makefile-driver clean
+	@$(foreach libname,$(ALL_LIBS),${MAKE} -C ${DIR_ROOT}/$(libname)/src clean;)
+	@$(foreach libname_test,$(wildcard $(addsuffix /test, ${ALL_LIBS})),${MAKE} -C ${DIR_ROOT}/$(libname_test) clean;)
+	${MAKE} -C ${DIR_ROOT}/${FRUIT} clean
+	${MAKE} -C ${DIR_ROOT} -f ${DIR_ROOT}/${FRUIT}/Makefile-driver clean
 
 clean-build:
 	rm -rf ${OUTDIRS} ${OUTDIR_TESTS}
