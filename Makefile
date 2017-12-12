@@ -16,6 +16,9 @@ LIBDIR_ROOT ?= ${PWD}/build
 LIBDIR_OUT ?= ${LIBDIR_ROOT}/${PLATFORM}
 export
 
+# Setup test directory
+SHUM_TMPDIR ?= $(shell mktemp -d)
+
 # Setup Base directory. This is included as the base in all paths
 DIR_ROOT ?= ${PWD}
 

@@ -27,7 +27,19 @@ USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         &
   C_INT64_T, C_INT32_T, C_FLOAT, C_DOUBLE
 
 USE f_shum_lookup_indices_mod, ONLY:                                           &
-  lblrec, lbpack, lbegin, lbnrec, lbuser1
+  lblrec, lbpack, lbegin, lbnrec, lbuser1, lbrel
+
+USE f_shum_fixed_length_header_indices_mod, ONLY:                              &
+  int_const_start, int_const_dim, real_const_start, real_const_dim,            &
+  lev_dep_const_start, lev_dep_const_dim1, lev_dep_const_dim2,                 &
+  row_dep_const_start, row_dep_const_dim1, row_dep_const_dim2,                 &
+  col_dep_const_start, col_dep_const_dim1, col_dep_const_dim2,                 &
+  additional_const_start, additional_const_dim1, additional_const_dim2,        &
+  extra_const_start, extra_const_dim, temp_histfile_start, temp_histfile_dim,  &
+  comp_field_index1_start, comp_field_index1_dim,                              &
+  comp_field_index2_start, comp_field_index2_dim,                              &
+  comp_field_index3_start, comp_field_index3_dim,                              &
+  lookup_start, lookup_dim1, lookup_dim2, data_start, data_dim
 
 IMPLICIT NONE 
 
@@ -47,7 +59,23 @@ PUBLIC :: f_shum_open_file,                                                    &
           f_shum_read_temp_histfile,                                           &
           f_shum_read_compressed_index,                                        &
           f_shum_read_lookup,                                                  &
-          f_shum_read_field_data
+          f_shum_read_field_data,                                              &
+          f_shum_write_fixed_length_header,                                    &
+          f_shum_write_integer_constants,                                      &
+          f_shum_write_real_constants,                                         &
+          f_shum_write_level_dependent_constants,                              &
+          f_shum_write_row_dependent_constants,                                &
+          f_shum_write_column_dependent_constants,                             &
+          f_shum_write_additional_parameters,                                  &
+          f_shum_write_extra_constants,                                        &
+          f_shum_write_temp_histfile,                                          &
+          f_shum_write_compressed_index,                                       &
+          f_shum_write_lookup,                                                 &
+          f_shum_precalc_data_positions,                                       &
+          f_shum_write_field_data,                                             &
+          f_shum_fixed_length_header_len,                                      &
+          f_shum_lookup_dim1_len
+
 
 INTERFACE f_shum_read_field_data                                      
   MODULE PROCEDURE                                                             &
@@ -55,6 +83,18 @@ INTERFACE f_shum_read_field_data
           f_shum_read_field_data_int64,                                        &
           f_shum_read_field_data_real32,                                       &
           f_shum_read_field_data_int32
+END INTERFACE
+
+INTERFACE f_shum_write_field_data                                      
+  MODULE PROCEDURE                                                             &
+          f_shum_write_field_data_direct_real64,                               &
+          f_shum_write_field_data_direct_int64,                                &
+          f_shum_write_field_data_direct_real32,                               &
+          f_shum_write_field_data_direct_int32,                                &
+          f_shum_write_field_data_sequential_real64,                           &
+          f_shum_write_field_data_sequential_int64,                            &
+          f_shum_write_field_data_sequential_real32,                           &
+          f_shum_write_field_data_sequential_int32
 END INTERFACE
 
 !------------------------------------------------------------------------------!
@@ -75,39 +115,8 @@ INTEGER(KIND=int64), PARAMETER :: f_shum_fixed_length_header_len = 256
 INTEGER(KIND=int64), PARAMETER :: f_shum_lookup_dim1_len = 64
 
 INTEGER(KIND=int64), PARAMETER :: imdi = -32768
-
-! Constants for positional elements of fixed length header
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_int_const_start          = 100
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_int_const_dim            = 101
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_real_const_start         = 105
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_real_const_dim           = 106
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_lev_dep_const_start      = 110
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_lev_dep_const_dim1       = 111
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_lev_dep_const_dim2       = 112
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_row_dep_const_start      = 115
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_row_dep_const_dim1       = 116
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_row_dep_const_dim2       = 117
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_col_dep_const_start      = 120
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_col_dep_const_dim1       = 121
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_col_dep_const_dim2       = 122
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_additional_const_start   = 125
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_additional_const_dim1    = 126
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_additional_const_dim2    = 127
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_extra_const_start        = 130
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_extra_const_dim          = 131
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_temp_histfile_start      = 135
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_temp_histfile_dim        = 136
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_comp_field_index1_start  = 140
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_comp_field_index1_dim    = 141
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_comp_field_index2_start  = 142
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_comp_field_index2_dim    = 143
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_comp_field_index3_start  = 144
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_comp_field_index3_dim    = 145
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_lookup_start             = 150
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_lookup_dim1              = 151
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_lookup_dim2              = 152
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_data_start               = 160 
-INTEGER(KIND=int64), PARAMETER :: f_shum_flh_data_dim                 = 161
+INTEGER(KIND=int64), PARAMETER :: field_padding = 512
+INTEGER(KIND=int64), PARAMETER :: data_start_alignment = 524288
 
 ! A linked-list element object storing information on an open file; for each
 ! file we store an "id" that identifies it, a controlled copy of both the
@@ -117,6 +126,8 @@ TYPE ff_type
   INTEGER(KIND=int64) :: fixed_length_header(f_shum_fixed_length_header_len)
   INTEGER(KIND=int64), ALLOCATABLE :: lookup(:, :)
   CHARACTER(LEN=:),    ALLOCATABLE :: filename
+  INTEGER(KIND=int64) :: next_unwritten_field = 1
+  LOGICAL             :: read_only = .TRUE.
   TYPE(ff_type), POINTER :: next => NULL()
   TYPE(ff_type), POINTER :: prev => NULL()
 END TYPE ff_type
@@ -296,6 +307,9 @@ END IF
 CALL create_ff_type(ff_id, filename, ff)
 CALL append_to_file_list(ff)
 
+! Tag this file as read only
+ff % read_only = .TRUE.
+
 ! Extract the fixed length header and save it to the private array
 status = f_shum_read_fixed_length_header(                                      &
                                        ff_id, ff % fixed_length_header, message)
@@ -355,6 +369,9 @@ END IF
 CALL create_ff_type(ff_id, filename, ff)
 CALL append_to_file_list(ff)
 
+! Tag this file as writeable
+ff % read_only = .FALSE.
+
 ! Allocate the lookup array
 ALLOCATE(ff % lookup(f_shum_lookup_dim1_len, n_lookups))
 
@@ -363,8 +380,8 @@ ff % lookup(1:45, :) = -99
 ff % lookup(46:, :) = TRANSFER(0.0_real64, 0_int64)
 
 ! Set the lookup dimensions in the fixed_length_header
-ff % fixed_length_header(f_shum_flh_lookup_dim1) = f_shum_lookup_dim1_len
-ff % fixed_length_header(f_shum_flh_lookup_dim2) = n_lookups
+ff % fixed_length_header(lookup_dim1) = f_shum_lookup_dim1_len
+ff % fixed_length_header(lookup_dim2) = n_lookups
 
 END FUNCTION f_shum_create_file
 
@@ -381,6 +398,16 @@ INTEGER(KIND=int64) :: status
 TYPE(ff_type), POINTER :: ff
 
 ff => unique_id_to_ff(ff_id)
+
+! On close, ensure the final form of both the fixed length header and the
+! lookup are written to disk (for a created file)
+IF (.NOT. ff % read_only) THEN
+  status = commit_lookup(ff, message)
+  IF (status /= 0) RETURN
+
+  status = commit_fixed_length_header(ff, message)
+  IF (status /= 0) RETURN
+END IF
 
 CALL remove_from_file_list(ff)
 CALL destroy_ff_type(ff)
@@ -438,8 +465,8 @@ status = 0_int64
 ff => unique_id_to_ff(ff_id)
 
 ! Get the start position and dimensions from the fixed_length_header
-start = ff % fixed_length_header(f_shum_flh_int_const_start)
-dim = ff % fixed_length_header(f_shum_flh_int_const_dim)
+start = ff % fixed_length_header(int_const_start)
+dim = ff % fixed_length_header(int_const_dim)
 
 ! Check that these make sense
 IF ((start == imdi) .OR. (dim <= 0_int64)) THEN
@@ -499,8 +526,8 @@ status = 0_int64
 ff => unique_id_to_ff(ff_id)
 
 ! Get the start position and dimensions from the fixed_length_header
-start = ff % fixed_length_header(f_shum_flh_real_const_start)
-dim = ff % fixed_length_header(f_shum_flh_real_const_dim)
+start = ff % fixed_length_header(real_const_start)
+dim = ff % fixed_length_header(real_const_dim)
 
 ! Check that these make sense
 IF ((start == imdi) .OR. (dim <= 0_int64)) THEN
@@ -562,9 +589,9 @@ status = 0_int64
 ff => unique_id_to_ff(ff_id)
 
 ! Get the start position and dimensions from the fixed_length_header
-start = ff % fixed_length_header(f_shum_flh_lev_dep_const_start)
-dim1 = ff % fixed_length_header(f_shum_flh_lev_dep_const_dim1)
-dim2 = ff % fixed_length_header(f_shum_flh_lev_dep_const_dim2)
+start = ff % fixed_length_header(lev_dep_const_start)
+dim1 = ff % fixed_length_header(lev_dep_const_dim1)
+dim2 = ff % fixed_length_header(lev_dep_const_dim2)
 
 ! Check that these make sense
 IF ((start == imdi) .OR. (dim1 <= 0_int64) .OR. (dim2 <= 0_int64)) THEN
@@ -628,9 +655,9 @@ status = 0_int64
 ff => unique_id_to_ff(ff_id)
 
 ! Get the start position and dimensions from the fixed_length_header
-start = ff % fixed_length_header(f_shum_flh_row_dep_const_start)
-dim1 = ff % fixed_length_header(f_shum_flh_row_dep_const_dim1)
-dim2 = ff % fixed_length_header(f_shum_flh_row_dep_const_dim2)
+start = ff % fixed_length_header(row_dep_const_start)
+dim1 = ff % fixed_length_header(row_dep_const_dim1)
+dim2 = ff % fixed_length_header(row_dep_const_dim2)
 
 ! Check that these make sense
 IF ((start == imdi) .OR. (dim1 <= 0_int64) .OR. (dim2 <= 0_int64)) THEN
@@ -694,9 +721,9 @@ status = 0_int64
 ff => unique_id_to_ff(ff_id)
 
 ! Get the start position and dimensions from the fixed_length_header
-start = ff % fixed_length_header(f_shum_flh_col_dep_const_start)
-dim1 = ff % fixed_length_header(f_shum_flh_col_dep_const_dim1)
-dim2 = ff % fixed_length_header(f_shum_flh_col_dep_const_dim2)
+start = ff % fixed_length_header(col_dep_const_start)
+dim1 = ff % fixed_length_header(col_dep_const_dim1)
+dim2 = ff % fixed_length_header(col_dep_const_dim2)
 
 ! Check that these make sense
 IF ((start == imdi) .OR. (dim1 <= 0_int64) .OR. (dim2 <= 0_int64)) THEN
@@ -760,9 +787,9 @@ status = 0_int64
 ff => unique_id_to_ff(ff_id)
 
 ! Get the start position and dimensions from the fixed_length_header
-start = ff % fixed_length_header(f_shum_flh_additional_const_start)
-dim1 = ff % fixed_length_header(f_shum_flh_additional_const_dim1)
-dim2 = ff % fixed_length_header(f_shum_flh_additional_const_dim2)
+start = ff % fixed_length_header(additional_const_start)
+dim1 = ff % fixed_length_header(additional_const_dim1)
+dim2 = ff % fixed_length_header(additional_const_dim2)
 
 ! Check that these make sense
 IF ((start == imdi) .OR. (dim1 <= 0_int64) .OR. (dim2 <= 0_int64)) THEN
@@ -825,8 +852,8 @@ status = 0_int64
 ff => unique_id_to_ff(ff_id)
 
 ! Get the start position and dimensions from the fixed_length_header
-start = ff % fixed_length_header(f_shum_flh_extra_const_start)
-dim = ff % fixed_length_header(f_shum_flh_extra_const_dim)
+start = ff % fixed_length_header(extra_const_start)
+dim = ff % fixed_length_header(extra_const_dim)
 
 ! Check that these make sense
 IF ((start == imdi) .OR. (dim <= 0_int64)) THEN
@@ -886,8 +913,8 @@ status = 0_int64
 ff => unique_id_to_ff(ff_id)
 
 ! Get the start position and dimensions from the fixed_length_header
-start = ff % fixed_length_header(f_shum_flh_temp_histfile_start)
-dim = ff % fixed_length_header(f_shum_flh_temp_histfile_dim)
+start = ff % fixed_length_header(temp_histfile_start)
+dim = ff % fixed_length_header(temp_histfile_dim)
 
 ! Check that these make sense
 IF ((start == imdi) .OR. (dim <= 0_int64)) THEN
@@ -951,14 +978,14 @@ ff => unique_id_to_ff(ff_id)
 ! Get the start position and dimensions from the fixed_length_header
 SELECT CASE(index)
   CASE(1_int64)
-    start = ff % fixed_length_header(f_shum_flh_comp_field_index1_start)
-    dim = ff % fixed_length_header(f_shum_flh_comp_field_index1_dim)
+    start = ff % fixed_length_header(comp_field_index1_start)
+    dim = ff % fixed_length_header(comp_field_index1_dim)
   CASE(2_int64)
-    start = ff % fixed_length_header(f_shum_flh_comp_field_index2_start)
-    dim = ff % fixed_length_header(f_shum_flh_comp_field_index2_dim)
+    start = ff % fixed_length_header(comp_field_index2_start)
+    dim = ff % fixed_length_header(comp_field_index2_dim)
   CASE(3_int64)
-    start = ff % fixed_length_header(f_shum_flh_comp_field_index3_start)
-    dim = ff % fixed_length_header(f_shum_flh_comp_field_index3_dim)
+    start = ff % fixed_length_header(comp_field_index3_start)
+    dim = ff % fixed_length_header(comp_field_index3_dim)
   CASE DEFAULT
     status = 1_int64
     message = "Invalid compressed index requested, must be 1, 2 or 3"
@@ -1025,9 +1052,9 @@ status = 0_int64
 ff => unique_id_to_ff(ff_id)
 
 ! Get the start position and dimensions from the fixed_length_header
-start = ff % fixed_length_header(f_shum_flh_lookup_start)
-dim1 = ff % fixed_length_header(f_shum_flh_lookup_dim1)
-dim2 = ff % fixed_length_header(f_shum_flh_lookup_dim2)
+start = ff % fixed_length_header(lookup_start)
+dim1 = ff % fixed_length_header(lookup_dim1)
+dim2 = ff % fixed_length_header(lookup_dim2)
 
 ! Check that these make sense
 IF ((start == imdi) .OR. (dim1 <= 0_int64) .OR. (dim2 <= 0_int64)) THEN
@@ -1070,7 +1097,7 @@ END IF
 ! update the value of lbegin so that the returned lookup can always be used
 ! for direct access.
 IF (ANY(lookup(lbegin,:) == 0_int64)) THEN
-  lookup(lbegin, 1) = f_shum_flh_data_start
+  lookup(lbegin, 1) = data_start
   DO i = 2, SIZE(lookup, 2)
     IF (lookup(lbnrec, i-1) > 0) THEN
       lookup(lbegin, i) = lookup(lbegin, i-1) + lookup(lbnrec, i-1) + 1
@@ -1398,11 +1425,6 @@ lookup = ff % lookup(:, index)
 pack_type = lookup(lbpack)
 start = lookup(lbegin)
 len = lookup(lblrec)
-! The length reported for WGDOS packed fields is actually in 64-bit words,
-! so to simplify the logic later, convert it to 32-bit words here
-IF ((MOD(pack_type, 10_int64) == 1)) THEN
-  len = len*2
-END IF
 
 ! Pickup flag for ignoring data-type if present
 ignore_dtype_local = .FALSE.
@@ -1412,6 +1434,7 @@ IF (ignore_dtype_local) THEN
   ! If the data type is being ignored, make any required adjustments to ensure
   ! the size of data being read in is correct; in this case the return array 
   ! is 32-bit, so any 64-bit types require double the number of 32-bit words
+  ! (Note WGDOS fields are reported in 64-bit words despite being 32-bit!)
   IF (MOD(pack_type, 10_int64) /= 2) THEN
     len = 2*len
   END IF
@@ -1511,11 +1534,6 @@ lookup = ff % lookup(:, index)
 pack_type = lookup(lbpack)
 start = lookup(lbegin)
 len = lookup(lblrec)
-! The length reported for WGDOS packed fields is actually in 64-bit words,
-! so to simplify the logic later, convert it to 32-bit words here
-IF ((MOD(pack_type, 10_int64) == 1)) THEN
-  len = len*2
-END IF
 
 ! Pickup flag for ignoring data-type if present
 ignore_dtype_local = .FALSE.
@@ -1525,8 +1543,8 @@ IF (ignore_dtype_local) THEN
   ! If the data type is being ignored, make any required adjustments to ensure
   ! the size of data being read in is correct; in this case the return array 
   ! is 32-bit, so any 64-bit types require double the number of 32-bit words
-  IF ((MOD(pack_type, 10_int64) /= 2) .AND.                                    & 
-      (MOD(pack_type, 10_int64) /= 1)) THEN
+  ! (Note WGDOS fields are reported in 64-bit words despite being 32-bit!)
+  IF (MOD(pack_type, 10_int64) /= 2) THEN
     len = len*2
   END IF
 ELSE
@@ -1552,6 +1570,13 @@ ELSE
       TRIM(describe_allowed_type_based_on_lbuser1(data_type))//")"
     RETURN
   END IF
+
+  ! The length reported for WGDOS packed fields is actually in 64-bit words, so
+  ! requires double the number of (32-bit) words
+  IF ((MOD(pack_type, 10_int64) == 1)) THEN
+    len = len*2
+  END IF
+
 END IF
 
 ! Check that the addressing info makes sense
@@ -1591,6 +1616,1853 @@ IF (status /= 0) THEN
 END IF
 
 END FUNCTION f_shum_read_field_data_int32
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_write_fixed_length_header(                                     &
+                         ff_id, fixed_length_header, message) RESULT(status)
+IMPLICIT NONE 
+
+INTEGER(KIND=int64), INTENT(IN)  :: ff_id
+INTEGER(KIND=int64), INTENT(IN)  ::                                            &
+                             fixed_length_header(f_shum_fixed_length_header_len)
+CHARACTER(LEN=*),    INTENT(OUT) :: message
+
+INTEGER(KIND=int64)    :: status
+TYPE(ff_type), POINTER :: ff
+
+ff => unique_id_to_ff(ff_id)
+
+status = 0_int64
+IF (ff % read_only) THEN
+  status = 1_int64
+  message = "Attempted write command in read-only mode"
+  RETURN
+END IF
+
+! Exclude positional elements from this write/copy, as these are controlled
+! by the API.  The first positional element is the integer constants start
+! and everything above this should be off-limits
+ff % fixed_length_header(1:int_const_start - 1) =                              &
+                                      fixed_length_header(1:int_const_start - 1)
+
+END FUNCTION f_shum_write_fixed_length_header
+
+!------------------------------------------------------------------------------!
+
+FUNCTION commit_fixed_length_header(ff, message) RESULT(status)
+IMPLICIT NONE 
+
+TYPE(ff_type)       :: ff
+CHARACTER(LEN=*)    :: message
+INTEGER(KIND=int64) :: status
+
+IF (ff % read_only) THEN
+  status = 1_int64
+  message = "Attempted write command in read-only mode"
+  RETURN
+END IF
+! Write the data (TODO: replace this with proper "buffout" and
+! "setpos" calls once portio makes it into Shumlib)
+WRITE(ff % unique_id, POS=1, IOSTAT=status) ff % fixed_length_header(:)
+IF (status /= 0) THEN
+  message = "Failed to commit fixed_length_header to disk"
+  RETURN
+END IF
+
+END FUNCTION commit_fixed_length_header
+
+!------------------------------------------------------------------------------!
+
+FUNCTION get_next_free_position(ff) RESULT(position)
+IMPLICIT NONE 
+
+TYPE(ff_type)       :: ff
+INTEGER(KIND=int64) :: position
+
+position = f_shum_fixed_length_header_len + 1
+
+IF (ff % fixed_length_header(int_const_start) > 0) THEN
+  position = MAX(position,                                                     &
+                   ff % fixed_length_header(int_const_start)                   &
+                 + ff % fixed_length_header(int_const_dim))
+END IF
+
+IF (ff % fixed_length_header(real_const_start) > 0) THEN
+  position = MAX(position,                                                     &
+                   ff % fixed_length_header(real_const_start)                  &
+                 + ff % fixed_length_header(real_const_dim))
+END IF
+
+IF (ff % fixed_length_header(lev_dep_const_start) > 0) THEN
+  position = MAX(position,                                                     &
+                   ff % fixed_length_header(lev_dep_const_start)               &
+                 + ff % fixed_length_header(lev_dep_const_dim1)                & 
+                 * ff % fixed_length_header(lev_dep_const_dim2))
+END IF
+
+IF (ff % fixed_length_header(row_dep_const_start) > 0) THEN
+  position = MAX(position,                                                     &
+                   ff % fixed_length_header(row_dep_const_start)               &
+                 + ff % fixed_length_header(row_dep_const_dim1)                & 
+                 * ff % fixed_length_header(row_dep_const_dim2))
+END IF
+
+IF (ff % fixed_length_header(col_dep_const_start) > 0) THEN
+  position = MAX(position,                                                     &
+                   ff % fixed_length_header(col_dep_const_start)               &
+                 + ff % fixed_length_header(col_dep_const_dim1)                &
+                 * ff % fixed_length_header(col_dep_const_dim2))
+END IF
+
+IF (ff % fixed_length_header(additional_const_start) > 0) THEN
+  position = MAX(position,                                                     &
+                   ff % fixed_length_header(additional_const_start)            &
+                 + ff % fixed_length_header(additional_const_dim1)             &
+                 * ff % fixed_length_header(additional_const_dim2))
+END IF
+
+IF (ff % fixed_length_header(extra_const_start) > 0) THEN
+  position = MAX(position,                                                     &
+                   ff % fixed_length_header(extra_const_start)                 &
+                 + ff % fixed_length_header(extra_const_dim))
+END IF
+
+IF (ff % fixed_length_header(temp_histfile_start) > 0) THEN
+  position = MAX(position,                                                     &
+                   ff % fixed_length_header(temp_histfile_start)               &
+                 + ff % fixed_length_header(temp_histfile_dim))
+END IF
+
+IF (ff % fixed_length_header(comp_field_index1_start) > 0) THEN
+  position = MAX(position,                                                     &
+                   ff % fixed_length_header(comp_field_index1_start)           &
+                 + ff % fixed_length_header(comp_field_index1_dim))
+END IF
+
+IF (ff % fixed_length_header(comp_field_index2_start) > 0) THEN
+  position = MAX(position,                                                     &
+                   ff % fixed_length_header(comp_field_index2_start)           &
+                 + ff % fixed_length_header(comp_field_index2_dim))
+END IF
+
+IF (ff % fixed_length_header(comp_field_index3_start) > 0) THEN
+  position = MAX(position,                                                     &
+                   ff % fixed_length_header(comp_field_index3_start)           &
+                 + ff % fixed_length_header(comp_field_index3_dim))
+END IF
+
+IF (ff % fixed_length_header(lookup_start) > 0) THEN
+  position = MAX(position,                                                     &
+                   ff % fixed_length_header(lookup_start)                      &
+                 + ff % fixed_length_header(lookup_dim1)                       &
+                 * ff % fixed_length_header(lookup_dim2))
+END IF
+
+END FUNCTION get_next_free_position
+
+!------------------------------------------------------------------------------!
+
+FUNCTION get_next_populated_position(ff, start) RESULT(position)
+IMPLICIT NONE 
+
+TYPE(ff_type)       :: ff
+INTEGER(KIND=int64) :: start
+INTEGER(KIND=int64) :: position
+
+position = HUGE(0_int64)
+
+IF (f_shum_fixed_length_header_len > start) THEN
+  position = f_shum_fixed_length_header_len
+END IF
+
+IF (ff % fixed_length_header(int_const_start) > start) THEN
+  position = MIN(position,                                                     &
+                 ff % fixed_length_header(int_const_start))
+END IF
+
+IF (ff % fixed_length_header(real_const_start) > start) THEN
+  position = MIN(position,                                                     &
+                 ff % fixed_length_header(real_const_start))
+END IF
+
+IF (ff % fixed_length_header(lev_dep_const_start) > start) THEN
+  position = MIN(position,                                                     &
+                 ff % fixed_length_header(lev_dep_const_start))
+END IF
+
+IF (ff % fixed_length_header(row_dep_const_start) > start) THEN
+  position = MIN(position,                                                     &
+                 ff % fixed_length_header(row_dep_const_start))
+END IF
+
+IF (ff % fixed_length_header(col_dep_const_start) > start) THEN
+  position = MIN(position,                                                     &
+                 ff % fixed_length_header(col_dep_const_start))
+END IF
+
+IF (ff % fixed_length_header(additional_const_start) > start) THEN
+  position = MIN(position,                                                     &
+                 ff % fixed_length_header(additional_const_start))
+END IF
+
+IF (ff % fixed_length_header(extra_const_start) > start) THEN
+  position = MIN(position,                                                     &
+                 ff % fixed_length_header(extra_const_start))
+END IF
+
+IF (ff % fixed_length_header(temp_histfile_start) > start) THEN
+  position = MIN(position,                                                     &
+                 ff % fixed_length_header(temp_histfile_start))
+END IF
+
+IF (ff % fixed_length_header(comp_field_index1_start) > start) THEN
+  position = MIN(position,                                                     &
+                 ff % fixed_length_header(comp_field_index1_start))
+END IF
+
+IF (ff % fixed_length_header(comp_field_index2_start) > start) THEN
+  position = MIN(position,                                                     &
+                 ff % fixed_length_header(comp_field_index2_start))
+END IF
+
+IF (ff % fixed_length_header(comp_field_index3_start) > start) THEN
+  position = MIN(position,                                                     &
+                 ff % fixed_length_header(comp_field_index3_start))
+END IF
+
+IF (ff % fixed_length_header(lookup_start) > start) THEN
+  position = MIN(position,                                                     &
+                 ff % fixed_length_header(lookup_start))
+END IF
+
+IF (ff % fixed_length_header(data_start) > start) THEN
+  position = MIN(position,                                                     &
+                 ff % fixed_length_header(data_start))
+END IF
+
+END FUNCTION get_next_populated_position
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_write_integer_constants(                                       &
+                           ff_id, integer_constants, message) RESULT(status)
+IMPLICIT NONE 
+
+INTEGER(KIND=int64), INTENT(IN)  :: ff_id
+INTEGER(KIND=int64), INTENT(IN)  :: integer_constants(:)
+CHARACTER(LEN=*),    INTENT(OUT) :: message
+
+INTEGER(KIND=int64)    :: status
+INTEGER(KIND=int64)    :: start
+INTEGER(KIND=int64)    :: dim
+INTEGER(KIND=int64)    :: next_start
+TYPE(ff_type), POINTER :: ff
+
+! Retrieve stored fixed length header index
+ff => unique_id_to_ff(ff_id)
+
+IF (ff % read_only) THEN
+  status = 1_int64
+  message = "Attempted write command in read-only mode"
+  RETURN
+END IF
+
+! Calculate start index, current dimension and start of next section
+IF (ff % fixed_length_header(int_const_start) < 0) THEN
+  start = get_next_free_position(ff)
+ELSE
+  start = ff % fixed_length_header(int_const_start)
+END IF
+dim = SIZE(integer_constants)
+next_start = get_next_populated_position(ff, start)
+
+IF ((next_start > 0) .AND. (start - 1 + dim >= next_start)) THEN
+  WRITE(message, "(3(A,I0))") "Cannot write integer_constants with size ",     &
+    dim," starting at ", start," because next component starts at ", next_start
+  status = 1_int64
+  RETURN
+END IF
+
+! Set the start position and dimensions in the fixed_length_header
+ff % fixed_length_header(int_const_start) = start
+ff % fixed_length_header(int_const_dim) = dim
+
+! Now write the data (TODO: replace this with proper "buffout" and
+! "setpos" calls once portio makes it into Shumlib)
+WRITE(ff_id, POS=(start-1)*8+1, IOSTAT=status) integer_constants
+IF (status /= 0) THEN
+  message = "Failed to write integer_constants"
+  RETURN
+END IF
+
+END FUNCTION f_shum_write_integer_constants
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_write_real_constants(                                          &
+                              ff_id, real_constants, message) RESULT(status)
+IMPLICIT NONE 
+
+INTEGER(KIND=int64), INTENT(IN)  :: ff_id
+REAL(KIND=real64),   INTENT(IN)  :: real_constants(:)
+CHARACTER(LEN=*),    INTENT(OUT) :: message
+
+INTEGER(KIND=int64)    :: status
+INTEGER(KIND=int64)    :: start
+INTEGER(KIND=int64)    :: dim
+INTEGER(KIND=int64)    :: next_start
+TYPE(ff_type), POINTER :: ff
+
+! Retrieve stored fixed length header index
+ff => unique_id_to_ff(ff_id)
+
+IF (ff % read_only) THEN
+  status = 1_int64
+  message = "Attempted write command in read-only mode"
+  RETURN
+END IF
+
+! Calculate start index, current dimension and start of next section
+IF (ff % fixed_length_header(real_const_start) < 0) THEN
+  start = get_next_free_position(ff)
+ELSE
+  start = ff % fixed_length_header(real_const_start)
+END IF
+dim = SIZE(real_constants)
+next_start = get_next_populated_position(ff, start)
+
+IF ((next_start > 0) .AND. (start - 1 + dim >= next_start)) THEN
+  WRITE(message, "(3(A,I0))") "Cannot write real_constants with size ",        &
+    dim," starting at ", start," because next component starts at ", next_start
+  status = 1_int64
+  RETURN
+END IF
+
+! Set the start position and dimensions in the fixed_length_header
+ff % fixed_length_header(real_const_start) = start
+ff % fixed_length_header(real_const_dim) = dim
+
+! Now write the data (TODO: replace this with proper "buffout" and
+! "setpos" calls once portio makes it into Shumlib)
+WRITE(ff_id, POS=(start-1)*8+1, IOSTAT=status) real_constants
+IF (status /= 0) THEN
+  message = "Failed to write real_constants"
+  RETURN
+END IF
+
+END FUNCTION f_shum_write_real_constants
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_write_level_dependent_constants(                               &
+                   ff_id, level_dependent_constants, message) RESULT(status)
+IMPLICIT NONE 
+
+INTEGER(KIND=int64), INTENT(IN)  :: ff_id
+REAL(KIND=real64),   INTENT(IN)  :: level_dependent_constants(:, :)
+CHARACTER(LEN=*),    INTENT(OUT) :: message
+
+INTEGER(KIND=int64)    :: status
+INTEGER(KIND=int64)    :: start
+INTEGER(KIND=int64)    :: dim1
+INTEGER(KIND=int64)    :: dim2
+INTEGER(KIND=int64)    :: next_start
+TYPE(ff_type), POINTER :: ff
+
+! Retrieve stored fixed length header index
+ff => unique_id_to_ff(ff_id)
+
+IF (ff % read_only) THEN
+  status = 1_int64
+  message = "Attempted write command in read-only mode"
+  RETURN
+END IF
+
+! Calculate start index, current dimension and start of next section
+IF (ff % fixed_length_header(lev_dep_const_start) < 0) THEN
+  start = get_next_free_position(ff)
+ELSE
+  start = ff % fixed_length_header(lev_dep_const_start)
+END IF
+dim1 = SIZE(level_dependent_constants, 1)
+dim2 = SIZE(level_dependent_constants, 2)
+next_start = get_next_populated_position(ff, start)
+
+IF ((next_start > 0) .AND. (start - 1 + dim1*dim2 >= next_start)) THEN
+  WRITE(message, "(3(A,I0))")                                                  &
+    "Cannot write level_dependent_constants with size ", dim1*dim2,            &
+    " starting at ", start," because next component starts at ", next_start
+  status = 1_int64
+  RETURN
+END IF
+
+! Set the start position and dimensions in the fixed_length_header
+ff % fixed_length_header(lev_dep_const_start) = start
+ff % fixed_length_header(lev_dep_const_dim1) = dim1
+ff % fixed_length_header(lev_dep_const_dim2) = dim2
+
+! Now write the data (TODO: replace this with proper "buffout" and
+! "setpos" calls once portio makes it into Shumlib)
+WRITE(ff_id, POS=(start-1)*8+1, IOSTAT=status) level_dependent_constants
+IF (status /= 0) THEN
+  message = "Failed to write level_dependent_constants"
+  RETURN
+END IF
+
+END FUNCTION f_shum_write_level_dependent_constants
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_write_row_dependent_constants(                                 &
+                     ff_id, row_dependent_constants, message) RESULT(status)
+IMPLICIT NONE 
+
+INTEGER(KIND=int64), INTENT(IN)  :: ff_id
+REAL(KIND=real64),   INTENT(IN)  :: row_dependent_constants(:, :)
+CHARACTER(LEN=*),    INTENT(OUT) :: message
+
+INTEGER(KIND=int64)    :: status
+INTEGER(KIND=int64)    :: start
+INTEGER(KIND=int64)    :: dim1
+INTEGER(KIND=int64)    :: dim2
+INTEGER(KIND=int64)    :: next_start
+TYPE(ff_type), POINTER :: ff
+
+! Retrieve stored fixed length header index
+ff => unique_id_to_ff(ff_id)
+
+IF (ff % read_only) THEN
+  status = 1_int64
+  message = "Attempted write command in read-only mode"
+  RETURN
+END IF
+
+! Calculate start index, current dimension and start of next section
+IF (ff % fixed_length_header(row_dep_const_start) < 0) THEN
+  start = get_next_free_position(ff)
+ELSE
+  start = ff % fixed_length_header(row_dep_const_start)
+END IF
+dim1 = SIZE(row_dependent_constants, 1)
+dim2 = SIZE(row_dependent_constants, 2)
+next_start = get_next_populated_position(ff, start)
+
+IF ((next_start > 0) .AND. (start - 1 + dim1*dim2 >= next_start)) THEN
+  WRITE(message, "(3(A,I0))")                                                  &
+    "Cannot write row_dependent_constants with size ", dim1*dim2,              &
+    " starting at ", start," because next component starts at ", next_start
+  status = 1_int64
+  RETURN
+END IF
+
+! Set the start position and dimensions in the fixed_length_header
+ff % fixed_length_header(row_dep_const_start) = start
+ff % fixed_length_header(row_dep_const_dim1) = dim1
+ff % fixed_length_header(row_dep_const_dim2) = dim2
+
+! Now write the data (TODO: replace this with proper "buffout" and
+! "setpos" calls once portio makes it into Shumlib)
+WRITE(ff_id, POS=(start-1)*8+1, IOSTAT=status) row_dependent_constants
+IF (status /= 0) THEN
+  message = "Failed to write row_dependent_constants"
+  RETURN
+END IF
+
+END FUNCTION f_shum_write_row_dependent_constants
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_write_column_dependent_constants(                              &
+                  ff_id, column_dependent_constants, message) RESULT(status)
+IMPLICIT NONE 
+
+INTEGER(KIND=int64), INTENT(IN)  :: ff_id
+REAL(KIND=real64),   INTENT(IN)  :: column_dependent_constants(:, :)
+CHARACTER(LEN=*),    INTENT(OUT) :: message
+
+INTEGER(KIND=int64)    :: status
+INTEGER(KIND=int64)    :: start
+INTEGER(KIND=int64)    :: dim1
+INTEGER(KIND=int64)    :: dim2
+INTEGER(KIND=int64)    :: next_start
+TYPE(ff_type), POINTER :: ff
+
+! Retrieve stored fixed length header index
+ff => unique_id_to_ff(ff_id)
+
+IF (ff % read_only) THEN
+  status = 1_int64
+  message = "Attempted write command in read-only mode"
+  RETURN
+END IF
+
+! Calculate start index, current dimension and start of next section
+IF (ff % fixed_length_header(col_dep_const_start) < 0) THEN
+  start = get_next_free_position(ff)
+ELSE
+  start = ff % fixed_length_header(col_dep_const_start)
+END IF
+dim1 = SIZE(column_dependent_constants, 1)
+dim2 = SIZE(column_dependent_constants, 2)
+next_start = get_next_populated_position(ff, start)
+
+IF ((next_start > 0) .AND. (start - 1 + dim1*dim2 >= next_start)) THEN
+  WRITE(message, "(3(A,I0))")                                                  &
+    "Cannot write column_dependent_constants with size ", dim1*dim2,           &
+    " starting at ", start," because next component starts at ", next_start
+  status = 1_int64
+  RETURN
+END IF
+
+! Set the start position and dimensions in the fixed_length_header
+ff % fixed_length_header(col_dep_const_start) = start
+ff % fixed_length_header(col_dep_const_dim1) = dim1
+ff % fixed_length_header(col_dep_const_dim2) = dim2
+
+! Now write the data (TODO: replace this with proper "buffout" and
+! "setpos" calls once portio makes it into Shumlib)
+WRITE(ff_id, POS=(start-1)*8+1, IOSTAT=status) column_dependent_constants
+IF (status /= 0) THEN
+  message = "Failed to write column_dependent_constants"
+  RETURN
+END IF
+
+END FUNCTION f_shum_write_column_dependent_constants
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_write_additional_parameters(                                   &
+                           ff_id, additional_parameters, message) RESULT(status)
+IMPLICIT NONE 
+
+INTEGER(KIND=int64), INTENT(IN)  :: ff_id
+REAL(KIND=real64),   INTENT(IN)  :: additional_parameters(:, :)
+CHARACTER(LEN=*),    INTENT(OUT) :: message
+
+INTEGER(KIND=int64)    :: status
+INTEGER(KIND=int64)    :: start
+INTEGER(KIND=int64)    :: dim1
+INTEGER(KIND=int64)    :: dim2
+INTEGER(KIND=int64)    :: next_start
+TYPE(ff_type), POINTER :: ff
+
+! Retrieve stored fixed length header index
+ff => unique_id_to_ff(ff_id)
+
+IF (ff % read_only) THEN
+  status = 1_int64
+  message = "Attempted write command in read-only mode"
+  RETURN
+END IF
+
+! Calculate start index, current dimension and start of next section
+IF (ff % fixed_length_header(additional_const_start) < 0) THEN
+  start = get_next_free_position(ff)
+ELSE
+  start = ff % fixed_length_header(additional_const_start)
+END IF
+dim1 = SIZE(additional_parameters, 1)
+dim2 = SIZE(additional_parameters, 2)
+next_start = get_next_populated_position(ff, start)
+
+IF ((next_start > 0) .AND. (start - 1 + dim1*dim2 >= next_start)) THEN
+  WRITE(message, "(3(A,I0))")                                                  &
+    "Cannot write additional_parameters with size ", dim1*dim2,                &
+    " starting at ", start," because next component starts at ", next_start
+  status = 1_int64
+  RETURN
+END IF
+
+! Set the start position and dimensions in the fixed_length_header
+ff % fixed_length_header(additional_const_start) = start
+ff % fixed_length_header(additional_const_dim1) = dim1
+ff % fixed_length_header(additional_const_dim2) = dim2
+
+! Now write the data (TODO: replace this with proper "buffout" and
+! "setpos" calls once portio makes it into Shumlib)
+WRITE(ff_id, POS=(start-1)*8+1, IOSTAT=status) additional_parameters
+IF (status /= 0) THEN
+  message = "Failed to write additional_parameters"
+  RETURN
+END IF
+
+END FUNCTION f_shum_write_additional_parameters
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_write_extra_constants(                                         &
+                                 ff_id, extra_constants, message) RESULT(status)
+IMPLICIT NONE 
+
+INTEGER(KIND=int64), INTENT(IN)  :: ff_id
+REAL(KIND=real64),   INTENT(IN)  :: extra_constants(:)
+CHARACTER(LEN=*),    INTENT(OUT) :: message
+
+INTEGER(KIND=int64)    :: status
+INTEGER(KIND=int64)    :: start
+INTEGER(KIND=int64)    :: dim
+INTEGER(KIND=int64)    :: next_start
+TYPE(ff_type), POINTER :: ff
+
+! Retrieve stored fixed length header index
+ff => unique_id_to_ff(ff_id)
+
+IF (ff % read_only) THEN
+  status = 1_int64
+  message = "Attempted write command in read-only mode"
+  RETURN
+END IF
+
+! Calculate start index, current dimension and start of next section
+IF (ff % fixed_length_header(extra_const_start) < 0) THEN
+  start = get_next_free_position(ff)
+ELSE
+  start = ff % fixed_length_header(extra_const_start)
+END IF
+dim = SIZE(extra_constants)
+next_start = get_next_populated_position(ff, start)
+
+IF ((next_start > 0) .AND. (start - 1 + dim >= next_start)) THEN
+  WRITE(message, "(3(A,I0))") "Cannot write extra_constants with size ",       &
+    dim," starting at ", start," because next component starts at ", next_start
+  status = 1_int64
+  RETURN
+END IF
+
+! Set the start position and dimensions in the fixed_length_header
+ff % fixed_length_header(extra_const_start) = start
+ff % fixed_length_header(extra_const_dim) = dim
+
+! Now write the data (TODO: replace this with proper "buffout" and
+! "setpos" calls once portio makes it into Shumlib)
+WRITE(ff_id, POS=(start-1)*8+1, IOSTAT=status) extra_constants
+IF (status /= 0) THEN
+  message = "Failed to write extra_constants"
+  RETURN
+END IF
+
+END FUNCTION f_shum_write_extra_constants
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_write_temp_histfile(                                         &
+                                 ff_id, temp_histfile, message) RESULT(status)
+IMPLICIT NONE 
+
+INTEGER(KIND=int64), INTENT(IN)  :: ff_id
+REAL(KIND=real64),   INTENT(IN)  :: temp_histfile(:)
+CHARACTER(LEN=*),    INTENT(OUT) :: message
+
+INTEGER(KIND=int64)    :: status
+INTEGER(KIND=int64)    :: start
+INTEGER(KIND=int64)    :: dim
+INTEGER(KIND=int64)    :: next_start
+TYPE(ff_type), POINTER :: ff
+
+! Retrieve stored fixed length header index
+ff => unique_id_to_ff(ff_id)
+
+IF (ff % read_only) THEN
+  status = 1_int64
+  message = "Attempted write command in read-only mode"
+  RETURN
+END IF
+
+! Calculate start index, current dimension and start of next section
+IF (ff % fixed_length_header(temp_histfile_start) < 0) THEN
+  start = get_next_free_position(ff)
+ELSE
+  start = ff % fixed_length_header(temp_histfile_start)
+END IF
+dim = SIZE(temp_histfile)
+next_start = get_next_populated_position(ff, start)
+
+IF ((next_start > 0) .AND. (start - 1 + dim >= next_start)) THEN
+  WRITE(message, "(3(A,I0))") "Cannot write temp_histfile with size ",         &
+    dim," starting at ", start," because next component starts at ", next_start
+  status = 1_int64
+  RETURN
+END IF
+
+! Set the start position and dimensions in the fixed_length_header
+ff % fixed_length_header(temp_histfile_start) = start
+ff % fixed_length_header(temp_histfile_dim) = dim
+
+! Now write the data (TODO: replace this with proper "buffout" and
+! "setpos" calls once portio makes it into Shumlib)
+WRITE(ff_id, POS=(start-1)*8+1, IOSTAT=status) temp_histfile
+IF (status /= 0) THEN
+  message = "Failed to write temp_histfile"
+  RETURN
+END IF
+
+END FUNCTION f_shum_write_temp_histfile
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_write_compressed_index(                                        &
+                         ff_id, compressed_index, index, message) RESULT(status)
+IMPLICIT NONE 
+
+INTEGER(KIND=int64), INTENT(IN)  :: ff_id
+REAL(KIND=real64),   INTENT(IN)  :: compressed_index(:)
+INTEGER(KIND=int64), INTENT(IN)  :: index
+CHARACTER(LEN=*),    INTENT(OUT) :: message
+
+INTEGER(KIND=int64)    :: status
+INTEGER(KIND=int64)    :: start
+INTEGER(KIND=int64)    :: dim
+INTEGER(KIND=int64)    :: next_start
+TYPE(ff_type), POINTER :: ff
+
+! Retrieve stored fixed length header index
+ff => unique_id_to_ff(ff_id)
+
+IF (ff % read_only) THEN
+  status = 1_int64
+  message = "Attempted write command in read-only mode"
+  RETURN
+END IF
+
+! Get the start position and dimensions from the fixed_length_header
+SELECT CASE(index)
+  CASE(1_int64)
+    start = ff % fixed_length_header(comp_field_index1_start)
+  CASE(2_int64)
+    start = ff % fixed_length_header(comp_field_index2_start)
+  CASE(3_int64)
+    start = ff % fixed_length_header(comp_field_index3_start)
+  CASE DEFAULT
+    status = 1_int64
+    message = "Invalid compressed index requested, must be 1, 2 or 3"
+    RETURN
+END SELECT
+
+! If the start isn't set already, take the next free position
+IF (start < 0) THEN
+  start = get_next_free_position(ff)
+END IF
+
+dim = SIZE(compressed_index)
+next_start = get_next_populated_position(ff, start)
+
+IF ((next_start > 0) .AND. (start - 1 + dim >= next_start)) THEN
+  WRITE(message, "(3(A,I0))") "Cannot write compressed_index with size ",      &
+    dim," starting at ", start," because next component starts at ", next_start
+  status = 1_int64
+  RETURN
+END IF
+
+! Set the start position and dimensions in the fixed_length_header
+SELECT CASE(index)
+  CASE(1_int64)
+    ff % fixed_length_header(comp_field_index1_start) = start
+    ff % fixed_length_header(comp_field_index1_dim)= dim
+  CASE(2_int64)
+    ff % fixed_length_header(comp_field_index2_start) = start
+    ff % fixed_length_header(comp_field_index2_dim) = dim
+  CASE(3_int64)
+    ff % fixed_length_header(comp_field_index3_start) = start
+    ff % fixed_length_header(comp_field_index3_dim) = dim
+END SELECT
+
+! Now write the data (TODO: replace this with proper "buffout" and
+! "setpos" calls once portio makes it into Shumlib)
+WRITE(ff_id, POS=(start-1)*8+1, IOSTAT=status) compressed_index
+IF (status /= 0) THEN
+  message = "Failed to write compressed_index"
+  RETURN
+END IF
+
+END FUNCTION f_shum_write_compressed_index
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_write_lookup(                                                  &
+                         ff_id, lookup, start_index, message) RESULT(status)
+IMPLICIT NONE 
+
+INTEGER(KIND=int64), INTENT(IN)  :: ff_id
+INTEGER(KIND=int64), INTENT(IN)  :: lookup(:, :)
+INTEGER(KIND=int64), INTENT(IN)  :: start_index
+CHARACTER(LEN=*),    INTENT(OUT) :: message
+
+INTEGER(KIND=int64)    :: saved_entries(3, SIZE(lookup, 2))
+INTEGER(KIND=int64)    :: status
+INTEGER(KIND=int64)    :: dim1
+INTEGER(KIND=int64)    :: dim2
+TYPE(ff_type), POINTER :: ff
+
+! Retrieve stored fixed length header index
+ff => unique_id_to_ff(ff_id)
+
+IF (ff % read_only) THEN
+  status = 1_int64
+  message = "Attempted write command in read-only mode"
+  RETURN
+END IF
+
+! Calculate the size of the passed lookup section
+dim1 = SIZE(lookup, 1)
+dim2 = SIZE(lookup, 2)
+
+IF (dim1 /= f_shum_lookup_dim1_len) THEN
+    WRITE(message, "(2(A,I0))")                                                &
+    "Only lookups with length ", f_shum_lookup_dim1_len,                       &
+    " are supported but passed lookup has length ", dim1
+  status = 1_int64
+  RETURN
+END IF
+
+IF (start_index + dim2 - 1 > SIZE(ff % lookup, 2)) THEN
+  WRITE(message, "(3(A,I0),A)")                                                &
+    "Cannot write ", dim2, " lookup table entries starting at lookup ",        &
+    start_index, " because file only has ", SIZE(ff % lookup, 2),              &
+    " reserved headers available"
+  status = 1_int64
+  RETURN
+END IF
+
+! Store the existing positional header elements from the private lookup array
+saved_entries(1, :) = ff % lookup(lblrec, start_index:start_index + dim2 - 1)
+saved_entries(2, :) = ff % lookup(lbnrec, start_index:start_index + dim2 - 1)
+saved_entries(3, :) = ff % lookup(lbegin, start_index:start_index + dim2 - 1)
+
+! Write the given lookups to the private array
+ff % lookup(:, start_index:start_index + dim2 - 1) = lookup(:, :)
+
+! Replace the positional values (discard the positions in the user array)
+ff % lookup(lblrec, start_index:start_index + dim2 - 1) = saved_entries(1, :)
+ff % lookup(lbnrec, start_index:start_index + dim2 - 1) = saved_entries(2, :)
+ff % lookup(lbegin, start_index:start_index + dim2 - 1) = saved_entries(3, :)
+
+status = 0_int64
+
+END FUNCTION f_shum_write_lookup
+
+!------------------------------------------------------------------------------!
+
+FUNCTION commit_lookup(ff, message) RESULT(status)
+IMPLICIT NONE 
+
+TYPE(ff_type)       :: ff
+CHARACTER(LEN=*)    :: message
+
+INTEGER(KIND=int64) :: status
+INTEGER(KIND=int64) :: start
+
+IF (ff % read_only) THEN
+  status = 1_int64
+  message = "Attempted write command in read-only mode"
+  RETURN
+END IF
+
+! Calculate start index of lookup table if not already written
+IF (ff % fixed_length_header(lookup_start) < 0) THEN
+  start = get_next_free_position(ff)
+  ff % fixed_length_header(lookup_start) = start
+ELSE
+  start = ff % fixed_length_header(lookup_start)
+END IF
+
+! Calculate the dimension of the data (if a sequential file)
+IF (ff % next_unwritten_field > 1) THEN
+  ff % fixed_length_header(data_dim) =                                         &
+    ff % lookup(lbegin, ff % next_unwritten_field -1) +                        &
+      ff % lookup(lbnrec, ff % next_unwritten_field -1)
+END If
+
+! Write the data (TODO: replace this with proper "buffout" and
+! "setpos" calls once portio makes it into Shumlib)
+WRITE(ff % unique_id, POS=(start-1)*8+1, IOSTAT=status) ff % lookup
+
+IF (status /= 0) THEN
+  message = "Failed to commit lookup to disk"
+  RETURN
+END IF
+
+END FUNCTION commit_lookup
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_precalc_data_positions(                                        &
+         ff_id, max_points, message, n_land_points, n_sea_points) RESULT(status)
+IMPLICIT NONE 
+
+INTEGER(KIND=int64), INTENT(IN)  :: ff_id
+INTEGER(KIND=int64), INTENT(IN)  :: max_points
+CHARACTER(LEN=*),    INTENT(OUT) :: message
+INTEGER(KIND=int64), INTENT(IN),                                               &
+                     OPTIONAL    :: n_land_points
+INTEGER(KIND=int64), INTENT(IN),                                               &
+                     OPTIONAL    :: n_sea_points
+
+INTEGER(KIND=int64)    :: status
+INTEGER(KIND=int64)    :: i
+INTEGER(KIND=int64)    :: start
+INTEGER(KIND=int64)    :: lbpack_n1
+INTEGER(KIND=int64)    :: lbpack_n2
+INTEGER(KIND=int64)    :: lbpack_n3
+INTEGER(KIND=int64)    :: field_size
+INTEGER(KIND=int64)    :: field_data_start
+TYPE(ff_type), POINTER :: ff
+
+! Set status for successful exit
+status = 0_int64
+
+! Retrieve stored lookup
+ff => unique_id_to_ff(ff_id)
+
+IF (ff % read_only) THEN
+  status = 1_int64
+  message = "Attempted write command in read-only mode"
+  RETURN
+END IF
+
+! Check if the lookup start position is set
+IF (ff % fixed_length_header(lookup_start) < 0) THEN
+  ff % fixed_length_header(lookup_start) = get_next_free_position(ff)
+END IF
+
+! To avoid having a test on the first field within the loop, set the start 
+! position of the first field before the loop
+field_data_start =                                                             &
+               ff % fixed_length_header(lookup_start) +                        &
+               ff % fixed_length_header(lookup_dim1)*                          &
+               ff % fixed_length_header(lookup_dim2)
+
+! Round this to a data alignment boundary
+field_data_start = data_start_alignment*                                       &
+                             ((field_data_start / data_start_alignment) + 1)
+ff % fixed_length_header(data_start) = field_data_start + 1
+
+! Loop through the lookups
+DO i = 1, SIZE(ff % lookup, 2)
+
+  ! An unmodified header release in a field signifies the end of the valid
+  ! fields in the file
+  IF (ff % lookup(lbrel, i) == -99) EXIT
+
+  ! Split the N1 - N3 digits from the packing code
+  lbpack_n1 = MOD(ff % lookup(lbpack, i), 10_int64)
+  lbpack_n2 = MOD(ff % lookup(lbpack, i)/10, 10_int64)
+  lbpack_n3 = MOD(ff % lookup(lbpack, i)/100, 10_int64)
+
+  ! The maximum number of points passed is the default for all fields
+  field_size = max_points
+  
+  ! Unless they are specified as a land/sea packed field, and an alternative
+  ! field size for these cases has been provided - it's fine if nothing is 
+  ! matched here, because the above size should always been big enough for a
+  ! smaller field if required
+  IF (lbpack_n2 == 2_int64) THEN
+    IF (PRESENT(n_land_points) .AND.                                           &
+        (lbpack_n3 == 1_int64)) THEN
+      field_size = n_land_points
+    END IF
+    IF (PRESENT(n_sea_points) .AND.                                           &
+        (lbpack_n3 == 2_int64)) THEN
+      field_size = n_sea_points
+    END IF
+  END IF
+
+  ! If the positional elements are already set, abort - something isn't right
+  IF ((ff % lookup(lbegin, i) /= -99) .OR.                                     &
+      (ff % lookup(lbnrec, i) /= -99)) THEN
+    status = 1_int64
+    WRITE(message, "(A,I0,A)")                                                 &
+      "Lookup ", i, " already contains positional information"
+    RETURN
+  END IF
+
+  ! Set lbegin based on the calculations above (note that the data
+  ! start is calculated before the main loop for the first field)
+  ff % lookup(lbegin, i) = field_data_start
+
+  ! The the field size for 32-bit truncated fields is in 32-bit words, so
+  ! the record size for padding must be halved
+  IF (lbpack_n1 == 2) THEN
+    field_size = (field_size + 1)/2
+  END IF
+
+  ! Round up the field with padding to meet the boundary, and set LBNREC
+  ff % lookup(lbnrec, i) = field_padding*((field_size / field_padding) + 1)
+
+  ! Now calculate the start position for the next field
+  field_data_start = ff % lookup(lbegin, i) + ff % lookup(lbnrec, i)
+
+END DO
+
+! Once we have hit the end of the populated lookups, set the final size of the
+! data dimension from the final field which was written
+ff % fixed_length_header(data_dim) =                                           &
+                             ff % lookup(lbegin, i-1) + ff % lookup(lbnrec, i-1)
+
+END FUNCTION f_shum_precalc_data_positions
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_write_field_data_direct_real64                                 &
+                (ff_id, index, field_data, message, ignore_dtype) RESULT(status)
+IMPLICIT NONE 
+INTEGER(KIND=int64), INTENT(IN)  :: ff_id
+INTEGER(KIND=int64), INTENT(IN)  :: index
+REAL(KIND=real64),   INTENT(IN)  :: field_data(:)
+CHARACTER(LEN=*),    INTENT(OUT) :: message
+LOGICAL, OPTIONAL,   INTENT(IN)  :: ignore_dtype
+
+INTEGER(KIND=int64) :: status
+
+INTEGER(KIND=int64) :: start
+INTEGER(KIND=int64) :: pack_type
+INTEGER(KIND=int64) :: data_type
+INTEGER(KIND=int64) :: lbpack_n1
+LOGICAL             :: ignore_dtype_local
+TYPE(ff_type), POINTER :: ff
+
+! Set status for successful exit
+status = 0_int64
+
+! Retrieve stored lookup
+ff => unique_id_to_ff(ff_id)
+
+IF (ff % read_only) THEN
+  status = 1_int64
+  message = "Attempted write command in read-only mode"
+  RETURN
+END IF
+
+! Get start position for write
+start = ff % lookup(lbegin, index)
+
+! Check that the file is setup for a direct write
+IF (start == imdi) THEN
+  status = 1_int64
+  WRITE(message, "(A,I0,A)")                                                   &
+    "Field ", index, " cannot be written directly; the positional headers "  //&
+    "are not set (they must be precalculated to write directly)"
+END IF
+
+! Check that the provided data won't overflow the reserved space
+IF (SIZE(field_data) > ff % lookup(lbnrec, index)) THEN
+  status = 1_int64
+  WRITE(message, "(3(A,I0))")                                                  &
+    "Field ", index, " data larger than pre-calculated LBNREC value; data "  //&
+    "is ", SIZE(field_data), " words, but LBNREC is ",                         &
+    ff % lookup(lbnrec, index)
+  RETURN
+END IF
+
+! Get the N1 digit of the packing code
+pack_type = ff % lookup(lbpack, index)
+lbpack_n1 = MOD(pack_type, 10_int64)
+
+! Pickup flag for ignoring data-type if present
+ignore_dtype_local = .FALSE.
+IF (PRESENT(ignore_dtype)) ignore_dtype_local = ignore_dtype
+
+! Set the value of lblrec based on the exact size of the field...
+ff % lookup(lblrec, index) = SIZE(field_data)
+
+IF (ignore_dtype_local) THEN
+  ! If the data type is being ignored, make any required adjustments to ensure
+  ! the size of data being written is correct; in this case the return array 
+  ! is 64-bit, so any 32-bit types require double the number of 64-bit words
+  IF (lbpack_n1 == 2) THEN
+    ff % lookup(lblrec, index) = ff % lookup(lblrec, index)*2
+  END IF
+ELSE
+  ! If the data type isn't being ignored, first check the packing code agress 
+  ! with the type of the passed data (64-bit)
+  IF (lbpack_n1 /= 0) THEN
+    status = 1_int64
+    WRITE(message, "(A)")                                                      &
+      "Mismatch between packing code in lookup and kind of field_data array "//&
+      "(called routine with 64-bit REAL array, but "                         //&
+      TRIM(describe_allowed_kind_based_on_lbpack(pack_type))//")"
+    RETURN
+  END IF
+  ! And then check that the data type itself is correct
+  data_type = ff % lookup(lbuser1, index)
+  IF (data_type /= 1) THEN
+    status = 1_int64
+    WRITE(message, "(A)")                                                      &
+      "Mismatch between data-type code in lookup and type of field_data "    //&
+      "array (called routine with REAL array, but "                          //&
+      TRIM(describe_allowed_type_based_on_lbuser1(data_type))//")"
+    RETURN
+  END IF
+END IF
+
+! Now write the data (TODO: replace this with proper "buffout" and
+! "setpos" calls once portio makes it into Shumlib)
+WRITE(ff_id, POS=(start)*8+1, IOSTAT=status) field_data
+                                  
+IF (status /= 0) THEN
+  WRITE(message, "(A,I0)") "Failed to write data for field ", index
+  RETURN
+END IF
+
+END FUNCTION f_shum_write_field_data_direct_real64
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_write_field_data_direct_int64                                  &
+                (ff_id, index, field_data, message, ignore_dtype) RESULT(status)
+IMPLICIT NONE 
+INTEGER(KIND=int64), INTENT(IN)  :: ff_id
+INTEGER(KIND=int64), INTENT(IN)  :: index
+INTEGER(KIND=int64), INTENT(IN)  :: field_data(:)
+CHARACTER(LEN=*),    INTENT(OUT) :: message
+LOGICAL, OPTIONAL,   INTENT(IN)  :: ignore_dtype
+
+INTEGER(KIND=int64) :: status
+
+INTEGER(KIND=int64) :: start
+INTEGER(KIND=int64) :: pack_type
+INTEGER(KIND=int64) :: data_type
+INTEGER(KIND=int64) :: lbpack_n1
+LOGICAL             :: ignore_dtype_local
+TYPE(ff_type), POINTER :: ff
+
+! Set status for successful exit
+status = 0_int64
+
+! Retrieve stored lookup
+ff => unique_id_to_ff(ff_id)
+
+IF (ff % read_only) THEN
+  status = 1_int64
+  message = "Attempted write command in read-only mode"
+  RETURN
+END IF
+
+! Get start position for write
+start = ff % lookup(lbegin, index)
+
+! Check that the file is setup for a direct write
+IF (start == imdi) THEN
+  status = 1_int64
+  WRITE(message, "(A,I0,A)")                                                   &
+    "Field ", index, " cannot be written directly; the positional headers "  //&
+    "are not set (they must be precalculated to write directly)"
+END IF
+
+! Check that the provided data won't overflow the reserved space
+IF (SIZE(field_data) > ff % lookup(lbnrec, index)) THEN
+  status = 1_int64
+  WRITE(message, "(3(A,I0))")                                                  &
+    "Field ", index, " data larger than pre-calculated LBNREC value; data "  //&
+    "is ", SIZE(field_data), " words, but LBNREC is ",                         &
+    ff % lookup(lbnrec, index)
+  RETURN
+END IF
+
+! Get the N1 digit of the packing code
+pack_type = ff % lookup(lbpack, index)
+lbpack_n1 = MOD(pack_type, 10_int64)
+
+! Pickup flag for ignoring data-type if present
+ignore_dtype_local = .FALSE.
+IF (PRESENT(ignore_dtype)) ignore_dtype_local = ignore_dtype
+
+! Set the value of lblrec based on the exact size of the field
+ff % lookup(lblrec, index) = SIZE(field_data)
+
+IF (ignore_dtype_local) THEN
+  ! If the data type is being ignored, make any required adjustments to ensure
+  ! the size of data being written is correct; in this case the return array 
+  ! is 64-bit, so any 32-bit types require double the number of 64-bit words
+  IF (lbpack_n1 == 2) THEN
+    ff % lookup(lblrec, index) = ff % lookup(lblrec, index)*2
+  END IF
+ELSE
+  ! If the data type isn't being ignored, first check the packing code agress 
+  ! with the type of the passed data (64-bit)
+  IF (lbpack_n1 /= 0) THEN
+    status = 1_int64
+    WRITE(message, "(A)")                                                      &
+      "Mismatch between packing code in lookup and kind of field_data array "//&
+      "(called routine with 64-bit INTEGER array, but "                      //&
+      TRIM(describe_allowed_kind_based_on_lbpack(pack_type))//")"
+    RETURN
+  END IF
+  ! And then check that the data type itself is correct
+  data_type = ff % lookup(lbuser1, index)
+  IF ((data_type /= 2) .AND. (data_type /= 3)) THEN
+    status = 1_int64
+    WRITE(message, "(A)")                                                      &
+      "Mismatch between data-type code in lookup and type of field_data "    //&
+      "array (called routine with INTEGER array, but "                       //&
+      TRIM(describe_allowed_type_based_on_lbuser1(data_type))//")"
+    RETURN
+  END IF
+END IF
+
+! Now write the data (TODO: replace this with proper "buffout" and
+! "setpos" calls once portio makes it into Shumlib)
+WRITE(ff_id, POS=(start)*8+1, IOSTAT=status) field_data
+                                  
+IF (status /= 0) THEN
+  WRITE(message, "(A,I0)") "Failed to write data for field ", index
+  RETURN
+END IF
+
+END FUNCTION f_shum_write_field_data_direct_int64
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_write_field_data_direct_real32                                 &
+                (ff_id, index, field_data, message, ignore_dtype) RESULT(status)
+IMPLICIT NONE 
+INTEGER(KIND=int64), INTENT(IN)  :: ff_id
+INTEGER(KIND=int64), INTENT(IN)  :: index
+REAL(KIND=real32),   INTENT(IN)  :: field_data(:)
+CHARACTER(LEN=*),    INTENT(OUT) :: message
+LOGICAL, OPTIONAL,   INTENT(IN)  :: ignore_dtype
+
+INTEGER(KIND=int64) :: status
+
+INTEGER(KIND=int64) :: start
+INTEGER(KIND=int64) :: pack_type
+INTEGER(KIND=int64) :: data_type
+INTEGER(KIND=int64) :: lbpack_n1
+LOGICAL             :: ignore_dtype_local
+TYPE(ff_type), POINTER :: ff
+
+! Set status for successful exit
+status = 0_int64
+
+! Retrieve stored lookup
+ff => unique_id_to_ff(ff_id)
+
+IF (ff % read_only) THEN
+  status = 1_int64
+  message = "Attempted write command in read-only mode"
+  RETURN
+END IF
+
+! Get start position for write
+start = ff % lookup(lbegin, index)
+
+! Check that the file is setup for a direct write
+IF (start == imdi) THEN
+  status = 1_int64
+  WRITE(message, "(A,I0,A)")                                                   &
+    "Field ", index, " cannot be written directly; the positional headers "  //&
+    "are not set (they must be precalculated to write directly)"
+END IF
+
+! Check that the provided data won't overflow the reserved space
+IF ((SIZE(field_data) + 1)/2 > ff % lookup(lbnrec, index)) THEN
+  status = 1_int64
+  WRITE(message, "(3(A,I0))")                                                  &
+    "Field ", index, " data larger than pre-calculated LBNREC value; data "  //&
+    "is ", (SIZE(field_data) + 1)/2, " words, but LBNREC is ",                 &
+    ff % lookup(lbnrec, index)
+  RETURN
+END IF
+
+! Get the N1 digit of the packing code
+pack_type = ff % lookup(lbpack, index)
+lbpack_n1 = MOD(pack_type, 10_int64)
+
+! Pickup flag for ignoring data-type if present
+ignore_dtype_local = .FALSE.
+IF (PRESENT(ignore_dtype)) ignore_dtype_local = ignore_dtype
+
+! Set the value of lblrec based on the exact size of the field
+IF (lbpack_n1 == 2) THEN
+  ff % lookup(lblrec, index) = SIZE(field_data)
+ELSE
+  ff % lookup(lblrec, index) = (SIZE(field_data) + 1)/2
+END IF
+
+IF (.NOT. ignore_dtype_local) THEN
+  ! If the data type isn't being ignored, first check the packing code agress 
+  ! with the type of the passed data (64-bit)
+  IF (lbpack_n1 /= 2) THEN
+    status = 1_int64
+    WRITE(message, "(A)")                                                      &
+      "Mismatch between packing code in lookup and kind of field_data array "//&
+      "(called routine with 32-bit REAL array, but "                         //&
+      TRIM(describe_allowed_kind_based_on_lbpack(pack_type))//")"
+    RETURN
+  END IF
+  ! And then check that the data type itself is correct
+  data_type = ff % lookup(lbuser1, index)
+  IF (data_type /= 1) THEN
+    status = 1_int64
+    WRITE(message, "(A)")                                                      &
+      "Mismatch between data-type code in lookup and type of field_data "    //&
+      "array (called routine with REAL array, but "                          //&
+      TRIM(describe_allowed_type_based_on_lbuser1(data_type))//")"
+    RETURN
+  END IF
+END IF
+
+! Now write the data (TODO: replace this with proper "buffout" and
+! "setpos" calls once portio makes it into Shumlib)
+WRITE(ff_id, POS=(start)*8+1, IOSTAT=status) field_data
+                                  
+IF (status /= 0) THEN
+  WRITE(message, "(A,I0)") "Failed to write data for field ", index
+  RETURN
+END IF
+
+END FUNCTION f_shum_write_field_data_direct_real32
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_write_field_data_direct_int32                                  &
+                (ff_id, index, field_data, message, ignore_dtype) RESULT(status)
+IMPLICIT NONE 
+INTEGER(KIND=int64), INTENT(IN)  :: ff_id
+INTEGER(KIND=int64), INTENT(IN)  :: index
+INTEGER(KIND=int32), INTENT(IN)  :: field_data(:)
+CHARACTER(LEN=*),    INTENT(OUT) :: message
+LOGICAL, OPTIONAL,   INTENT(IN)  :: ignore_dtype
+
+INTEGER(KIND=int64) :: status
+
+INTEGER(KIND=int64) :: start
+INTEGER(KIND=int64) :: pack_type
+INTEGER(KIND=int64) :: data_type
+INTEGER(KIND=int64) :: lbpack_n1
+LOGICAL             :: ignore_dtype_local
+TYPE(ff_type), POINTER :: ff
+
+! Set status for successful exit
+status = 0_int64
+
+! Retrieve stored lookup
+ff => unique_id_to_ff(ff_id)
+
+IF (ff % read_only) THEN
+  status = 1_int64
+  message = "Attempted write command in read-only mode"
+  RETURN
+END IF
+
+! Get start position for write
+start = ff % lookup(lbegin, index)
+
+! Check that the file is setup for a direct write
+IF (start == imdi) THEN
+  status = 1_int64
+  WRITE(message, "(A,I0,A)")                                                   &
+    "Field ", index, " cannot be written directly; the positional headers "  //&
+    "are not set (they must be precalculated to write directly)"
+END IF
+
+! Check that the provided data won't overflow the reserved space
+IF ((SIZE(field_data) + 1)/2 > ff % lookup(lbnrec, index)) THEN
+  status = 1_int64
+  WRITE(message, "(3(A,I0))")                                                  &
+    "Field ", index, " data larger than pre-calculated LBNREC value; data "  //&
+    "is ", (SIZE(field_data) + 1)/2, " words, but LBNREC is ",                 &
+    ff % lookup(lbnrec, index)
+  RETURN
+END IF
+
+! Get the N1 digit of the packing code
+pack_type = ff % lookup(lbpack, index)
+lbpack_n1 = MOD(pack_type, 10_int64)
+
+! Pickup flag for ignoring data-type if present
+ignore_dtype_local = .FALSE.
+IF (PRESENT(ignore_dtype)) ignore_dtype_local = ignore_dtype
+
+! Set the value of lblrec based on the exact size of the field
+IF (lbpack_n1 == 2) THEN
+  ff % lookup(lblrec, index) = SIZE(field_data)
+ELSE
+  ff % lookup(lblrec, index) = (SIZE(field_data) + 1)/2
+END IF
+
+
+IF (.NOT. ignore_dtype_local) THEN
+  ! If the data type isn't being ignored, first check the packing code agress 
+  ! with the type of the passed data (64-bit)
+  IF ((lbpack_n1 /= 2) .AND. (lbpack_n1 /= 1)) THEN
+    status = 1_int64
+    WRITE(message, "(A)")                                                      &
+      "Mismatch between packing code in lookup and kind of field_data array "//&
+      "(called routine with 32-bit INTEGER array, but "                      //&
+      TRIM(describe_allowed_kind_based_on_lbpack(pack_type))//")"
+    RETURN
+  END IF
+  ! And then check that the data type itself is correct
+  data_type = ff % lookup(lbuser1, index)
+  IF ((lbpack_n1 == 2) .AND. (data_type /= 2) .AND. (data_type /= 3)) THEN
+    status = 1_int64
+    WRITE(message, "(A)")                                                      &
+      "Mismatch between data-type code in lookup and type of field_data "    //&
+      "array (called routine with INTEGER array, but "                       //&
+      TRIM(describe_allowed_type_based_on_lbuser1(data_type))//")"
+    RETURN
+  END IF
+END IF
+
+! Now write the data (TODO: replace this with proper "buffout" and
+! "setpos" calls once portio makes it into Shumlib)
+WRITE(ff_id, POS=(start)*8+1, IOSTAT=status) field_data
+                                  
+IF (status /= 0) THEN
+  WRITE(message, "(A,I0)") "Failed to write data for field ", index
+  RETURN
+END IF
+
+END FUNCTION f_shum_write_field_data_direct_int32
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_write_field_data_sequential_real64                             &
+               (ff_id, lookup, field_data, message, ignore_dtype) RESULT(status)
+IMPLICIT NONE 
+INTEGER(KIND=int64), INTENT(IN)  :: ff_id
+INTEGER(KIND=int64), INTENT(IN)  :: lookup(f_shum_lookup_dim1_len)
+REAL(KIND=real64),   INTENT(IN)  :: field_data(:)
+CHARACTER(LEN=*),    INTENT(OUT) :: message
+LOGICAL, OPTIONAL,   INTENT(IN)  :: ignore_dtype
+
+INTEGER(KIND=int64) :: status
+
+INTEGER(KIND=int64) :: start
+INTEGER(KIND=int64) :: pack_type
+INTEGER(KIND=int64) :: data_type
+INTEGER(KIND=int64) :: index
+INTEGER(KIND=int64) :: lbpack_n1
+LOGICAL             :: ignore_dtype_local
+TYPE(ff_type), POINTER :: ff
+
+! Set status for successful exit
+status = 0_int64
+
+! Retrieve stored lookup
+ff => unique_id_to_ff(ff_id)
+
+IF (ff % read_only) THEN
+  status = 1_int64
+  message = "Attempted write command in read-only mode"
+  RETURN
+END IF
+
+! Retrieve the index of the next field to write
+index = ff % next_unwritten_field
+
+! Initialise the given lookup entry with the provided lookup data
+ff % lookup(:, index) = lookup
+
+! Get the index of the next lookup to be written
+IF (index > 1) THEN
+  start = ff % lookup(lbegin, index - 1) + ff % lookup(lbnrec, index - 1)
+ELSE
+  ff % fixed_length_header(lookup_start) = get_next_free_position(ff)
+  start = ff % fixed_length_header(lookup_start) +                             &
+          ff % fixed_length_header(lookup_dim1)*                               &
+          ff % fixed_length_header(lookup_dim2)
+  start = data_start_alignment*((start / data_start_alignment) + 1) + 1
+  ff % fixed_length_header(data_start) = start
+  start = start - 1
+END IF
+
+! Save the start value as LBEGIN
+ff % lookup(lbegin, index) = start
+
+! Get the N1 digit of the packing code
+pack_type = ff % lookup(lbpack, index)
+lbpack_n1 = MOD(pack_type, 10_int64)
+
+! Pickup flag for ignoring data-type if present
+ignore_dtype_local = .FALSE.
+IF (PRESENT(ignore_dtype)) ignore_dtype_local = ignore_dtype
+
+! Set the value of LBLREC based on the exact size of the field...
+ff % lookup(lblrec, index) = SIZE(field_data)
+
+IF (.NOT. ignore_dtype_local) THEN
+  ! If the data type isn't being ignored, first check the packing code agress 
+  ! with the type of the passed data (64-bit)
+  IF (lbpack_n1 /= 0) THEN
+    status = 1_int64
+    WRITE(message, "(A)")                                                      &
+      "Mismatch between packing code in lookup and kind of field_data array "//&
+      "(called routine with 64-bit REAL array, but "                         //&
+      TRIM(describe_allowed_kind_based_on_lbpack(pack_type))//")"
+    RETURN
+  END IF
+  ! And then check that the data type itself is correct
+  data_type = ff % lookup(lbuser1, index)
+  IF (data_type /= 1) THEN
+    status = 1_int64
+    WRITE(message, "(A)")                                                      &
+      "Mismatch between data-type code in lookup and type of field_data "    //&
+      "array (called routine with REAL array, but "                          //&
+      TRIM(describe_allowed_type_based_on_lbuser1(data_type))//")"
+    RETURN
+  END IF
+END IF
+
+! Setup the value of LBNREC, including the padding
+ff % lookup(lbnrec, index) =                                                   &
+                field_padding*((ff % lookup(lblrec, index) / field_padding) + 1)
+
+! For 32-bit unpacked fields the LBLREC value is given in 32-bit words
+IF (lbpack_n1 == 2) THEN
+  ff % lookup(lblrec, index) = ff % lookup(lblrec, index)*2
+END IF
+
+! Now write the data (TODO: replace this with proper "buffout" and
+! "setpos" calls once portio makes it into Shumlib)
+WRITE(ff_id, POS=(start)*8+1, IOSTAT=status) field_data
+                                  
+IF (status /= 0) THEN
+  WRITE(message, "(A,I0)") "Failed to write data for field ", index
+  RETURN
+END IF
+
+! Increment the index
+ff % next_unwritten_field = index + 1
+
+END FUNCTION f_shum_write_field_data_sequential_real64
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_write_field_data_sequential_int64                              &
+               (ff_id, lookup, field_data, message, ignore_dtype) RESULT(status)
+IMPLICIT NONE 
+INTEGER(KIND=int64), INTENT(IN)  :: ff_id
+INTEGER(KIND=int64), INTENT(IN)  :: lookup(f_shum_lookup_dim1_len)
+INTEGER(KIND=int64), INTENT(IN)  :: field_data(:)
+CHARACTER(LEN=*),    INTENT(OUT) :: message
+LOGICAL, OPTIONAL,   INTENT(IN)  :: ignore_dtype
+
+INTEGER(KIND=int64) :: status
+
+INTEGER(KIND=int64) :: start
+INTEGER(KIND=int64) :: pack_type
+INTEGER(KIND=int64) :: data_type
+INTEGER(KIND=int64) :: index
+INTEGER(KIND=int64) :: lbpack_n1
+LOGICAL             :: ignore_dtype_local
+TYPE(ff_type), POINTER :: ff
+
+! Set status for successful exit
+status = 0_int64
+
+! Retrieve stored lookup
+ff => unique_id_to_ff(ff_id)
+
+IF (ff % read_only) THEN
+  status = 1_int64
+  message = "Attempted write command in read-only mode"
+  RETURN
+END IF
+
+! Retrieve the index of the next field to write
+index = ff % next_unwritten_field
+
+! Initialise the given lookup entry with the provided lookup data
+ff % lookup(:, index) = lookup
+
+! Get the index of the next lookup to be written
+IF (index > 1) THEN
+  start = ff % lookup(lbegin, index - 1) + ff % lookup(lbnrec, index - 1)
+ELSE
+  ff % fixed_length_header(lookup_start) = get_next_free_position(ff)
+  start = ff % fixed_length_header(lookup_start) +                             &
+          ff % fixed_length_header(lookup_dim1)*                               &
+          ff % fixed_length_header(lookup_dim2)
+  start = data_start_alignment*((start / data_start_alignment) + 1) + 1
+  ff % fixed_length_header(data_start) = start
+  start = start - 1
+END IF
+
+! Save the start value as LBEGIN
+ff % lookup(lbegin, index) = start
+
+! Get the N1 digit of the packing code
+pack_type = ff % lookup(lbpack, index)
+lbpack_n1 = MOD(pack_type, 10_int64)
+
+! Pickup flag for ignoring data-type if present
+ignore_dtype_local = .FALSE.
+IF (PRESENT(ignore_dtype)) ignore_dtype_local = ignore_dtype
+
+! Set the value of LBLREC based on the exact size of the field...
+ff % lookup(lblrec, index) = SIZE(field_data)
+
+IF (.NOT. ignore_dtype_local) THEN
+  ! If the data type isn't being ignored, first check the packing code agress 
+  ! with the type of the passed data (64-bit)
+  IF (lbpack_n1 /= 0) THEN
+    status = 1_int64
+    WRITE(message, "(A)")                                                      &
+      "Mismatch between packing code in lookup and kind of field_data array "//&
+      "(called routine with 64-bit INTEGER array, but "                      //&
+      TRIM(describe_allowed_kind_based_on_lbpack(pack_type))//")"
+    RETURN
+  END IF
+  ! And then check that the data type itself is correct
+  data_type = ff % lookup(lbuser1, index)
+  IF ((data_type /= 2) .AND. (data_type /= 3)) THEN
+    status = 1_int64
+    WRITE(message, "(A)")                                                      &
+      "Mismatch between data-type code in lookup and type of field_data "    //&
+      "array (called routine with INTEGER array, but "                       //&
+      TRIM(describe_allowed_type_based_on_lbuser1(data_type))//")"
+    RETURN
+  END IF
+END IF
+
+! Setup the value of LBNREC, including the padding
+ff % lookup(lbnrec, index) =                                                   &
+                field_padding*((ff % lookup(lblrec, index) / field_padding) + 1)
+
+! For 32-bit unpacked fields the LBLREC value is given in 32-bit words
+IF (lbpack_n1 == 2) THEN
+  ff % lookup(lblrec, index) = ff % lookup(lblrec, index)*2
+END IF
+
+! Now write the data (TODO: replace this with proper "buffout" and
+! "setpos" calls once portio makes it into Shumlib)
+WRITE(ff_id, POS=(start)*8+1, IOSTAT=status) field_data
+                                  
+IF (status /= 0) THEN
+  WRITE(message, "(A,I0)") "Failed to write data for field ", index
+  RETURN
+END IF
+
+! Increment the index
+ff % next_unwritten_field = index + 1
+
+END FUNCTION f_shum_write_field_data_sequential_int64
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_write_field_data_sequential_real32                             &
+               (ff_id, lookup, field_data, message, ignore_dtype) RESULT(status)
+IMPLICIT NONE 
+INTEGER(KIND=int64), INTENT(IN)  :: ff_id
+INTEGER(KIND=int64), INTENT(IN)  :: lookup(f_shum_lookup_dim1_len)
+REAL(KIND=real32)  , INTENT(IN)  :: field_data(:)
+CHARACTER(LEN=*),    INTENT(OUT) :: message
+LOGICAL, OPTIONAL,   INTENT(IN)  :: ignore_dtype
+
+INTEGER(KIND=int64) :: status
+
+INTEGER(KIND=int64) :: start
+INTEGER(KIND=int64) :: pack_type
+INTEGER(KIND=int64) :: data_type
+INTEGER(KIND=int64) :: index
+INTEGER(KIND=int64) :: lbpack_n1
+LOGICAL             :: ignore_dtype_local
+TYPE(ff_type), POINTER :: ff
+
+! Set status for successful exit
+status = 0_int64
+
+! Retrieve stored lookup
+ff => unique_id_to_ff(ff_id)
+
+IF (ff % read_only) THEN
+  status = 1_int64
+  message = "Attempted write command in read-only mode"
+  RETURN
+END IF
+
+! Retrieve the index of the next field to write
+index = ff % next_unwritten_field
+
+! Initialise the given lookup entry with the provided lookup data
+ff % lookup(:, index) = lookup
+
+! Get the index of the next lookup to be written
+IF (index > 1) THEN
+  start = ff % lookup(lbegin, index - 1) + ff % lookup(lbnrec, index - 1)
+ELSE
+  ff % fixed_length_header(lookup_start) = get_next_free_position(ff)
+  start = ff % fixed_length_header(lookup_start) +                             &
+          ff % fixed_length_header(lookup_dim1)*                               &
+          ff % fixed_length_header(lookup_dim2)
+  start = data_start_alignment*((start / data_start_alignment) + 1) + 1
+  ff % fixed_length_header(data_start) = start
+  start = start - 1
+END IF
+
+! Save the start value as LBEGIN
+ff % lookup(lbegin, index) = start
+
+! Get the N1 digit of the packing code
+pack_type = ff % lookup(lbpack, index)
+lbpack_n1 = MOD(pack_type, 10_int64)
+
+! Pickup flag for ignoring data-type if present
+ignore_dtype_local = .FALSE.
+IF (PRESENT(ignore_dtype)) ignore_dtype_local = ignore_dtype
+
+! Set the value of LBLREC based on the exact size of the field...
+ff % lookup(lblrec, index) = (SIZE(field_data) + 1)/2
+
+IF (.NOT. ignore_dtype_local) THEN
+  ! If the data type isn't being ignored, first check the packing code agress 
+  ! with the type of the passed data (64-bit)
+  IF (lbpack_n1 /= 2) THEN
+    status = 1_int64
+    WRITE(message, "(A)")                                                      &
+      "Mismatch between packing code in lookup and kind of field_data array "//&
+      "(called routine with 32-bit REAL array, but "                         //&
+      TRIM(describe_allowed_kind_based_on_lbpack(pack_type))//")"
+    RETURN
+  END IF
+  ! And then check that the data type itself is correct
+  data_type = ff % lookup(lbuser1, index)
+  IF (data_type /= 1) THEN
+    status = 1_int64
+    WRITE(message, "(A)")                                                      &
+      "Mismatch between data-type code in lookup and type of field_data "    //&
+      "array (called routine with REAL array, but "                          //&
+      TRIM(describe_allowed_type_based_on_lbuser1(data_type))//")"
+    RETURN
+  END IF
+END IF
+
+! Setup the value of LBNREC, including the padding
+ff % lookup(lbnrec, index) =                                                   &
+                field_padding*((ff % lookup(lblrec, index) / field_padding) + 1)
+
+! For 32-bit unpacked fields the LBLREC value is given in 32-bit words
+IF (lbpack_n1 == 2) THEN
+  ff % lookup(lblrec, index) = ff % lookup(lblrec, index)*2
+END IF
+
+! Now write the data (TODO: replace this with proper "buffout" and
+! "setpos" calls once portio makes it into Shumlib)
+WRITE(ff_id, POS=(start)*8+1, IOSTAT=status) field_data
+                                  
+IF (status /= 0) THEN
+  WRITE(message, "(A,I0)") "Failed to write data for field ", index
+  RETURN
+END IF
+
+! Increment the index
+ff % next_unwritten_field = index + 1
+
+END FUNCTION f_shum_write_field_data_sequential_real32
+
+!------------------------------------------------------------------------------!
+
+FUNCTION f_shum_write_field_data_sequential_int32                              &
+               (ff_id, lookup, field_data, message, ignore_dtype) RESULT(status)
+IMPLICIT NONE 
+INTEGER(KIND=int64), INTENT(IN)  :: ff_id
+INTEGER(KIND=int64), INTENT(IN)  :: lookup(f_shum_lookup_dim1_len)
+INTEGER(KIND=int32), INTENT(IN)  :: field_data(:)
+CHARACTER(LEN=*),    INTENT(OUT) :: message
+LOGICAL, OPTIONAL,   INTENT(IN)  :: ignore_dtype
+
+INTEGER(KIND=int64) :: status
+
+INTEGER(KIND=int64) :: start
+INTEGER(KIND=int64) :: pack_type
+INTEGER(KIND=int64) :: data_type
+INTEGER(KIND=int64) :: index
+INTEGER(KIND=int64) :: lbpack_n1
+LOGICAL             :: ignore_dtype_local
+TYPE(ff_type), POINTER :: ff
+
+! Set status for successful exit
+status = 0_int64
+
+! Retrieve stored lookup
+ff => unique_id_to_ff(ff_id)
+
+IF (ff % read_only) THEN
+  status = 1_int64
+  message = "Attempted write command in read-only mode"
+  RETURN
+END IF
+
+! Retrieve the index of the next field to write
+index = ff % next_unwritten_field
+
+! Initialise the given lookup entry with the provided lookup data
+ff % lookup(:, index) = lookup
+
+! Get the index of the next lookup to be written
+IF (index > 1) THEN
+  start = ff % lookup(lbegin, index - 1) + ff % lookup(lbnrec, index - 1)
+ELSE
+  ff % fixed_length_header(lookup_start) = get_next_free_position(ff)
+  start = ff % fixed_length_header(lookup_start) +                             &
+          ff % fixed_length_header(lookup_dim1)*                               &
+          ff % fixed_length_header(lookup_dim2)
+  start = data_start_alignment*((start / data_start_alignment) + 1) + 1
+  ff % fixed_length_header(data_start) = start
+  start = start - 1
+END IF
+
+! Save the start value as LBEGIN
+ff % lookup(lbegin, index) = start
+
+! Get the N1 digit of the packing code
+pack_type = ff % lookup(lbpack, index)
+lbpack_n1 = MOD(pack_type, 10_int64)
+
+! Pickup flag for ignoring data-type if present
+ignore_dtype_local = .FALSE.
+IF (PRESENT(ignore_dtype)) ignore_dtype_local = ignore_dtype
+
+! Set the value of LBLREC based on the exact size of the field...
+ff % lookup(lblrec, index) = (SIZE(field_data) + 1)/2
+
+IF (.NOT. ignore_dtype_local) THEN
+  ! If the data type isn't being ignored, first check the packing code agress 
+  ! with the type of the passed data (64-bit)
+  IF ((lbpack_n1 /= 2) .AND. (lbpack_n1 /= 1)) THEN
+    status = 1_int64
+    WRITE(message, "(A)")                                                      &
+      "Mismatch between packing code in lookup and kind of field_data array "//&
+      "(called routine with 32-bit INTEGER array, but "                      //&
+      TRIM(describe_allowed_kind_based_on_lbpack(pack_type))//")"
+    RETURN
+  END IF
+  ! And then check that the data type itself is correct
+  data_type = ff % lookup(lbuser1, index)
+  IF ((lbpack_n1 == 2) .AND. (data_type /= 2) .AND. (data_type /= 3)) THEN
+    status = 1_int64
+    WRITE(message, "(A)")                                                      &
+      "Mismatch between data-type code in lookup and type of field_data "    //&
+      "array (called routine with INTEGER array, but "                       //&
+      TRIM(describe_allowed_type_based_on_lbuser1(data_type))//")"
+    RETURN
+  END IF
+END IF
+
+! Setup the value of LBNREC, including the padding
+ff % lookup(lbnrec, index) =                                                   &
+                field_padding*((ff % lookup(lblrec, index) / field_padding) + 1)
+
+! For 32-bit unpacked fields the LBLREC value is given in 32-bit words
+IF (lbpack_n1 == 2) THEN
+  ff % lookup(lblrec, index) = ff % lookup(lblrec, index)*2
+END IF
+
+! Now write the data (TODO: replace this with proper "buffout" and
+! "setpos" calls once portio makes it into Shumlib)
+WRITE(ff_id, POS=(start)*8+1, IOSTAT=status) field_data
+                                  
+IF (status /= 0) THEN
+  WRITE(message, "(A,I0)") "Failed to write data for field ", index
+  RETURN
+END IF
+
+! Increment the index
+ff % next_unwritten_field = index + 1
+
+END FUNCTION f_shum_write_field_data_sequential_int32
 
 !------------------------------------------------------------------------------!
 
