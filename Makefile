@@ -90,6 +90,11 @@ DATA_CONV_PREREQ=STR_CONV
 PACK=shum_wgdos_packing
 PACK_PREREQ=STR_CONV
 
+# Horizontal Interpolation
+#--------------
+HORIZ_INTERP=shum_horizontal_field_interp
+HORIZ_INTERP_PREREQ=
+
 # Thread Utils
 #--------------
 THREAD_UTILS=shum_thread_utils
@@ -107,7 +112,7 @@ FFILE_PREREQ=
 
 # All libs targets
 #--------------
-ALL_LIBS_VARS=BSWAP STR_CONV DATA_CONV PACK THREAD_UTILS LLEQ FFILE
+ALL_LIBS_VARS=BSWAP STR_CONV DATA_CONV PACK THREAD_UTILS LLEQ FFILE HORIZ_INTERP
 ALL_LIBS=$(foreach lib,${ALL_LIBS_VARS},${${lib}})
 
 # auto-generate main targets
