@@ -681,7 +681,7 @@ cyclic = .TRUE.
 CALL f_shum_find_source_box_indices                                            &
                   ( index_b_l, index_b_r                                       &
                   , lambda_srce, phi_srce, lambda_targ, phi_targ               &
-                  , points_lambda_srce, points_phi_srce, cyclic                &
+                  , points_lambda_srce, points_phi_srce, points, cyclic        &
                   , t_lambda, ixp1, ix, iy )
 
 CALL assert_equals(ix_out, ix, INT(points), "array of x indicies is incorrect")
@@ -779,7 +779,7 @@ cyclic = .TRUE.
 CALL f_shum_find_source_box_indices                                            &
                   ( index_b_l, index_b_r                                       &
                   , lambda_srce, phi_srce, lambda_targ, phi_targ               &
-                  , points_lambda_srce, points_phi_srce, cyclic                &
+                  , points_lambda_srce, points_phi_srce, points, cyclic        &
                   , t_lambda, ixp1, ix, iy )
 
 CALL assert_equals(ix_out, ix, INT(points), "array of x indicies is incorrect")
@@ -878,7 +878,7 @@ cyclic = .TRUE.
 CALL f_shum_find_source_box_indices                                            &
                   ( index_b_l, index_b_r                                       &
                   , lambda_srce, phi_srce, lambda_targ, phi_targ               &
-                  , points_lambda_srce, points_phi_srce, cyclic                &
+                  , points_lambda_srce, points_phi_srce, points, cyclic        &
                   , t_lambda, ixp1, ix, iy )
 
 CALL assert_equals(ix_out, ix, INT(points), "array of x indicies is incorrect")
@@ -962,7 +962,7 @@ CALL return_4_sets_of_weights( weight_t_r_out, weight_b_r_out,                 &
 CALL f_shum_calc_weights                                                       &
                   ( weight_t_r, weight_b_r, weight_t_l, weight_b_l             &
                   , lambda_srce, phi_srce, phi_targ                            &
-                  , points_lambda_srce, points_phi_srce                        &
+                  , points_lambda_srce, points_phi_srce, points                &
                   , t_lambda, ixp1, ix, iy )
 
 CALL assert_equals(weight_t_r_out, weight_t_r, INT(points), tolerance,         &
@@ -1072,7 +1072,7 @@ data_out_ref =    [                                                            &
  ]
 
 CALL f_shum_horizontal_field_bi_lin_interp_calc                                &
-                  ( rows, row_length                                           &
+                  ( rows, row_length, len_field                                &
                   , index_b_l, index_b_r, data_in                              &
                   , weight_b_l, weight_b_r, weight_t_l, weight_t_r             &
                   , data_out )

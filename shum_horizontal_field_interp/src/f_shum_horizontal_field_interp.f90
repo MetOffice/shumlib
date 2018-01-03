@@ -59,7 +59,7 @@ CONTAINS
 !------------------------------------------------------------------------------!
 
 SUBROUTINE f_shum_horizontal_field_bi_lin_interp_calc                          &
-                  ( rows_in, row_length_in                                     &
+                  ( rows_in, row_length_in, len_field_out                      &
                   , index_b_l, index_b_r, data_in                              &
                   , weight_b_l, weight_b_r, weight_t_l, weight_t_r             &
                   , data_out )
@@ -77,31 +77,33 @@ INTEGER(KIND=int64), INTENT(IN) :: rows_in
                                  ! Number of P rows on source grid
 INTEGER(KIND=int64), INTENT(IN) :: row_length_in
                                  ! Number of pts per row on source grid
+INTEGER(KIND=int64), INTENT(IN) :: len_field_out
+                                 ! Number of points on target grid
 
 ! Array arguments
-INTEGER(KIND=int64), INTENT(IN) :: index_b_l(:)
+INTEGER(KIND=int64), INTENT(IN) :: index_b_l(len_field_out)
                                  ! Index of bottom left
                                  ! corner of source gridbox
-INTEGER(KIND=int64), INTENT(IN) :: index_b_r(SIZE(index_b_l))
+INTEGER(KIND=int64), INTENT(IN) :: index_b_r(len_field_out)
                                  ! Index of bottom right
                                  ! corner of source gridbox
 
 REAL(KIND=real64), INTENT(IN) :: data_in(rows_in*row_length_in)
                                ! Data before interpolation
 
-REAL(KIND=real64), INTENT(IN) :: weight_b_l(SIZE(index_b_l))
+REAL(KIND=real64), INTENT(IN) :: weight_b_l(len_field_out)
                                ! Weight applied to value at bot.
                                ! left corner of source gridbox
-REAL(KIND=real64), INTENT(IN) :: weight_b_r(SIZE(index_b_l))
+REAL(KIND=real64), INTENT(IN) :: weight_b_r(len_field_out)
                                ! Weight applied to value at bot.
                                ! right corner of source gridbox
-REAL(KIND=real64), INTENT(IN) :: weight_t_l(SIZE(index_b_l))
+REAL(KIND=real64), INTENT(IN) :: weight_t_l(len_field_out)
                                ! Weight applied to value at top
                                ! left corner of source gridbox
-REAL(KIND=real64), INTENT(IN) :: weight_t_r(SIZE(index_b_l))
+REAL(KIND=real64), INTENT(IN) :: weight_t_r(len_field_out)
                                ! Weight applied to value at top
                                ! right corner of source gridbox
-REAL(KIND=real64), INTENT(OUT) :: data_out(SIZE(index_b_l))
+REAL(KIND=real64), INTENT(OUT) :: data_out(len_field_out)
                                 ! Data after interpolation
 
 ! Local scalars:
@@ -110,11 +112,11 @@ INTEGER(KIND=int64) :: i  ! loop index
 ! 1. Carry out horizontal interpolation
 
 !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE)                               &
-!$OMP&         SHARED(data_out, weight_b_l, weight_b_r,                        &
+!$OMP&         SHARED(len_field_out, data_out, weight_b_l, weight_b_r,         &
 !$OMP&                weight_t_l, weight_t_r, index_b_l, index_b_r,            &
 !$OMP&                data_in, row_length_in)                                  &
 !$OMP&         PRIVATE(i)
-DO i=1, SIZE(index_b_l)
+DO i=1, len_field_out
 
   data_out(i) = weight_b_l(i)*data_in(index_b_l(i))                            &
               + weight_b_r(i)*data_in(index_b_r(i))                            &
@@ -159,7 +161,7 @@ SUBROUTINE f_shum_horizontal_field_bi_lin_interp_get_coeffs                    &
                   ( index_b_l, index_b_r                                       &
                   , weight_t_r, weight_b_r, weight_t_l, weight_b_l             &
                   , lambda_srce, phi_srce, lambda_targ, phi_targ               &
-                  , points_lambda_srce, points_phi_srce, cyclic )
+                  , points_lambda_srce, points_phi_srce, points, cyclic )
 
 IMPLICIT NONE
 
@@ -167,33 +169,35 @@ INTEGER(KIND=int64), INTENT(IN)  :: points_lambda_srce
                                   ! Number of lambda points on source grid
 INTEGER(KIND=int64), INTENT(IN)  :: points_phi_srce
                                   ! Number of phi points on source grid
-INTEGER(KIND=int64), INTENT(OUT) :: index_b_l(:)
+INTEGER(KIND=int64), INTENT(IN)  :: points
+                                  ! Total number of points on target grid
+INTEGER(KIND=int64), INTENT(OUT) :: index_b_l(points)
                                   ! Index of bottom left corner
                                   ! of source gridbox
-INTEGER(KIND=int64), INTENT(OUT) :: index_b_r(SIZE(index_b_l))
+INTEGER(KIND=int64), INTENT(OUT) :: index_b_r(points)
                                   ! Index of bottom right corner
                                   ! of source gridbox
 
-REAL(KIND=real64), INTENT(IN)  :: lambda_targ(SIZE(index_b_l))
+REAL(KIND=real64), INTENT(IN)  :: lambda_targ(points)
                                 ! Lambda coords of target grid in degrees
                                 ! using same rotation as source grid
-REAL(KIND=real64), INTENT(IN)  :: phi_targ(SIZE(index_b_l))
+REAL(KIND=real64), INTENT(IN)  :: phi_targ(points)
                                 ! Phi coords of target grid in degrees using
                                 ! same rotation as source grid
 REAL(KIND=real64), INTENT(IN)  :: lambda_srce(points_lambda_srce)
                                 ! Lambda coords of source grid in degrees
 REAL(KIND=real64), INTENT(IN)  :: phi_srce(points_phi_srce)
                                 ! Phi coords of source grid in degrees
-REAL(KIND=real64), INTENT(OUT) :: weight_t_r(SIZE(index_b_l))
+REAL(KIND=real64), INTENT(OUT) :: weight_t_r(points)
                                 ! Weight applied to value at top
                                 ! right corner of source gridbox
-REAL(KIND=real64), INTENT(OUT) :: weight_b_l(SIZE(index_b_l))
+REAL(KIND=real64), INTENT(OUT) :: weight_b_l(points)
                                 ! Weight applied to value at bot.
                                 ! left corner of source gridbox
-REAL(KIND=real64), INTENT(OUT) :: weight_b_r(SIZE(index_b_l))
+REAL(KIND=real64), INTENT(OUT) :: weight_b_r(points)
                                 ! Weight applied to value at bot.
                                 ! right corner of source gridbox
-REAL(KIND=real64), INTENT(OUT) :: weight_t_l(SIZE(index_b_l))
+REAL(KIND=real64), INTENT(OUT) :: weight_t_l(points)
                                 ! Weight applied to value at top
                                 ! left corner of source gridbox
 
@@ -201,24 +205,24 @@ LOGICAL(KIND=int64),  INTENT(IN) :: cyclic ! =T, then source data is cyclic
                                            ! =F, then source data is non-cyclic
 
 !--- Local variables:---------------------------------------------------
-REAL(KIND=real64)   :: t_lambda(SIZE(index_b_l)) ! Local value of target
+REAL(KIND=real64)   :: t_lambda(points) ! Local value of target
                                                  ! longitude
 
-INTEGER(KIND=int64) :: ixp1(SIZE(index_b_l))     ! Longitudinal index plus 1
-INTEGER(KIND=int64) :: ix(SIZE(index_b_l))       ! Longitudinal index
-INTEGER(KIND=int64) :: iy(SIZE(index_b_l))       ! Latitudinal index
+INTEGER(KIND=int64) :: ixp1(points)     ! Longitudinal index plus 1
+INTEGER(KIND=int64) :: ix(points)       ! Longitudinal index
+INTEGER(KIND=int64) :: iy(points)       ! Latitudinal index
 ! ----------------------------------------------------------------------
 
 CALL f_shum_find_source_box_indices                                            &
                   ( index_b_l, index_b_r                                       &
                   , lambda_srce, phi_srce, lambda_targ, phi_targ               &
-                  , points_lambda_srce, points_phi_srce, cyclic                &
+                  , points_lambda_srce, points_phi_srce, points, cyclic        &
                   , t_lambda, ixp1, ix, iy )
 
 CALL f_shum_calc_weights  &
                   ( weight_t_r, weight_b_r, weight_t_l, weight_b_l             &
                   , lambda_srce, phi_srce, phi_targ                            &
-                  , points_lambda_srce, points_phi_srce                        &
+                  , points_lambda_srce, points_phi_srce, points                &
                   , t_lambda, ixp1, ix, iy )
 
 END SUBROUTINE f_shum_horizontal_field_bi_lin_interp_get_coeffs
@@ -228,7 +232,7 @@ END SUBROUTINE f_shum_horizontal_field_bi_lin_interp_get_coeffs
 SUBROUTINE f_shum_find_source_box_indices                                      &
                   ( index_b_l, index_b_r                                       &
                   , lambda_srce, phi_srce, lambda_targ, phi_targ               &
-                  , points_lambda_srce, points_phi_srce, cyclic                &
+                  , points_lambda_srce, points_phi_srce, points, cyclic        &
                   , t_lambda, ixp1, ix, iy )
 
 IMPLICIT NONE
@@ -237,30 +241,32 @@ INTEGER(KIND=int64), INTENT(IN)  :: points_lambda_srce
                                   ! Number of lambda points on source grid
 INTEGER(KIND=int64), INTENT(IN)  :: points_phi_srce
                                   ! Number of phi points on source grid
-INTEGER(KIND=int64), INTENT(OUT) :: index_b_l(:)
+INTEGER(KIND=int64), INTENT(IN)  :: points
+                                  ! Total number of points on target grid
+INTEGER(KIND=int64), INTENT(OUT) :: index_b_l(points)
                                   ! Index of bottom left corner
                                   ! of source gridbox
-INTEGER(KIND=int64), INTENT(OUT) :: index_b_r(SIZE(index_b_l))
+INTEGER(KIND=int64), INTENT(OUT) :: index_b_r(points)
                                   ! Index of bottom right corner
                                   ! of source gridbox
-INTEGER(KIND=int64), INTENT(OUT) :: ixp1(SIZE(index_b_l))
+INTEGER(KIND=int64), INTENT(OUT) :: ixp1(points)
                                   ! Longitudinal index plus 1
-INTEGER(KIND=int64), INTENT(OUT) :: ix(SIZE(index_b_l))
+INTEGER(KIND=int64), INTENT(OUT) :: ix(points)
                                   ! Longitudinal index
-INTEGER(KIND=int64), INTENT(OUT) :: iy(SIZE(index_b_l))
+INTEGER(KIND=int64), INTENT(OUT) :: iy(points)
                                   ! Latitudinal index
 
-REAL(KIND=real64), INTENT(IN)  :: lambda_targ(SIZE(index_b_l))
+REAL(KIND=real64), INTENT(IN)  :: lambda_targ(points)
                                 ! Lambda coords of target grid in degrees
                                 ! using same rotation as source grid
-REAL(KIND=real64), INTENT(IN)  :: phi_targ(SIZE(index_b_l))
+REAL(KIND=real64), INTENT(IN)  :: phi_targ(points)
                                 ! Phi coords of target grid in degrees using
                                 ! same rotation as source grid
 REAL(KIND=real64), INTENT(IN)  :: lambda_srce(points_lambda_srce)
                                 ! Lambda coords of source grid in degrees
 REAL(KIND=real64), INTENT(IN)  :: phi_srce(points_phi_srce)
                                 ! Phi coords of source grid in degrees
-REAL(KIND=real64), INTENT(OUT) :: t_lambda(SIZE(index_b_l))
+REAL(KIND=real64), INTENT(OUT) :: t_lambda(points)
                                 ! Local value of target longitude
 
 LOGICAL(KIND=int64),  INTENT(IN) :: cyclic ! =T, then source data is cyclic
@@ -268,7 +274,6 @@ LOGICAL(KIND=int64),  INTENT(IN) :: cyclic ! =T, then source data is cyclic
 
 !--- Local variables:---------------------------------------------------
 INTEGER(KIND=int64)  :: i      ! Loop index
-INTEGER(KIND=int64)  :: points ! Total number of points on target grid
 
 ! Variables for divide-and-conquer search of latitude/longitude arrays
 INTEGER(KIND=int64) :: iupr ! Uppermost-point
@@ -277,8 +282,6 @@ INTEGER(KIND=int64) :: imid ! Mid-point
 ! ----------------------------------------------------------------------
 
 ! 1. Initialise arrays
-
-points = SIZE(index_b_l)
 
 ! 1.1 Scale target longitude so that it falls between
 !     lambda_srce(1) and lambda_srce(1) + 360
@@ -434,7 +437,7 @@ END SUBROUTINE f_shum_find_source_box_indices
 SUBROUTINE f_shum_calc_weights                                                 &
                   ( weight_t_r, weight_b_r, weight_t_l, weight_b_l             &
                   , lambda_srce, phi_srce, phi_targ                            &
-                  , points_lambda_srce, points_phi_srce                        &
+                  , points_lambda_srce, points_phi_srce, points                &
                   , t_lambda, ixp1, ix, iy )
 
 IMPLICIT NONE
@@ -443,32 +446,34 @@ INTEGER(KIND=int64), INTENT(IN)  :: points_lambda_srce
                                   ! Number of lambda points on source grid
 INTEGER(KIND=int64), INTENT(IN)  :: points_phi_srce
                                   ! Number of phi points on source grid
-INTEGER(KIND=int64), INTENT(IN)  :: ixp1(:)
+INTEGER(KIND=int64), INTENT(IN)  :: points
+                                  ! Total number of points on target grid
+INTEGER(KIND=int64), INTENT(IN)  :: ixp1(points)
                                   ! Longitudinal index plus 1
-INTEGER(KIND=int64), INTENT(IN)  :: ix(SIZE(ixp1))
+INTEGER(KIND=int64), INTENT(IN)  :: ix(points)
                                   ! Longitudinal index
-INTEGER(KIND=int64), INTENT(IN)  :: iy(SIZE(ixp1))
+INTEGER(KIND=int64), INTENT(IN)  :: iy(points)
                                   ! Latitudinal index
 
-REAL(KIND=real64), INTENT(IN)  :: phi_targ(SIZE(ixp1))
+REAL(KIND=real64), INTENT(IN)  :: phi_targ(points)
                                 ! Phi coords of target grid in degrees using
                                 ! same rotation as source grid
 REAL(KIND=real64), INTENT(IN)  :: lambda_srce(points_lambda_srce)
                                 ! Lambda coords of source grid in degrees
 REAL(KIND=real64), INTENT(IN)  :: phi_srce(points_phi_srce)
                                 ! Phi coords of source grid in degrees
-REAL(KIND=real64), INTENT(IN)  :: t_lambda(SIZE(ixp1))
+REAL(KIND=real64), INTENT(IN)  :: t_lambda(points)
                                 ! Local value of target longitude
-REAL(KIND=real64), INTENT(OUT) :: weight_t_r(SIZE(ixp1))
+REAL(KIND=real64), INTENT(OUT) :: weight_t_r(points)
                                 ! Weight applied to value at top
                                 ! right corner of source gridbox
-REAL(KIND=real64), INTENT(OUT) :: weight_b_l(SIZE(ixp1))
+REAL(KIND=real64), INTENT(OUT) :: weight_b_l(points)
                                 ! Weight applied to value at bot.
                                 ! left corner of source gridbox
-REAL(KIND=real64), INTENT(OUT) :: weight_b_r(SIZE(ixp1))
+REAL(KIND=real64), INTENT(OUT) :: weight_b_r(points)
                                 ! Weight applied to value at bot.
                                 ! right corner of source gridbox
-REAL(KIND=real64), INTENT(OUT) :: weight_t_l(SIZE(ixp1))
+REAL(KIND=real64), INTENT(OUT) :: weight_t_l(points)
                                 ! Weight applied to value at top
                                 ! left corner of source gridbox
 
@@ -479,7 +484,7 @@ INTEGER(KIND=int64)  :: i      ! Loop index
 ! ----------------------------------------------------------------------
 
 !  1. Compute interpolation weights
-DO i=1, SIZE(ixp1)
+DO i=1, points
 
   ! Calculate basic weights
   a = (MOD(360.0_real64+lambda_srce(ixp1(i))-lambda_srce(ix(i)),360.0_real64))
