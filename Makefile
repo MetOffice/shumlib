@@ -110,9 +110,15 @@ LLEQ_PREREQ=
 FFILE=shum_fieldsfile
 FFILE_PREREQ=
 
+# Spiral Search Algorithm
+#------------------------
+SPIRAL=shum_spiral_search
+SPIRAL_PREREQ=
+
 # All libs targets
 #--------------
-ALL_LIBS_VARS=BSWAP STR_CONV DATA_CONV PACK THREAD_UTILS LLEQ FFILE HORIZ_INTERP
+ALL_LIBS_VARS=BSWAP STR_CONV DATA_CONV PACK THREAD_UTILS LLEQ FFILE \
+	      HORIZ_INTERP SPIRAL
 ALL_LIBS=$(foreach lib,${ALL_LIBS_VARS},${${lib}})
 
 # auto-generate main targets
