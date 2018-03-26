@@ -233,6 +233,9 @@ DO i = 1, f_shum_fixed_length_header_len
   fixed_length_header(i) = INT(i, KIND=int64)
 END DO
 
+! Make sure first word is valid
+fixed_length_header(1) = 20_int64
+
 status = f_shum_write_fixed_length_header(ff_id, fixed_length_header, message)
 
 CALL assert_equals(0_int64, status,                                            & 
@@ -331,7 +334,7 @@ status = f_shum_write_compressed_index(ff_id, comp_index_1, 1_int64, message)
 CALL assert_equals(0_int64, status,                                            & 
                           "Failed to write compressed_index 1: "//TRIM(message))
 
-DO i = 1, comp_ind_1_dim_test
+DO i = 1, comp_ind_2_dim_test
   comp_index_2(i) = REAL(i + 1000, KIND=real64)
 END DO
 
@@ -341,7 +344,7 @@ CALL assert_equals(0_int64, status,                                            &
                           "Failed to write compressed_index 2: "//TRIM(message))
 
 
-DO i = 1, comp_ind_1_dim_test
+DO i = 1, comp_ind_3_dim_test
   comp_index_3(i) = REAL(i + 1100, KIND=real64)
 END DO
 
@@ -434,7 +437,6 @@ CALL assert_equals(0_int64, status, "Failed to close file: "//TRIM(message))
 status = f_shum_open_file(scratch_filename, ff_id, message)
 
 CALL assert_equals(0_int64, status, "Failed to re-open file: "//TRIM(message))
-
 
 status = f_shum_read_fixed_length_header(ff_id, fixed_length_header_r, message)
 
@@ -938,6 +940,9 @@ CALL assert_equals(0_int64, status,                                            &
 DO i = 1, f_shum_fixed_length_header_len
   fixed_length_header(i) = INT(i, KIND=int64)
 END DO
+
+! Make sure first word is valid
+fixed_length_header(1) = 20_int64
 
 status = f_shum_write_fixed_length_header(ff_id, fixed_length_header, message)
 

@@ -108,7 +108,7 @@ LLEQ_PREREQ=
 # Fieldsfile API
 #---------------
 FFILE=shum_fieldsfile
-FFILE_PREREQ=
+FFILE_PREREQ=BSWAP
 
 # Spiral Search Algorithm
 #------------------------
