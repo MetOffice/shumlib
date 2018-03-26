@@ -132,7 +132,7 @@ USE f_shum_fieldsfile_mod, ONLY:                                               &
   f_shum_read_lookup, f_shum_lookup_dim1_len, f_shum_read_field_data
 
 USE f_shum_lookup_indices_mod, ONLY:                                           &
-  lbuser1, lbpack, lbrel, lblrec, lbnrec, lbegin
+  lbuser1, lbpack, lbrel, lblrec, lbnrec, lbegin, lbuser2
 
 USE f_shum_fixed_length_header_indices_mod, ONLY:                              &
   int_const_start, int_const_dim, real_const_start, real_const_dim,            &
@@ -144,7 +144,8 @@ USE f_shum_fixed_length_header_indices_mod, ONLY:                              &
   comp_field_index1_start, comp_field_index1_dim,                              &
   comp_field_index2_start, comp_field_index2_dim,                              &
   comp_field_index3_start, comp_field_index3_dim,                              &
-  lookup_start, lookup_dim1, lookup_dim2, data_start, data_dim
+  lookup_start, lookup_dim1, lookup_dim2, data_start, data_dim,                &
+  num_prognostic_fields
 
 IMPLICIT NONE 
 
@@ -171,7 +172,7 @@ INTEGER(KIND=int64), PARAMETER :: temp_hist_dim_test = 15
 INTEGER(KIND=int64), PARAMETER :: comp_ind_1_dim_test = 20
 INTEGER(KIND=int64), PARAMETER :: comp_ind_2_dim_test = 30
 INTEGER(KIND=int64), PARAMETER :: comp_ind_3_dim_test = 40
-INTEGER(KIND=int64), PARAMETER :: n_fields_test = 15
+INTEGER(KIND=int64), PARAMETER :: n_fields_test = 13
 INTEGER(KIND=int64), PARAMETER :: rows = 30
 INTEGER(KIND=int64), PARAMETER :: columns = 20
 
@@ -224,7 +225,7 @@ CALL get_failed_count(failures_at_entry)
 ALLOCATE(CHARACTER(shum_tmpdir_len + LEN(tempfile)) :: scratch_filename)
 scratch_filename = shum_tmpdir // '/' // tempfile
 
-status = f_shum_create_file(scratch_filename, n_fields_test, ff_id, message)
+status = f_shum_create_file(scratch_filename, n_fields_test + 2, ff_id, message)
 
 CALL assert_equals(0_int64, status,                                            & 
                                    "Failed to create new file: "//TRIM(message))
@@ -367,9 +368,9 @@ lookup(lbrel,   6:10)  = [   3,   3,   3,   3,   3 ]
 lookup(lbuser1, 6:10)  = [   1,   2,   2,   2,   1 ]
 lookup(lbpack,  6:10)  = [   2,   0,   2,   0,   0 ]
 
-lookup(lbrel,   11:15) = [   3,   3,   3,   3,   3 ]
-lookup(lbuser1, 11:15) = [   1,   1,   1, 871, 935 ]
-lookup(lbpack,  11:15) = [   1,   2,   0, 853, 917 ]
+lookup(lbrel,   11:13) = [   3,   3,   3 ]
+lookup(lbuser1, 11:13) = [   1,   1,   1 ]
+lookup(lbpack,  11:13) = [   1,   2,   0 ]
 
 status = f_shum_write_lookup(ff_id, lookup, 1_int64, message)
 
@@ -446,6 +447,7 @@ CALL assert_equals(0_int64, status,                                            &
 DO i = int_const_dim, f_shum_fixed_length_header_len
   fixed_length_header(i) = -32768_int64
 END DO
+fixed_length_header(num_prognostic_fields) = 153_int64
 
 fixed_length_header(int_const_start) = f_shum_fixed_length_header_len + 1
 fixed_length_header(int_const_dim)   = int_const_dim_test
@@ -512,7 +514,7 @@ fixed_length_header(lookup_start) =                                            &
   fixed_length_header(comp_field_index3_dim)  
 
 fixed_length_header(data_start) = 524289_int64
-fixed_length_header(data_dim)   = 537600_int64
+fixed_length_header(data_dim)   = 535552_int64
 
 CALL assert_equals(fixed_length_header, fixed_length_header_r,                 &
   INT(f_shum_fixed_length_header_len, KIND=int32),                             &
@@ -729,12 +731,14 @@ lookup(lbnrec,  1:5)   = [1024,1024, 512,1024,1024 ]
 lookup(lblrec,  6:10)  = [ 600, 600, 600, 600, 600 ]
 lookup(lbnrec,  6:10)  = [ 512,1024, 512,1024,1024 ]
 
-lookup(lblrec,  11:15) = [ 300, 600, 600, -99, -99 ]
-lookup(lbnrec,  11:15) = [1024, 512,1024,1024,1024 ]
+lookup(lblrec,  11:13) = [ 300, 600, 600 ]
+lookup(lbnrec,  11:13) = [1024, 512,1024 ]
 
 lookup(lbegin, 1) = 524288_int64
+lookup(lbuser2, 1) = 1_int64
 DO j = 2, n_fields_test
   lookup(lbegin, j) = lookup(lbegin, j-1) + lookup(lbnrec, j-1)
+  lookup(lbuser2, j) = lookup(lbuser2, j-1) + lookup(lbnrec, j-1)
 END DO
 
 CALL assert_equals(lookup, lookup_r,                                           &
@@ -840,7 +844,7 @@ USE f_shum_fieldsfile_mod, ONLY:                                               &
   f_shum_read_lookup, f_shum_lookup_dim1_len, f_shum_read_field_data
 
 USE f_shum_lookup_indices_mod, ONLY:                                           &
-  lbuser1, lbpack, lbrel, lblrec, lbnrec, lbegin
+  lbuser1, lbpack, lbrel, lblrec, lbnrec, lbegin, lbuser2
 
 USE f_shum_fixed_length_header_indices_mod, ONLY:                              &
   int_const_start, int_const_dim, real_const_start, real_const_dim,            &
@@ -852,7 +856,8 @@ USE f_shum_fixed_length_header_indices_mod, ONLY:                              &
   comp_field_index1_start, comp_field_index1_dim,                              &
   comp_field_index2_start, comp_field_index2_dim,                              &
   comp_field_index3_start, comp_field_index3_dim,                              &
-  lookup_start, lookup_dim1, lookup_dim2, data_start, data_dim
+  lookup_start, lookup_dim1, lookup_dim2, data_start, data_dim,                &
+  num_prognostic_fields
 
 IMPLICIT NONE 
 
@@ -879,7 +884,7 @@ INTEGER(KIND=int64), PARAMETER :: temp_hist_dim_test = 15
 INTEGER(KIND=int64), PARAMETER :: comp_ind_1_dim_test = 20
 INTEGER(KIND=int64), PARAMETER :: comp_ind_2_dim_test = 30
 INTEGER(KIND=int64), PARAMETER :: comp_ind_3_dim_test = 40
-INTEGER(KIND=int64), PARAMETER :: n_fields_test = 15
+INTEGER(KIND=int64), PARAMETER :: n_fields_test = 13
 INTEGER(KIND=int64), PARAMETER :: rows = 30
 INTEGER(KIND=int64), PARAMETER :: columns = 20
 
@@ -932,7 +937,7 @@ CALL get_failed_count(failures_at_entry)
 ALLOCATE(CHARACTER(shum_tmpdir_len + LEN(tempfile)) :: scratch_filename)
 scratch_filename = shum_tmpdir // '/' // tempfile
 
-status = f_shum_create_file(scratch_filename, n_fields_test, ff_id, message)
+status = f_shum_create_file(scratch_filename, n_fields_test + 2, ff_id, message)
 
 CALL assert_equals(0_int64, status,                                            & 
                                    "Failed to create new file: "//TRIM(message))
@@ -1068,9 +1073,9 @@ lookup(lbrel,   6:10)  = [   3,   3,   3,   3,   3 ]
 lookup(lbuser1, 6:10)  = [   1,   2,   2,   2,   1 ]
 lookup(lbpack,  6:10)  = [   2,   0,   2,   0,   0 ]
 
-lookup(lbrel,   11:15) = [   3,   3,   3,   3,   3 ]
-lookup(lbuser1, 11:15) = [   1,   1,   1, 871, 935 ]
-lookup(lbpack,  11:15) = [   1,   2,   0, 853, 917 ]
+lookup(lbrel,   11:13) = [   3,   3,   3  ]
+lookup(lbuser1, 11:13) = [   1,   1,   1  ]
+lookup(lbpack,  11:13) = [   1,   2,   0  ]
 
 DO k = 1, n_fields_test
   SELECT CASE (k)
@@ -1138,6 +1143,7 @@ CALL assert_equals(0_int64, status,                                            &
 DO i = int_const_dim, f_shum_fixed_length_header_len
   fixed_length_header(i) = -32768_int64
 END DO
+fixed_length_header(num_prognostic_fields) = 153_int64
 
 fixed_length_header(int_const_start) = f_shum_fixed_length_header_len + 1
 fixed_length_header(int_const_dim)   = int_const_dim_test
@@ -1421,16 +1427,15 @@ lookup(lbnrec,  1:5)   = [1024,1024, 512, 512,1024 ]
 lookup(lblrec,  6:10)  = [ 600, 600, 600, 600, 600 ]
 lookup(lbnrec,  6:10)  = [ 512,1024, 512,1024,1024 ]
 
-lookup(lblrec,  11:15) = [ 300, 600, 600, -99, -99 ]
-lookup(lbnrec,  11:15) = [ 512, 512,1024,1024,1024 ]
+lookup(lblrec,  11:13) = [ 300, 600, 600 ]
+lookup(lbnrec,  11:13) = [ 512, 512,1024 ]
 
 lookup(lbegin, 1) = 524288_int64
+lookup(lbuser2, 1) = 1_int64
 DO j = 2, n_fields_test
   lookup(lbegin, j) = lookup(lbegin, j-1) + lookup(lbnrec, j-1)
+  lookup(lbuser2, j) = lookup(lbuser2, j-1) + lookup(lbnrec, j-1)
 END DO
-
-lookup(1:45, 14:15) = -99
-lookup(46:64, 14:15) = 0
 
 CALL assert_equals(lookup, lookup_r,                                           &
                    INT(f_shum_lookup_dim1_len, KIND=int32),                    &

@@ -81,6 +81,7 @@ INTEGER(KIND=int64), PARAMETER :: t3_hour                 = 38
 INTEGER(KIND=int64), PARAMETER :: t3_minute               = 39
 INTEGER(KIND=int64), PARAMETER :: t3_second               = 40
 INTEGER(KIND=int64), PARAMETER :: t3_year_day_number      = 41
+INTEGER(KIND=int64), PARAMETER :: num_prognostic_fields   = 153
 
 ! Positional elements - note that these are *not* updateable by the user
 ! directly and are only written to by the API (to ensure everything remains
