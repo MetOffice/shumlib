@@ -10,7 +10,7 @@ The third class is ``shum_ff_status_type``, which is returned by methods in the
 other two classes:
 
 Public Variables: ``shum_ff_status_type``
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 As well as providing the variables detailed below, this module also has
 overloaded operators for ``==``, ``>``, ``<``, ``>=``, ``<=`` and ``/=`` to
@@ -34,7 +34,7 @@ describing what the issue was.
 
 
 Public Variables: ``shum_file_type``
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 ``fields (shum_field_type array)``
 
@@ -48,7 +48,7 @@ This contains the total number of fields currently in the file.
 
 
 Fortran Methods (Functions): ``shum_file_type``
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 ``open_file``
 '''''''''''''
@@ -854,7 +854,7 @@ fields to be read/written.
 
 
 Fortran Methods (Functions):``shum_field_type``
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 ``set_lookup``
 ''''''''''''''
