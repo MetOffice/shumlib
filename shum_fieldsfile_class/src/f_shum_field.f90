@@ -7,7 +7,7 @@ MODULE f_shum_field_mod
 
 USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                        &
   C_INT64_T, C_INT32_T, C_FLOAT, C_DOUBLE
-USE f_shum_ff_status_mod, ONLY: shum_ff_status_type
+USE f_shum_ff_status_mod, ONLY: shum_ff_status_type, SHUMLIB_SUCCESS
 
 IMPLICIT NONE
 
@@ -112,25 +112,71 @@ FUNCTION set_lookup(self, lookup_int, lookup_real) RESULT(status)
   self%lookup_real = lookup_real
 
   status = self%get_int_lookup_by_index(lbyrd, yrd)
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
+    RETURN
+  END IF
+
   status = self%get_int_lookup_by_index(lbmond, mond)
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
+    RETURN
+  END IF
+
   status = self%get_int_lookup_by_index(lbdatd, datd)
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
+    RETURN
+  END IF
+
   status = self%get_int_lookup_by_index(lbhrd, hrd)
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
+    RETURN
+  END IF
+
   status = self%get_int_lookup_by_index(lbmind, mind)
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
+    RETURN
+  END IF
+
   status = self%get_int_lookup_by_index(lbsecd, secd)
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
+    RETURN
+  END IF
 
   status = self%get_int_lookup_by_index(lbyr, yr)
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
+    RETURN
+  END IF
+
   status = self%get_int_lookup_by_index(lbmon, mon)
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
+    RETURN
+  END IF
+
   status = self%get_int_lookup_by_index(lbdat, dat)
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
+    RETURN
+  END IF
+
   status = self%get_int_lookup_by_index(lbhr, hr)
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
+    RETURN
+  END IF
+
   status = self%get_int_lookup_by_index(lbmin, minute)
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
+    RETURN
+  END IF
+
   status = self%get_int_lookup_by_index(lbsec, sec)
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
+    RETURN
+  END IF
 
   julian_hour_data = convert_to_julian(yrd, mond, datd, hrd, mind, secd)
   julian_hour_validity = convert_to_julian(yr, mon, dat, hr, minute, sec)
 
   self%fctime_real = julian_hour_validity - julian_hour_data
 
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
   status%message = ''
 
   ! If this has a valid value for the grid positions, generate the grid
@@ -152,7 +198,7 @@ FUNCTION get_lookup(self, lookup_int, lookup_real) RESULT(status)
 
   lookup_int = self%lookup_int
   lookup_real = self%lookup_real
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
   status%message = ''
 END FUNCTION get_lookup
 
@@ -166,10 +212,11 @@ FUNCTION set_int_lookup_by_index(self, num_index, value_to_set) RESULT(status)
 
   IF (num_index > len_integer_lookup .OR. num_index < 1_int64) THEN
     status%icode = 1_int64
-    status%message = 'Lookup index out of range'
+    WRITE(status%message,'(A,I0,A)') 'Integer lookup index ',num_index,       &
+                                     ' out of range'
   ELSE
     self%lookup_int(num_index) = value_to_set
-    status%icode = 0_int64
+    status%icode = SHUMLIB_SUCCESS
     status%message = ''
   END IF
 
@@ -185,10 +232,11 @@ FUNCTION get_int_lookup_by_index(self, num_index, value_to_get) RESULT(status)
 
   IF (num_index > len_integer_lookup .OR. num_index < 1_int64) THEN
     status%icode = 1_int64
-    status%message = 'Lookup index out of range'
+    WRITE(status%message,'(A,I0,A)') 'Integer lookup index ',num_index,       &
+                                     ' out of range'
   ELSE
     value_to_get = self%lookup_int(num_index)
-    status%icode = 0_int64
+    status%icode = SHUMLIB_SUCCESS
     status%message = ''
   END IF
 
@@ -204,16 +252,17 @@ FUNCTION set_real_lookup_by_index(self, num_index, value_to_set) RESULT(status)
   TYPE(shum_ff_status_type) :: status ! Return status object
 
   IF (num_index > len_integer_lookup + len_real_lookup .OR.                   &
-                                                   num_index < 1_int64) THEN
+      num_index < 1_int64 + len_integer_lookup) THEN
     status%icode = 1_int64
-    status%message = 'Lookup index out of range'
+    WRITE(status%message,'(A,I0,A)') 'Real lookup index ',num_index,          &
+                                     ' out of range'
   ELSE
     ! SHUMlib stores parameters containing the index in the 64-word lookup
     ! However, here we've split it into it's integer and real components, so we
     ! deduct the length of the integer lookup to find the position in the real
     ! part
     self%lookup_real(num_index-len_integer_lookup) = value_to_set
-    status%icode = 0_int64
+    status%icode = SHUMLIB_SUCCESS
     status%message = ''
   END IF
 
@@ -229,16 +278,17 @@ FUNCTION get_real_lookup_by_index(self, num_index, value_to_get) RESULT(status)
   TYPE(shum_ff_status_type) :: status ! Return status object
 
   IF (num_index > len_integer_lookup + len_real_lookup .OR.                   &
-                                                   num_index < 1_int64) THEN
+      num_index < 1_int64 + len_integer_lookup) THEN
     status%icode = 1_int64
-    status%message = 'Lookup index out of range'
+    WRITE(status%message,'(A,I0,A)') 'Real lookup index ',num_index,          &
+                                     ' out of range'
   ELSE 
   ! SHUMlib stores parameters containing the index in the 64-word lookup
   ! However, here we've split it into it's integer and real components, so we
   ! deduct the length of the integer lookup to find the position in the real
   ! part
     value_to_get = self%lookup_real(num_index-len_integer_lookup)
-    status%icode = 0_int64
+    status%icode = SHUMLIB_SUCCESS
     status%message = ''
   END IF
 END FUNCTION get_real_lookup_by_index
@@ -254,9 +304,9 @@ FUNCTION get_stashcode(self, stashcode) RESULT(status)
   INTEGER(KIND=int64) :: stashcode
   TYPE(shum_ff_status_type) :: status ! Return status object
 
-  IF (self%lookup_int(lbuser4) /= um_rmdi) THEN
+  IF (self%lookup_int(lbuser4) /= um_imdi) THEN
     stashcode = self%lookup_int(lbuser4)
-    status%icode = 0_int64
+    status%icode = SHUMLIB_SUCCESS
     status%message = ''
   ELSE
     stashcode = um_imdi
@@ -278,34 +328,34 @@ FUNCTION get_timestring(self, timestring) RESULT(status)
 
   status%message = ''
   status = self%get_int_lookup_by_index(lbyr, yr)
-  IF (status%icode /= 0_int64) THEN
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
     RETURN
   END IF
   status = self%get_int_lookup_by_index(lbmon, mon)
-  IF (status%icode /= 0_int64) THEN
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
     RETURN
   END IF
   status = self%get_int_lookup_by_index(lbdat, dat)
-  IF (status%icode /= 0_int64) THEN
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
     RETURN
   END IF
   status = self%get_int_lookup_by_index(lbhr, hr)
-  IF (status%icode /= 0_int64) THEN
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
     RETURN
   END IF
   status = self%get_int_lookup_by_index(lbmin, min)
-  IF (status%icode /= 0_int64) THEN
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
     RETURN
   END IF
   status = self%get_int_lookup_by_index(lbsec, sec)
-  IF (status%icode /= 0_int64) THEN
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
     RETURN
   END IF
 
   ! This format statement is deliberately using fixed-width integers
   WRITE(timestring, '(I4.4,I2.2,I2.2,A,I2.2,I2.2,I2.2,A)')                    &
                yr, mon, dat, 'T', hr, min, sec, 'Z'
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
 END FUNCTION get_timestring
 
 !-------------------------------------------------------------------------------
@@ -318,7 +368,7 @@ FUNCTION get_level_number(self, level_number) RESULT(status)
   TYPE(shum_ff_status_type) :: status ! Return status object
 
   level_number = self%lookup_int(lblev)
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
   status%message = ''
 
 END FUNCTION get_level_number
@@ -337,7 +387,7 @@ FUNCTION get_level_eta(self, level_eta) RESULT(status)
   ! deduct the length of the integer lookup to find the position in the real
   ! part
   level_eta = self%lookup_real(blev - len_integer_lookup)
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
   status%message = ''
 
 END FUNCTION get_level_eta
@@ -351,7 +401,7 @@ FUNCTION get_real_fctime(self, real_fctime) RESULT(status)
   TYPE(shum_ff_status_type) :: status ! Return status object
 
   real_fctime = self%fctime_real
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
   status%message = ''
 
 END FUNCTION get_real_fctime
@@ -366,7 +416,7 @@ FUNCTION get_lbproc(self, proc) RESULT(status)
   TYPE(shum_ff_status_type) :: status ! Return status object
 
   proc = self%lookup_int(lbproc)
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
   status%message = ''
 
 END FUNCTION get_lbproc
@@ -382,7 +432,7 @@ FUNCTION set_stashmaster_properties(self, grid) RESULT(status)
   TYPE(shum_ff_status_type) :: status ! Return status object
 
   self%grid_type_code = grid
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
   status%message = ''
 
 END FUNCTION set_stashmaster_properties
@@ -400,7 +450,7 @@ FUNCTION set_longitudes(self, longitudes) RESULT(status)
 
   IF (ALLOCATED(self%longitudes)) THEN
     DEALLOCATE(self%longitudes, STAT=status%icode)
-    IF (status%icode /= 0_int64) THEN
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
       RETURN
     END IF
   END IF
@@ -408,7 +458,7 @@ FUNCTION set_longitudes(self, longitudes) RESULT(status)
   status%message = ''
   ALLOCATE(self%longitudes(self%lookup_int(lbnpt)), SOURCE=longitudes,        &
            STAT=status%icode)
-  IF (status%icode /= 0_int64) THEN
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
     status%message = 'Failed to allocate longitudes array'
   END IF
 END FUNCTION set_longitudes
@@ -425,7 +475,7 @@ FUNCTION get_longitudes(self, longitudes) RESULT(status)
   IF (ALLOCATED(self%longitudes)) THEN
     temp_longitudes = self%longitudes
     CALL MOVE_ALLOC(temp_longitudes, longitudes)
-    status%icode = 0_int64
+    status%icode = SHUMLIB_SUCCESS
     status%message = ''
   ELSE
     status%icode = 1_int64
@@ -445,7 +495,7 @@ FUNCTION set_latitudes(self, latitudes) RESULT(status)
 
   IF (ALLOCATED(self%latitudes)) THEN
     DEALLOCATE(self%latitudes, STAT=status%icode)
-    IF (status%icode /= 0_int64) THEN
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
       RETURN
     END IF
   END IF
@@ -453,8 +503,8 @@ FUNCTION set_latitudes(self, latitudes) RESULT(status)
   status%message = ''
   ALLOCATE(self%latitudes(self%lookup_int(lbrow)), SOURCE=latitudes,          &
            STAT=status%icode)
-  IF (status%icode /= 0_int64) THEN
-    status%message = 'Failed to get allocate latitudes array'
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
+    status%message = 'Failed to allocate latitudes array'
   END IF
 
 END FUNCTION set_latitudes
@@ -471,7 +521,7 @@ FUNCTION get_latitudes(self, latitudes) RESULT(status)
   IF (ALLOCATED(self%latitudes)) THEN
     temp_latitudes = self%latitudes
     CALL MOVE_ALLOC(temp_latitudes, latitudes)
-    status%icode = 0_int64
+    status%icode = SHUMLIB_SUCCESS
     status%message = ''
   ELSE
     status%icode = 1_int64
@@ -489,21 +539,23 @@ FUNCTION get_coords(self, x, y, coords) RESULT(status)
   REAL(KIND=real64)                   :: coords(2)
   TYPE(shum_ff_status_type) :: status ! Return status object
 
-  IF (x < 0_int64 .OR. x > SIZE(self%longitudes)) THEN
+  IF (x < 1_int64 .OR. x > SIZE(self%longitudes)) THEN
     status%icode = 1_int64
-    status%message = 'x-index out of range'
+    WRITE(status%message, '(A,I0,A,I0,A)') 'Coordinate x-index (', x,         &
+                           'out of range (', SIZE(self%longitudes), ')'
     RETURN
   END IF
 
-  IF (y < 0_int64 .OR. y > SIZE(self%latitudes)) THEN
+  IF (y < 1_int64 .OR. y > SIZE(self%latitudes)) THEN
     status%icode = 1_int64
-    status%message = 'y-index out-of-range'
+    WRITE(status%message, '(A,I0,A,I0,A)') 'Coordinate y-index (', y,         &
+                           'out of range (', SIZE(self%latitudes), ')'
     RETURN
   END IF
 
   coords(1) = self%longitudes(x)
   coords(2) = self%latitudes(y)
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
   status%message = ''
 
 END FUNCTION get_coords
@@ -524,7 +576,7 @@ FUNCTION get_pole_location(self, pole_location) RESULT(status)
 
   pole_location = [self%lookup_real(bplon - len_integer_lookup),              &
                    self%lookup_real(bplat - len_integer_lookup)]
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
   status%message = ''
 
 END FUNCTION get_pole_location
@@ -540,19 +592,19 @@ FUNCTION set_rdata(self, rdata_in) RESULT(status)
                                             self%lookup_int(lbrow))
   TYPE(shum_ff_status_type) :: status ! Return status object
 
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
   status%message = ''
   IF (ALLOCATED(self%rdata)) THEN
     DEALLOCATE(self%rdata, STAT=status%icode)
-    IF (status%icode /= 0_int64) THEN
-      status%message = 'Failed to allocate rdata'
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
+      status%message = 'Failed to deallocate pre-existing rdata'
       RETURN
     END IF
   END IF
 
   ALLOCATE(self%rdata(self%lookup_int(lbnpt), self%lookup_int(lbrow)),        &
            SOURCE=rdata_in, STAT=status%icode)
-  IF (status%icode /= 0_int64) THEN
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
     status%message = 'Failed to get allocate rdata'
   END IF
 
@@ -571,7 +623,7 @@ FUNCTION get_rdata(self, rdata) RESULT(status)
 
   IF (ALLOCATED(self%rdata)) THEN
     rdata = self%rdata
-    status%icode = 0_int64
+    status%icode = SHUMLIB_SUCCESS
     status%message = ''
   ELSE
     status%icode = 1_int64
@@ -590,9 +642,19 @@ FUNCTION get_rdata_by_location(self, x, y, rdata) RESULT(status)
   TYPE(shum_ff_status_type) :: status ! Return status object
 
   IF (ALLOCATED(self%rdata)) THEN
-    rdata = self%rdata(x, y)
-    status%icode = 0_int64
-    status%message = ''
+    IF (x < 1_int64 .OR. x > SIZE(self%rdata, 1)) THEN
+      status%icode = 1_int64
+      WRITE(status%message, '(A,I0,A,I0,A)') 'Requested rdata x-location (',  &
+                   x, ') out of range (1:',SIZE(self%rdata, 1), ')'
+    ELSE IF  (y < 1_int64 .OR. y > SIZE(self%rdata, 2)) THEN
+      status%icode = 1_int64
+      WRITE(status%message, '(A,I0,A,I0,A)') 'Requested rdata y-location (',  &
+                   y, ') out of range (1:',SIZE(self%rdata, 2), ')'
+    ELSE
+      rdata = self%rdata(x, y)
+      status%icode = SHUMLIB_SUCCESS
+      status%message = ''
+    END IF
   ELSE
     status%icode = 1_int64
     status%message = 'rdata not set'
@@ -610,11 +672,11 @@ FUNCTION set_idata(self, idata_in) RESULT(status)
                                               self%lookup_int(lbrow))
   TYPE(shum_ff_status_type) :: status ! Return status object
 
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
   IF (ALLOCATED(self%idata)) THEN
     DEALLOCATE(self%idata, STAT=status%icode)
-    IF (status%icode /= 0_int64) THEN
-      status%message = 'Failed to deallocate idata'
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
+      status%message = 'Failed to deallocate pre-existing idata'
       RETURN
     END IF
   END IF
@@ -640,7 +702,7 @@ FUNCTION get_idata(self, idata) RESULT(status)
 
   IF (ALLOCATED(self%idata)) THEN
     idata = self%idata
-    status%icode = 0_int64
+    status%icode = SHUMLIB_SUCCESS
     status%message = ''
   ELSE
     status%icode = 1_int64
@@ -660,9 +722,19 @@ FUNCTION get_idata_by_location(self, x, y, idata) RESULT(status)
   TYPE(shum_ff_status_type) :: status ! Return status object
 
   IF (ALLOCATED(self%idata)) THEN
-    idata = self%idata(x, y)
-    status%icode = 0_int64
-    status%message = ''
+    IF (x < 1_int64 .OR. x > SIZE(self%idata, 1)) THEN
+      status%icode = 1_int64
+      WRITE(status%message, '(A,I0,A,I0,A)') 'Requested idata x-location (',  &
+                   x, ') out of range (1:',SIZE(self%idata, 1), ')'
+    ELSE IF  (y < 1_int64 .OR. y > SIZE(self%idata, 2)) THEN
+      status%icode = 1_int64
+      WRITE(status%message, '(A,I0,A,I0,A)') 'Requested idata y-location (',  &
+                   y, ') out of range (1:',SIZE(self%idata, 2), ')'
+    ELSE
+      idata = self%idata(x, y)
+      status%icode = SHUMLIB_SUCCESS
+      status%message = ''
+    END IF
   ELSE
     status%icode = 1_int64
     status%message = 'idata not set'
@@ -685,20 +757,20 @@ FUNCTION unload_data(self) RESULT(status)
   status%icode = -1_int64
   status%message = 'Data already not loaded'
   IF (ALLOCATED(self%rdata)) THEN
-    status%icode = 0_int64
+    status%icode = SHUMLIB_SUCCESS
     status%message = ''
     DEALLOCATE(self%rdata, STAT=status%icode)
-    IF (status%icode /= 0_int64) THEN
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
       status%icode = ABS(status%icode)
       status%message = 'Failed to deallocate rdata'
     END IF
   END IF
 
   IF (ALLOCATED(self%idata)) THEN
-    status%icode = 0_int64
+    status%icode = SHUMLIB_SUCCESS
     status%message = ''
     DEALLOCATE(self%idata, STAT=status%icode)
-    IF (status%icode /= 0_int64) THEN
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
       status%icode = ABS(status%icode)
       status%message = 'Failed to deallocate idata'
     END IF
@@ -742,7 +814,7 @@ FUNCTION generate_fixed_grid(self) RESULT(status)
     latitude = latitude + self%lookup_real(bdy - len_integer_lookup)
     self%latitudes(k_coord) = latitude
   END DO
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
   status%message = ''
 END FUNCTION generate_fixed_grid
 

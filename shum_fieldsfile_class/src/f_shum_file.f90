@@ -9,7 +9,7 @@ USE f_shum_field_mod, ONLY: shum_field_type
 USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                        &
   C_INT64_T, C_INT32_T, C_FLOAT, C_DOUBLE, C_BOOL
 USE f_shum_fieldsfile_mod, ONLY: f_shum_fixed_length_header_len
-USE f_shum_ff_status_mod, ONLY: shum_ff_status_type
+USE f_shum_ff_status_mod, ONLY: shum_ff_status_type, SHUMLIB_SUCCESS
 
 IMPLICIT NONE
 
@@ -148,6 +148,9 @@ FUNCTION open_file(self, fname, num_lookup, overwrite) RESULT(status)
     status%icode = f_shum_open_file(self%filename,                            &
                               self%file_identifier,                           &
                               status%message)
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
+      RETURN
+    END IF
     status%message = 'Loaded existing file: ' // TRIM(fname)
   ELSE
     IF (PRESENT(num_lookup)) THEN
@@ -161,6 +164,9 @@ FUNCTION open_file(self, fname, num_lookup, overwrite) RESULT(status)
                                lookup_size,                                   &
                                self%file_identifier,                          &
                                status%message)
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
+      RETURN
+    END IF
     status%message = 'Created new file: ' // TRIM(fname)
   END IF
 
@@ -208,7 +214,7 @@ FUNCTION read_header(self) RESULT(status)
                                            self%file_identifier,              &
                                            self%fixed_length_header,          &
                                            status%message)
-  IF (status%icode /= 0_int64) THEN
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
     RETURN
   END IF
 
@@ -231,7 +237,7 @@ FUNCTION read_header(self) RESULT(status)
                                           self%file_identifier,               &
                                           self%integer_constants,             &
                                           status%message)
-  IF (status%icode /= 0_int64) THEN
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
     RETURN
   END IF
 
@@ -239,7 +245,7 @@ FUNCTION read_header(self) RESULT(status)
                                           self%file_identifier,               &
                                           self%real_constants,                &
                                           status%message)
-  IF (status%icode /= 0_int64) THEN
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
     RETURN
   END IF
 
@@ -247,7 +253,7 @@ FUNCTION read_header(self) RESULT(status)
                                      self%file_identifier,                    &
                                      self%level_dependent_constants,          &
                                      status%message)
-  IF (status%icode /= 0_int64) THEN
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
     RETURN
   END IF
 
@@ -258,9 +264,9 @@ FUNCTION read_header(self) RESULT(status)
                                  self%file_identifier,                        &
                                  self%row_dependent_constants,                &
                                  status%message)
-  IF (status%icode > 0_int64) THEN
+  IF (status%icode > SHUMLIB_SUCCESS) THEN
     RETURN
-  ELSE IF (status%icode == 0_int64) THEN
+  ELSE IF (status%icode == SHUMLIB_SUCCESS) THEN
     is_variable_resolution = .TRUE.
   END IF
 
@@ -268,14 +274,14 @@ FUNCTION read_header(self) RESULT(status)
                                  self%file_identifier,                        &
                                  self%column_dependent_constants,             &
                                  status%message)
-  IF (status%icode > 0_int64) THEN
+  IF (status%icode > SHUMLIB_SUCCESS) THEN
     RETURN
   ELSE IF (status%icode < 0_int64 .AND. is_variable_resolution) THEN
     status%icode = 1_int64
     status%message = 'File has row-dependent constants but not ' //           &
                    'column-dependent constants'
     RETURN
-  ELSE IF (status%icode == 0_int64 .AND. .NOT.                                &
+  ELSE IF (status%icode == SHUMLIB_SUCCESS .AND. .NOT.                                &
            is_variable_resolution) THEN
     status%icode = 1_int64
     status%message = 'File has column-dependent constants but not ' //        &
@@ -286,14 +292,14 @@ FUNCTION read_header(self) RESULT(status)
   status%icode = f_shum_read_additional_parameters(self%file_identifier,      &
                                             self%additional_parameters,       &
                                             status%message)
-  IF (status%icode > 0_int64) THEN
+  IF (status%icode > SHUMLIB_SUCCESS) THEN
     RETURN
   END IF
 
   status%icode = f_shum_read_extra_constants(self%file_identifier,            &
                                       self%extra_constants,                   &
                                       status%message)
-  IF (status%icode > 0_int64) THEN
+  IF (status%icode > SHUMLIB_SUCCESS) THEN
     RETURN
   END IF
 
@@ -301,7 +307,7 @@ FUNCTION read_header(self) RESULT(status)
   status%icode = f_shum_read_temp_histfile(self%file_identifier,              &
                                     self%temp_histfile,                       &
                                     status%message)
-  IF (status%icode > 0_int64) THEN
+  IF (status%icode > SHUMLIB_SUCCESS) THEN
     RETURN
   END IF
 
@@ -309,7 +315,7 @@ FUNCTION read_header(self) RESULT(status)
                                        self%compressed_index_1,               &
                                        1_int64,                               &
                                        status%message)
-  IF (status%icode > 0_int64) THEN
+  IF (status%icode > SHUMLIB_SUCCESS) THEN
     RETURN
   END IF
 
@@ -318,7 +324,7 @@ FUNCTION read_header(self) RESULT(status)
                                        self%compressed_index_2,               &
                                        2_int64,                               &
                                        status%message)
-  IF (status%icode > 0_int64) THEN
+  IF (status%icode > SHUMLIB_SUCCESS) THEN
     RETURN
   END IF
 
@@ -326,7 +332,7 @@ FUNCTION read_header(self) RESULT(status)
                                        self%compressed_index_3,               &
                                        3_int64,                               &
                                        status%message)
-  IF (status%icode > 0_int64) THEN
+  IF (status%icode > SHUMLIB_SUCCESS) THEN
     RETURN
   END IF
 
@@ -338,7 +344,7 @@ FUNCTION read_header(self) RESULT(status)
                               temp_lookup,                                    &
                               status%message)
 
-  IF (status%icode /= 0_int64) THEN
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
     RETURN
   END IF
 
@@ -358,7 +364,7 @@ FUNCTION read_header(self) RESULT(status)
     ! This call should set all properties we need from the STASHmaster file
     ! Currently setting a grid code of 1, as a temporary hack
     status = self%fields(i_field)%set_stashmaster_properties(1_int64)
-    IF (status%icode /= 0_int64) THEN
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
       WRITE(status%message, '(A,I0)') 'Error setting STASHmaster properties ' &
                                   // ' for field ', i_field
       RETURN
@@ -367,7 +373,7 @@ FUNCTION read_header(self) RESULT(status)
     status = self%fields(i_field)%set_lookup(temp_lookup(1:len_integer_lookup,&
                                                 i_field), temp_lookup_real)
 
-    IF (status%icode /= 0_int64) THEN
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
       WRITE(status%message, '(A,I0)') 'Error setting lookup for field ',      &
                                       i_field
       RETURN
@@ -379,7 +385,7 @@ FUNCTION read_header(self) RESULT(status)
           self%column_dependent_constants(                                    &
                                 1:temp_lookup(lbnpt, i_field), 1))
 
-      IF (status%icode /= 0_int64) THEN
+      IF (status%icode /= SHUMLIB_SUCCESS) THEN
         WRITE(status%message, '(A,I0)') 'Error setting col-dep constants ' // &
                                       'for field ', i_field
         RETURN
@@ -387,7 +393,7 @@ FUNCTION read_header(self) RESULT(status)
       status = self%fields(i_field)%set_latitudes(                            &
           self%row_dependent_constants(                                       &
                                 1:temp_lookup(lbrow, i_field), 1))
-      IF (status%icode /= 0_int64) THEN
+      IF (status%icode /= SHUMLIB_SUCCESS) THEN
         WRITE(status%message, '(A,I0)') 'Error setting row-dep constants ' // &
                                       'for field ', i_field
         RETURN
@@ -408,7 +414,7 @@ FUNCTION read_header(self) RESULT(status)
   ! land-packed fields
   IF (self%field_number_land_sea_mask > 0_int64) THEN
     status = self%read_field(self%field_number_land_sea_mask)
-    IF (status%icode /= 0_int64) THEN
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
       status%message = 'Failed to load land-sea mask'
       RETURN
     END IF
@@ -459,7 +465,7 @@ FUNCTION read_field(self, field_number) RESULT(status)
   IF (self%fixed_length_header(1) == um_imdi) THEN
     ! Header has not been loaded, so automatically load it
     status = self%read_header()
-    IF (status%icode /= 0_int64) THEN
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
       ! Error reading header, return control immediately with error
       RETURN
     END IF
@@ -472,28 +478,28 @@ FUNCTION read_field(self, field_number) RESULT(status)
   END IF
 
   status = self%fields(field_number)%get_lookup_by_index(lbrow, rows)
-  IF (status%icode /= 0_int64) THEN
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
     WRITE(status%message, '(A,I0)') 'Error getting number of rows in field ', &
                                    field_number
     RETURN
   END IF
 
   status = self%fields(field_number)%get_lookup_by_index(lbnpt, cols)
-  IF (status%icode /= 0_int64) THEN
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
     WRITE(status%message, '(A,I0)') 'Error getting number of columns in '     &
                                     //'field ', field_number
     RETURN
   END IF
 
   status = self%fields(field_number)%get_lookup_by_index(lbpack, packing)
-  IF (status%icode /= 0_int64) THEN
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
     WRITE(status%message, '(A,I0)') 'Error getting packing for field ',       &
                                    field_number
     RETURN
   END IF
 
   status = self%fields(field_number)%get_lookup_by_index(lbuser1, user1)
-  IF (status%icode /= 0_int64) THEN
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
     WRITE(status%message, '(A,I0)') 'Error getting data type for field ',     &
                                    field_number
     RETURN
@@ -510,13 +516,13 @@ FUNCTION read_field(self, field_number) RESULT(status)
     END IF
     status = self%fields(self%field_number_land_sea_mask)                     &
                                          %get_lookup_by_index(lbrow, rows)
-    IF (status%icode /= 0_int64) THEN
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
       status%message = 'Failed to get number of rows in land-sea mask'
       RETURN
     END IF
     status = self%fields(self%field_number_land_sea_mask)                     &
                                          %get_lookup_by_index(lbnpt, cols)
-    IF (status%icode /= 0_int64) THEN
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
       status%message = 'Failed to get number of columns in land-sea mask'
       RETURN
     END IF
@@ -524,25 +530,25 @@ FUNCTION read_field(self, field_number) RESULT(status)
     ! Compressed fields have rows=cols=0 by convention, so we need to change
     ! this so the array is allocated to be the correct size
     status = self%fields(field_number)%set_lookup_by_index(lbrow, rows)
-    IF (status%icode /= 0_int64) THEN
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
       status%message = 'Failed to set number of rows for compressed field'
       RETURN
     END IF
     status = self%fields(field_number)%set_lookup_by_index(lbnpt, cols)
-    IF (status%icode /= 0_int64) THEN
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
       status%message = 'Failed to set number of columns for compressed field'
       RETURN
     END IF
 
     ALLOCATE(lsm_data(cols, rows))
     status = self%fields(self%field_number_land_sea_mask)%get_data(lsm_data)
-    IF (status%icode /= 0_int64) THEN
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
       status%message = 'Failed to get land-sea mask for compressed field'
       RETURN
     END IF
 
     status = self%fields(field_number)%get_lookup_by_index(lblrec, lendisk)
-    IF (status%icode /= 0_int64) THEN
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
       status%message = 'Failed to get length on disk for compressed field'
       RETURN
     END IF
@@ -564,7 +570,7 @@ FUNCTION read_field(self, field_number) RESULT(status)
                                               field_number,                   &
                                               field_data_r64,                 &
                                               status%message)
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 RETURN
               END IF
               k_count = 1
@@ -581,7 +587,7 @@ FUNCTION read_field(self, field_number) RESULT(status)
               END DO
 
               status = self%fields(field_number)%set_data(tmp_field_data_r64)
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 WRITE(status%message, '(A,I0)') 'Error setting data for '     &
                                                 //'field ', field_number
                 RETURN
@@ -597,7 +603,7 @@ FUNCTION read_field(self, field_number) RESULT(status)
                                               field_number,                   &
                                               field_data_i64,                 &
                                               status%message)
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 RETURN
               END IF
               k_count = 1
@@ -614,7 +620,7 @@ FUNCTION read_field(self, field_number) RESULT(status)
               END DO
 
               status = self%fields(field_number)%set_data(tmp_field_data_i64)
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 WRITE(status%message, '(A,I0)') 'Error setting data for '     &
                                                 //'field ', field_number
                 RETURN
@@ -636,7 +642,7 @@ FUNCTION read_field(self, field_number) RESULT(status)
                                               field_number,                   &
                                               field_data_r32,                 &
                                               status%message)
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 RETURN
               END IF
               k_count = 1
@@ -653,7 +659,7 @@ FUNCTION read_field(self, field_number) RESULT(status)
               END DO
 
               status = self%fields(field_number)%set_data(tmp_field_data_r64)
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 WRITE(status%message, '(A,I0)') 'Error setting data for '     &
                                                 //'field ', field_number
                 RETURN
@@ -669,7 +675,7 @@ FUNCTION read_field(self, field_number) RESULT(status)
                                               field_number,                   &
                                               field_data_i32,                 &
                                               status%message)
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 RETURN
               END IF
               k_count = 1
@@ -686,7 +692,7 @@ FUNCTION read_field(self, field_number) RESULT(status)
               END DO
 
               status = self%fields(field_number)%set_data(tmp_field_data_i64)
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 WRITE(status%message, '(A,I0)') 'Error setting data for '     &
                                                 //'field ', field_number
                 RETURN
@@ -716,7 +722,7 @@ FUNCTION read_field(self, field_number) RESULT(status)
                                               field_number,                   &
                                               field_data_r64,                 &
                                               status%message)
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 RETURN
               END IF
               k_count = 1
@@ -733,7 +739,7 @@ FUNCTION read_field(self, field_number) RESULT(status)
               END DO
 
               status = self%fields(field_number)%set_data(tmp_field_data_r64)
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 WRITE(status%message, '(A,I0)') 'Error setting data for '     &
                                                 //'field ', field_number
                 RETURN
@@ -749,7 +755,7 @@ FUNCTION read_field(self, field_number) RESULT(status)
                                               field_number,                   &
                                               field_data_i64,                 &
                                               status%message)
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 RETURN
               END IF
               k_count = 1
@@ -766,7 +772,7 @@ FUNCTION read_field(self, field_number) RESULT(status)
               END DO
 
               status = self%fields(field_number)%set_data(tmp_field_data_i64)
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 WRITE(status%message, '(A,I0)') 'Error setting data for '     &
                                                 //'field ', field_number
                 RETURN
@@ -788,7 +794,7 @@ FUNCTION read_field(self, field_number) RESULT(status)
                                               field_number,                   &
                                               field_data_r32,                 &
                                               status%message)
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 RETURN
               END IF
               k_count = 1
@@ -805,7 +811,7 @@ FUNCTION read_field(self, field_number) RESULT(status)
               END DO
 
               status = self%fields(field_number)%set_data(tmp_field_data_r64)
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 WRITE(status%message, '(A,I0)') 'Error setting data for '     &
                                                 //'field ', field_number
                 RETURN
@@ -821,7 +827,7 @@ FUNCTION read_field(self, field_number) RESULT(status)
                                               field_number,                   &
                                               field_data_i32,                 &
                                               status%message)
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 RETURN
               END IF
               k_count = 1
@@ -838,7 +844,7 @@ FUNCTION read_field(self, field_number) RESULT(status)
               END DO
 
               status = self%fields(field_number)%set_data(tmp_field_data_i64)
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 WRITE(status%message, '(A,I0)') 'Error setting data for '     &
                                                 //'field ', field_number
                 RETURN
@@ -872,13 +878,13 @@ FUNCTION read_field(self, field_number) RESULT(status)
                                           field_number,                       &
                                           field_data_r64,                     &
                                           status%message)
-          IF (status%icode /= 0_int64) THEN
+          IF (status%icode /= SHUMLIB_SUCCESS) THEN
             RETURN
           END IF
           ALLOCATE(tmp_field_data_r64(cols, rows))
           tmp_field_data_r64 = RESHAPE(field_data_r64, (/cols, rows/))
           status = self%fields(field_number)%set_data(tmp_field_data_r64)
-          IF (status%icode /= 0_int64) THEN
+          IF (status%icode /= SHUMLIB_SUCCESS) THEN
             WRITE(status%message, '(A,I0)') 'Error setting data for field ',  &
                                            field_number
             RETURN
@@ -891,13 +897,13 @@ FUNCTION read_field(self, field_number) RESULT(status)
                                           field_number,                       &
                                           field_data_i64,                     &
                                           status%message)
-          IF (status%icode /= 0_int64) THEN
+          IF (status%icode /= SHUMLIB_SUCCESS) THEN
             RETURN
           END IF
           ALLOCATE(tmp_field_data_i64(cols, rows))
           tmp_field_data_i64 = RESHAPE(field_data_i64, (/cols, rows/))
           status = self%fields(field_number)%set_data(tmp_field_data_i64)
-          IF (status%icode /= 0_int64) THEN
+          IF (status%icode /= SHUMLIB_SUCCESS) THEN
             WRITE(status%message, '(A,I0)') 'Error setting data for field ',  &
                                            field_number
             RETURN
@@ -909,7 +915,7 @@ FUNCTION read_field(self, field_number) RESULT(status)
                                       field_number,                           &
                                       field_data_i32,                         &
                                       status%message)
-      IF (status%icode /= 0_int64) THEN
+      IF (status%icode /= SHUMLIB_SUCCESS) THEN
         RETURN
       END IF
 
@@ -922,11 +928,11 @@ FUNCTION read_field(self, field_number) RESULT(status)
                                   mdi,                                        &
                                   tmp_field_data_r64,                         &
                                   status%message)
-      IF (status%icode /= 0_int64) THEN
+      IF (status%icode /= SHUMLIB_SUCCESS) THEN
         RETURN
       END IF
       status = self%fields(field_number)%set_data(tmp_field_data_r64)
-      IF (status%icode /= 0_int64) THEN
+      IF (status%icode /= SHUMLIB_SUCCESS) THEN
         WRITE(status%message, '(A,I0)') 'Error setting data for field ',      &
                                        field_number
         RETURN
@@ -942,7 +948,7 @@ FUNCTION read_field(self, field_number) RESULT(status)
                                           field_data_r32,                     &
                                           status%message)
 
-          IF (status%icode /= 0_int64) THEN
+          IF (status%icode /= SHUMLIB_SUCCESS) THEN
             RETURN
           END IF
 
@@ -957,7 +963,7 @@ FUNCTION read_field(self, field_number) RESULT(status)
             END DO
           END DO
           status = self%fields(field_number)%set_data(tmp_field_data_r64)
-          IF (status%icode /= 0_int64) THEN
+          IF (status%icode /= SHUMLIB_SUCCESS) THEN
             WRITE(status%message, '(A,I0)') 'Error setting data for field ',  &
                                            field_number
             RETURN
@@ -970,7 +976,7 @@ FUNCTION read_field(self, field_number) RESULT(status)
                                           field_number,                       &
                                           field_data_i32,                     &
                                           status%message)
-          IF (status%icode /= 0_int64) THEN
+          IF (status%icode /= SHUMLIB_SUCCESS) THEN
             RETURN
           END IF
 
@@ -985,7 +991,7 @@ FUNCTION read_field(self, field_number) RESULT(status)
             END DO
           END DO
           status = self%fields(field_number)%set_data(tmp_field_data_i64)
-          IF (status%icode /= 0_int64) THEN
+          IF (status%icode /= SHUMLIB_SUCCESS) THEN
             WRITE(status%message, '(A,I0)') 'Error setting data for field ',  &
                                            field_number
             RETURN
@@ -1030,7 +1036,7 @@ FUNCTION read_field(self, field_number) RESULT(status)
     END IF
 
     status = self%fields(field_number)%get_lookup_by_index(lbuser4, stash)
-    IF (status%icode /= 0_int64) THEN
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
       WRITE(status%message, '(A,I0)') 'Error getting STASH code for field ',  &
                                      field_number
       RETURN
@@ -1060,33 +1066,33 @@ FUNCTION write_header(self) RESULT(status)
 
   TYPE(shum_ff_status_type) :: status    ! Return status object
 
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
 
   status%icode = f_shum_write_fixed_length_header(self%file_identifier,       &
                                            self%fixed_length_header,          &
                                            status%message)
-  IF (status%icode /= 0_int64) THEN
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
     RETURN
   END IF
 
   status%icode = f_shum_write_integer_constants(self%file_identifier,         &
                                          self%integer_constants,              &
                                          status%message)
-  IF (status%icode /= 0_int64) THEN
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
     RETURN
   END IF
 
   status%icode = f_shum_write_real_constants(self%file_identifier,            &
                                       self%real_constants,                    &
                                       status%message)
-  IF (status%icode /= 0_int64) THEN
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
     RETURN
   END IF
 
   status%icode = f_shum_write_level_dependent_constants(self%file_identifier, &
                                               self%level_dependent_constants, &
                                               status%message)
-  IF (status%icode /= 0_int64) THEN
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
     RETURN
   END IF
 
@@ -1096,7 +1102,7 @@ FUNCTION write_header(self) RESULT(status)
     status%icode = f_shum_write_row_dependent_constants(self%file_identifier, &
                                                  self%row_dependent_constants,&
                                                  status%message)
-    IF (status%icode /= 0_int64) THEN
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
      RETURN
     END IF
 
@@ -1104,7 +1110,7 @@ FUNCTION write_header(self) RESULT(status)
                                               self%file_identifier,           &
                                               self%column_dependent_constants,&
                                               status%message)
-    IF (status%icode /= 0_int64) THEN
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
      RETURN
     END IF
 
@@ -1120,7 +1126,7 @@ FUNCTION write_header(self) RESULT(status)
     status%icode = f_shum_write_additional_parameters(self%file_identifier,   &
                                                self%additional_parameters,    &
                                                status%message)
-    IF (status%icode /= 0_int64) THEN
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
      RETURN
     END IF
   END IF
@@ -1130,7 +1136,7 @@ FUNCTION write_header(self) RESULT(status)
     status%icode = f_shum_write_extra_constants(self%file_identifier,         &
                                          self%extra_constants,                &
                                          status%message)
-    IF (status%icode /= 0_int64) THEN
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
      RETURN
     END IF
   END IF
@@ -1141,7 +1147,7 @@ FUNCTION write_header(self) RESULT(status)
     status%icode = f_shum_write_temp_histfile(self%file_identifier,           &
                                        self%temp_histfile,                    &
                                        status%message)
-    IF (status%icode /= 0_int64) THEN
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
      RETURN
     END IF
   END IF
@@ -1152,7 +1158,7 @@ FUNCTION write_header(self) RESULT(status)
                                           self%compressed_index_1,            &
                                           1_int64,                            &
                                           status%message)
-    IF (status%icode /= 0_int64) THEN
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
      RETURN
     END IF
   END IF
@@ -1162,7 +1168,7 @@ FUNCTION write_header(self) RESULT(status)
                                           self%compressed_index_2,            &
                                           2_int64,                            &
                                           status%message)
-    IF (status%icode /= 0_int64) THEN
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
      RETURN
     END IF
   END IF
@@ -1172,7 +1178,7 @@ FUNCTION write_header(self) RESULT(status)
                                           self%compressed_index_3,            &
                                           3_int64,                            &
                                           status%message)
-    IF (status%icode /= 0_int64) THEN
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
      RETURN
     END IF
   END IF
@@ -1217,7 +1223,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
   INTEGER(KIND=int64) :: acc
   CHARACTER(LEN=64) :: packing_name
 
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
   IF (field_number < 0_int64 .OR. field_number > self%num_fields) THEN
     status%icode = 1_int64
     WRITE(status%message, '(A,I0,A,A)') 'Field number ',field_number,         &
@@ -1227,7 +1233,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
 
   ! Get the lookup
   status = self%fields(field_number)%get_lookup(lookup_int, lookup_real)
-  IF (status%icode /= 0_int64) THEN
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
     WRITE(status%message, '(A,I0)') 'Failed to get lookup for field ',        &
                                   field_number
     RETURN
@@ -1254,20 +1260,20 @@ FUNCTION write_field(self, field_number) RESULT(status)
     END IF
     status = self%fields(self%field_number_land_sea_mask)                     &
                                          %get_lookup_by_index(lbrow, rows)
-    IF (status%icode /= 0_int64) THEN
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
       status%message = 'Failed to get number of rows in land-sea mask'
       RETURN
     END IF
     status = self%fields(self%field_number_land_sea_mask)                     &
                                          %get_lookup_by_index(lbnpt, cols)
-    IF (status%icode /= 0_int64) THEN
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
       status%message = 'Failed to get number of columns in land-sea mask'
       RETURN
     END IF
 
     ALLOCATE(lsm_data(cols, rows))
     status = self%fields(self%field_number_land_sea_mask)%get_data(lsm_data)
-    IF (status%icode /= 0_int64) THEN
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
       status%message = 'Failed to get land-sea mask for compressed field'
       RETURN
     END IF
@@ -1288,7 +1294,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
               ALLOCATE(tmp_field_data_r64(cols, rows))
 
               status = self%fields(field_number)%get_data(tmp_field_data_r64)
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 WRITE(status%message, '(A,I0)') 'Error getting data for '     &
                                                 //'field ', field_number
                 RETURN
@@ -1315,7 +1321,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
                                               field_data_r64,                 &
                                               status%message)
 
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 RETURN
               END IF
 
@@ -1326,7 +1332,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
               ALLOCATE(tmp_field_data_i64(cols, rows))
 
               status = self%fields(field_number)%get_data(tmp_field_data_i64)
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 WRITE(status%message, '(A,I0)') 'Error getting data for '     &
                                                 //'field ', field_number
                 RETURN
@@ -1353,7 +1359,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
                                               field_data_i64,                 &
                                               status%message)
 
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 RETURN
               END IF
 
@@ -1368,7 +1374,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
               ALLOCATE(tmp_field_data_r64(cols, rows))
 
               status = self%fields(field_number)%get_data(tmp_field_data_r64)
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 WRITE(status%message, '(A,I0)') 'Error getting data for '     &
                                                 //'field ', field_number
                 RETURN
@@ -1395,7 +1401,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
                                               field_data_r32,                 &
                                               status%message)
 
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 RETURN
               END IF
 
@@ -1406,7 +1412,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
               ALLOCATE(tmp_field_data_i64(cols, rows))
 
               status = self%fields(field_number)%get_data(tmp_field_data_i64)
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 WRITE(status%message, '(A,I0)') 'Error getting data for '     &
                                                 //'field ', field_number
                 RETURN
@@ -1433,7 +1439,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
                                               field_data_i32,                 &
                                               status%message)
 
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 RETURN
               END IF
             END SELECT
@@ -1459,7 +1465,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
               ALLOCATE(tmp_field_data_r64(cols, rows))
 
               status = self%fields(field_number)%get_data(tmp_field_data_r64)
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 WRITE(status%message, '(A,I0)') 'Error getting data for '     &
                                                 //'field ', field_number
                 RETURN
@@ -1486,7 +1492,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
                                               field_data_r64,                 &
                                               status%message)
 
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 RETURN
               END IF
 
@@ -1497,7 +1503,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
               ALLOCATE(tmp_field_data_i64(cols, rows))
 
               status = self%fields(field_number)%get_data(tmp_field_data_i64)
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 WRITE(status%message, '(A,I0)') 'Error getting data for '     &
                                                 //'field ', field_number
                 RETURN
@@ -1524,7 +1530,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
                                               field_data_i64,                 &
                                               status%message)
 
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 RETURN
               END IF
 
@@ -1539,7 +1545,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
               ALLOCATE(tmp_field_data_r64(cols, rows))
 
               status = self%fields(field_number)%get_data(tmp_field_data_r64)
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 WRITE(status%message, '(A,I0)') 'Error getting data for '     &
                                                 //'field ', field_number
                 RETURN
@@ -1566,7 +1572,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
                                               field_data_r32,                 &
                                               status%message)
 
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 RETURN
               END IF
 
@@ -1577,7 +1583,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
               ALLOCATE(tmp_field_data_i64(cols, rows))
 
               status = self%fields(field_number)%get_data(tmp_field_data_i64)
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 WRITE(status%message, '(A,I0)') 'Error getting data for '     &
                                                 //'field ', field_number
                 RETURN
@@ -1604,7 +1610,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
                                               field_data_i32,                 &
                                               status%message)
 
-              IF (status%icode /= 0_int64) THEN
+              IF (status%icode /= SHUMLIB_SUCCESS) THEN
                 RETURN
               END IF
             END SELECT
@@ -1635,7 +1641,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
           ALLOCATE(tmp_field_data_r64(cols, rows))
           status = self%fields(field_number)%get_data(tmp_field_data_r64)
 
-          IF (status%icode /= 0_int64) THEN
+          IF (status%icode /= SHUMLIB_SUCCESS) THEN
             status%message = 'Failed to get real data'
             RETURN
           END IF
@@ -1646,7 +1652,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
                                           lookup,                             &
                                           field_data_r64,                     &
                                           status%message)
-          IF (status%icode /= 0_int64) THEN
+          IF (status%icode /= SHUMLIB_SUCCESS) THEN
             RETURN
           END IF
 
@@ -1655,7 +1661,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
 
           ALLOCATE(tmp_field_data_i64(cols, rows))
           status = self%fields(field_number)%get_data(tmp_field_data_i64)
-          IF (status%icode /= 0_int64) THEN
+          IF (status%icode /= SHUMLIB_SUCCESS) THEN
             status%message = 'Failed to get integer data'
             RETURN
           END IF
@@ -1667,7 +1673,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
                                           field_data_i64,                     &
                                           status%message)
 
-          IF (status%icode /= 0_int64) THEN
+          IF (status%icode /= SHUMLIB_SUCCESS) THEN
             RETURN
           END IF
 
@@ -1676,7 +1682,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
       ! WGDOS packed
         ALLOCATE(tmp_field_data_r64(cols, rows))
         status = self%fields(field_number)%get_data(tmp_field_data_r64)
-        IF (status%icode /= 0_int64) THEN
+        IF (status%icode /= SHUMLIB_SUCCESS) THEN
           status%message = 'Unable to get real data'
           RETURN
         END IF
@@ -1689,7 +1695,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
                                   lookup_real(bmdi-len_integer_lookup),       &
                                   field_data_i32,                             &
                                   status%message)
-        IF (status%icode /= 0_int64) THEN
+        IF (status%icode /= SHUMLIB_SUCCESS) THEN
           RETURN
         END IF
 
@@ -1698,7 +1704,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
                                         field_data_i32,                       &
                                         status%message)
 
-        IF (status%icode /= 0_int64) THEN
+        IF (status%icode /= SHUMLIB_SUCCESS) THEN
           RETURN
         END IF
 
@@ -1710,7 +1716,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
           ! Real
           ALLOCATE(tmp_field_data_r64(cols, rows))
           status = self%fields(field_number)%get_data(tmp_field_data_r64)
-          IF (status%icode /= 0_int64) THEN
+          IF (status%icode /= SHUMLIB_SUCCESS) THEN
             status%message = 'Unable to get real data'
             RETURN
           END IF
@@ -1728,7 +1734,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
                                           lookup,                             &
                                           field_data_r32,                     &
                                           status%message)
-          IF (status%icode /= 0_int64) THEN
+          IF (status%icode /= SHUMLIB_SUCCESS) THEN
             RETURN
           END IF
 
@@ -1736,7 +1742,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
           ! Integer or Logical
           ALLOCATE(tmp_field_data_i64(cols, rows))
           status = self%fields(field_number)%get_data(tmp_field_data_i64)
-          IF (status%icode /= 0_int64) THEN
+          IF (status%icode /= SHUMLIB_SUCCESS) THEN
             status%message = 'Unable to get integer data'
             RETURN
           END IF
@@ -1755,7 +1761,7 @@ FUNCTION write_field(self, field_number) RESULT(status)
                                           lookup,                             &
                                           field_data_i32,                     &
                                           status%message)
-          IF (status%icode /= 0_int64) THEN
+          IF (status%icode /= SHUMLIB_SUCCESS) THEN
             RETURN
           END IF
 
@@ -1830,7 +1836,7 @@ FUNCTION set_fixed_length_header(self, fixed_length_header) RESULT(status)
   TYPE(shum_ff_status_type) :: status    ! Return status object
 
   self%fixed_length_header = fixed_length_header
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
   status%message = ''
 
 END FUNCTION set_fixed_length_header
@@ -1846,7 +1852,7 @@ FUNCTION get_fixed_length_header(self, fixed_length_header) RESULT(status)
   TYPE(shum_ff_status_type) :: status    ! Return status object
 
   fixed_length_header = self%fixed_length_header
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
   status%message = ''
 
 END FUNCTION get_fixed_length_header
@@ -1866,7 +1872,7 @@ FUNCTION set_fixed_length_header_by_index(self, num_index, value_to_set)      &
     WRITE(status%message, '(A,I0)') 'Index out of range:', num_index
   ELSE
     self%fixed_length_header(num_index) = value_to_set
-    status%icode = 0_int64
+    status%icode = SHUMLIB_SUCCESS
     status%message = ''
   END IF
 
@@ -1887,7 +1893,7 @@ FUNCTION get_fixed_length_header_by_index(self, num_index, value_to_get)      &
     WRITE(status%message, '(A,I0)') 'Index out of range:', num_index
   ELSE
     value_to_get = self%fixed_length_header(num_index)
-    status%icode = 0_int64
+    status%icode = SHUMLIB_SUCCESS
     status%message = ''
   END IF
 
@@ -1904,7 +1910,7 @@ FUNCTION set_integer_constants(self, integer_constants) RESULT(status)
   TYPE(shum_ff_status_type) :: status    ! Return status object
 
   self%integer_constants = integer_constants
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
   status%message = ''
 
 END FUNCTION set_integer_constants
@@ -1921,7 +1927,7 @@ FUNCTION get_integer_constants(self, integer_constants) RESULT(status)
 
   IF (ALLOCATED(self%integer_constants)) THEN
     integer_constants = self%integer_constants
-    status%icode = 0_int64
+    status%icode = SHUMLIB_SUCCESS
     status%message = ''
   ELSE
     status%icode = 1_int64
@@ -1948,7 +1954,7 @@ FUNCTION set_integer_constants_by_index(self, num_index, value_to_set)        &
     WRITE(status%message, '(A,I0)') 'Index out of range: ', num_index
   ELSE
     self%integer_constants(num_index) = value_to_set
-    status%icode = 0_int64
+    status%icode = SHUMLIB_SUCCESS
     status%message = ''
   END IF
 
@@ -1972,7 +1978,7 @@ FUNCTION get_integer_constants_by_index(self, num_index, value_to_get)        &
     WRITE(status%message, '(A,I0)') 'Index out of range: ', num_index
   ELSE
     value_to_get = self%integer_constants(num_index)
-    status%icode = 0_int64
+    status%icode = SHUMLIB_SUCCESS
     status%message = ''
   END IF
 
@@ -1989,7 +1995,7 @@ FUNCTION set_real_constants(self, real_constants) RESULT(status)
   TYPE(shum_ff_status_type) :: status    ! Return status object
 
   self%real_constants = real_constants
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
   status%message = ''
 
 END FUNCTION set_real_constants
@@ -2006,7 +2012,7 @@ FUNCTION get_real_constants(self, real_constants) RESULT(status)
 
   IF (ALLOCATED(self%real_constants)) THEN
     real_constants = self%real_constants
-    status%icode = 0_int64
+    status%icode = SHUMLIB_SUCCESS
     status%message = ''
   ELSE
     status%icode = 1_int64
@@ -2034,7 +2040,7 @@ FUNCTION set_real_constants_by_index(self, num_index, value_to_set)           &
     WRITE(status%message, '(A,I0)') 'Index out of range: ', num_index
   ELSE
     self%real_constants(num_index) = value_to_set
-    status%icode = 0_int64
+    status%icode = SHUMLIB_SUCCESS
     status%message = ''
   END IF
 
@@ -2059,7 +2065,7 @@ FUNCTION get_real_constants_by_index(self, num_index, value_to_get)           &
     WRITE(status%message, '(A,I0)') 'Index out of range: ', num_index
   ELSE
     value_to_get = self%real_constants(num_index)
-    status%icode = 0_int64
+    status%icode = SHUMLIB_SUCCESS
     status%message = ''
   END IF
 
@@ -2077,7 +2083,7 @@ FUNCTION set_level_dependent_constants(self, level_dependent_constants)       &
   TYPE(shum_ff_status_type) :: status    ! Return status object
 
   self%level_dependent_constants = level_dependent_constants
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
   status%message = ''
 
 END FUNCTION set_level_dependent_constants
@@ -2095,7 +2101,7 @@ FUNCTION get_level_dependent_constants(self, level_dependent_constants)       &
 
   IF (ALLOCATED(self%level_dependent_constants)) THEN
     level_dependent_constants = self%level_dependent_constants
-    status%icode = 0_int64
+    status%icode = SHUMLIB_SUCCESS
     status%message = ''
   ELSE
     status%icode = 1_int64
@@ -2115,7 +2121,7 @@ FUNCTION set_row_dependent_constants(self, row_dependent_constants)           &
   TYPE(shum_ff_status_type) :: status    ! Return status object
 
   self%row_dependent_constants = row_dependent_constants
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
   status%message = ''
 
 END FUNCTION set_row_dependent_constants
@@ -2133,7 +2139,7 @@ FUNCTION get_row_dependent_constants(self, row_dependent_constants)           &
 
   IF (ALLOCATED(self%row_dependent_constants)) THEN
     row_dependent_constants = self%row_dependent_constants
-    status%icode = 0_int64
+    status%icode = SHUMLIB_SUCCESS
     status%message = ''
   ELSE
     status%icode = -1_int64
@@ -2154,7 +2160,7 @@ FUNCTION set_column_dependent_constants(self, column_dependent_constants)     &
   TYPE(shum_ff_status_type) :: status    ! Return status object
 
   self%column_dependent_constants = column_dependent_constants
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
   status%message = ''
 
 END FUNCTION set_column_dependent_constants
@@ -2172,7 +2178,7 @@ FUNCTION get_column_dependent_constants(self, column_dependent_constants)     &
 
   IF (ALLOCATED(self%column_dependent_constants)) THEN
     column_dependent_constants = self%column_dependent_constants
-    status%icode = 0_int64
+    status%icode = SHUMLIB_SUCCESS
     status%message = ''
   ELSE
     status%icode = -1_int64
@@ -2192,7 +2198,7 @@ FUNCTION set_additional_parameters(self, additional_parameters) RESULT(status)
   TYPE(shum_ff_status_type) :: status    ! Return status object
 
   self%additional_parameters = additional_parameters
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
   status%message = ''
 
 END FUNCTION set_additional_parameters
@@ -2209,7 +2215,7 @@ FUNCTION get_additional_parameters(self, additional_parameters) RESULT(status)
 
   IF (ALLOCATED(self%additional_parameters)) THEN
     additional_parameters = self%additional_parameters
-    status%icode = 0_int64
+    status%icode = SHUMLIB_SUCCESS
     status%message = ''
   ELSE
     status%icode = -1_int64
@@ -2229,7 +2235,7 @@ FUNCTION set_extra_constants(self, extra_constants) RESULT(status)
   TYPE(shum_ff_status_type) :: status    ! Return status object
 
   self%extra_constants = extra_constants
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
   status%message = ''
 
 END FUNCTION set_extra_constants
@@ -2246,7 +2252,7 @@ FUNCTION get_extra_constants(self, extra_constants) RESULT(status)
 
   IF (ALLOCATED(self%extra_constants)) THEN
     extra_constants = self%extra_constants
-    status%icode = 0_int64
+    status%icode = SHUMLIB_SUCCESS
     status%message = ''
   ELSE
     status%icode = -1_int64
@@ -2266,7 +2272,7 @@ FUNCTION set_temp_histfile(self, temp_histfile) RESULT(status)
   TYPE(shum_ff_status_type) :: status    ! Return status object
 
   self%temp_histfile = temp_histfile
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
   status%message = ''
 
 END FUNCTION set_temp_histfile
@@ -2283,7 +2289,7 @@ FUNCTION get_temp_histfile(self, temp_histfile) RESULT(status)
 
   IF (ALLOCATED(self%temp_histfile)) THEN
     temp_histfile = self%temp_histfile
-    status%icode = 0_int64
+    status%icode = SHUMLIB_SUCCESS
     status%message = ''
   ELSE
     status%icode = -1_int64
@@ -2307,13 +2313,13 @@ FUNCTION set_compressed_index(self, num_index, compressed_index) RESULT(status)
   SELECT CASE(num_index)
     CASE(1_int64)
       self%compressed_index_1 = compressed_index
-      status%icode = 0_int64
+      status%icode = SHUMLIB_SUCCESS
     CASE(2_int64)
       self%compressed_index_2 = compressed_index
-      status%icode = 0_int64
+      status%icode = SHUMLIB_SUCCESS
     CASE(3_int64)
       self%compressed_index_3 = compressed_index
-      status%icode = 0_int64
+      status%icode = SHUMLIB_SUCCESS
     CASE DEFAULT
       status%icode = 1_int64
       status%message = 'Attempted to set invalid compressed index'
@@ -2337,7 +2343,7 @@ FUNCTION get_compressed_index(self, num_index, compressed_index) RESULT(status)
     CASE(1_int64)
       IF (ALLOCATED(self%compressed_index_1)) THEN
         compressed_index = self%compressed_index_1
-        status%icode = 0_int64
+        status%icode = SHUMLIB_SUCCESS
       ELSE
         status%icode = -1_int64
         status%message = 'Attempted to get unset compressed index 1'
@@ -2345,7 +2351,7 @@ FUNCTION get_compressed_index(self, num_index, compressed_index) RESULT(status)
     CASE(2_int64)
       IF (ALLOCATED(self%compressed_index_2)) THEN
         compressed_index = self%compressed_index_2
-        status%icode = 0_int64
+        status%icode = SHUMLIB_SUCCESS
       ELSE
         status%icode = -1_int64
         status%message = 'Attempted to get unset compressed index 2'
@@ -2353,7 +2359,7 @@ FUNCTION get_compressed_index(self, num_index, compressed_index) RESULT(status)
     CASE(3_int64)
       IF (ALLOCATED(self%compressed_index_3)) THEN
         compressed_index = self%compressed_index_3
-        status%icode = 0_int64
+        status%icode = SHUMLIB_SUCCESS
       ELSE
         status%icode = -1_int64
         status%message = 'Attempted to get unset compressed index 3'
@@ -2383,7 +2389,7 @@ FUNCTION get_field(self, field_number, field) RESULT(status)
     RETURN
   ELSE
     field = self%fields(field_number)
-    status%icode = 0_int64
+    status%icode = SHUMLIB_SUCCESS
     status%message = ''
   END IF
 
@@ -2450,14 +2456,14 @@ FUNCTION find_fields_in_file(self, found_fields, max_returned_fields,         &
   DO i_field = 1, self%num_fields
     matches = .TRUE.
     status = self%get_field(i_field, current_field)
-    IF (status%icode /= 0_int64) THEN
+    IF (status%icode /= SHUMLIB_SUCCESS) THEN
       WRITE(status%message, '(A,I0)') 'Failed to analyse field ', i_field
       RETURN
     END IF
 
     IF (PRESENT(stashcode)) THEN
       status = current_field%get_stashcode(stash)
-      IF (status%icode /= 0_int64) THEN
+      IF (status%icode /= SHUMLIB_SUCCESS) THEN
         WRITE(status%message, '(A,I0)') 'Failed to get STASH code for field ',&
                                        i_field
         RETURN
@@ -2469,7 +2475,7 @@ FUNCTION find_fields_in_file(self, found_fields, max_returned_fields,         &
 
     IF (PRESENT(lbproc)) THEN
       status = current_field%get_lbproc(proc)
-      IF (status%icode /= 0_int64) THEN
+      IF (status%icode /= SHUMLIB_SUCCESS) THEN
         WRITE(status%message, '(A,I0)') 'Failed to get LBPROC for  field ',   &
                                        i_field
         RETURN
@@ -2481,7 +2487,7 @@ FUNCTION find_fields_in_file(self, found_fields, max_returned_fields,         &
 
     IF (PRESENT(fctime)) THEN
       status = current_field%get_real_fctime(rfctime)
-      IF (status%icode /= 0_int64) THEN
+      IF (status%icode /= SHUMLIB_SUCCESS) THEN
         WRITE(status%message, '(A,I0)') 'Failed to get forecast time code for'&
                               //' field ', i_field
         RETURN
@@ -2494,7 +2500,7 @@ FUNCTION find_fields_in_file(self, found_fields, max_returned_fields,         &
 
     IF (PRESENT(level_code)) THEN
       status = current_field%get_level_number(level)
-      IF (status%icode /= 0_int64) THEN
+      IF (status%icode /= SHUMLIB_SUCCESS) THEN
         WRITE(status%message, '(A,I0)') 'Failed to get level number for '     &
                               //' field ', i_field
         RETURN
@@ -2537,7 +2543,7 @@ FUNCTION find_fields_in_file(self, found_fields, max_returned_fields,         &
     DO j_matching_field = 1, num_matching
       ! Load the field data
       status = self%read_field(matching_fields(j_matching_field))
-      IF (status%icode /= 0_int64) THEN
+      IF (status%icode /= SHUMLIB_SUCCESS) THEN
         WRITE(status%message, '(A,I0)') 'Failed to read field ',              &
                                        matching_fields(j_matching_field)
         RETURN
@@ -2546,7 +2552,7 @@ FUNCTION find_fields_in_file(self, found_fields, max_returned_fields,         &
       ! Copy the field, including data
       status = self%get_field(matching_fields(j_matching_field) ,             &
                              found_fields(j_matching_field))
-      IF (status%icode /= 0_int64) THEN
+      IF (status%icode /= SHUMLIB_SUCCESS) THEN
         WRITE(status%message, '(A,I0)') 'Failed to copy field ',              &
                                        matching_fields(j_matching_field)
         RETURN
@@ -2554,13 +2560,13 @@ FUNCTION find_fields_in_file(self, found_fields, max_returned_fields,         &
 
       ! Unload the field data from the file object's version of the field
       status = self%unload_field(matching_fields(j_matching_field))
-      IF (status%icode > 0_int64) THEN
+      IF (status%icode > SHUMLIB_SUCCESS) THEN
         WRITE(status%message, '(A,I0)') 'Failed to unload field ',            &
                                        matching_fields(j_matching_field)
         RETURN
       END IF
     END DO
-    status%icode = 0_int64
+    status%icode = SHUMLIB_SUCCESS
   END IF
 
   status%message = cmessage
@@ -2580,7 +2586,7 @@ FUNCTION set_filename(self, fname) RESULT(status)
   ! The following line auto-allocates the CHARACTER array
   self%filename = fname
   self%file_identifier = um_imdi
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
 END FUNCTION set_filename
 
 !-------------------------------------------------------------------------------
@@ -2592,7 +2598,7 @@ FUNCTION get_filename(self, fname) RESULT(status)
   TYPE(shum_ff_status_type) :: status    ! Return status object
 
   fname = self%filename
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
 END FUNCTION get_filename
 
 !-------------------------------------------------------------------------------
@@ -2606,24 +2612,24 @@ FUNCTION copy_headers_from_file_object(self, template_file_object)            &
 
   status = template_file_object%get_fixed_length_header(                      &
                                                       self%fixed_length_header)
-  IF (status%icode /= 0_int64) THEN
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
     status%message = 'Failed to copy fixed-length header'
     RETURN
   END IF
   status = template_file_object%get_integer_constants(self%integer_constants)
-  IF (status%icode /= 0_int64) THEN
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
     status%message = 'Failed to copy integer constants'
     RETURN
   END IF
   status = template_file_object%get_real_constants(self%real_constants)
-  IF (status%icode /= 0_int64) THEN
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
     status%message = 'Failed to copy real constants'
     RETURN
   END IF
 
   status = template_file_object%get_level_dependent_constants(                &
                                                self%level_dependent_constants)
-  IF (status%icode /= 0_int64) THEN
+  IF (status%icode /= SHUMLIB_SUCCESS) THEN
     status%message = 'Failed to copy level-dependent constants'
     RETURN
   END IF
@@ -2632,59 +2638,59 @@ FUNCTION copy_headers_from_file_object(self, template_file_object)            &
   ! as a missing component returns -1
   status = template_file_object%get_row_dependent_constants(                  &
                                                  self%row_dependent_constants)
-  IF (status%icode > 0_int64) THEN
+  IF (status%icode > SHUMLIB_SUCCESS) THEN
     status%message = 'Failed to copy row-dependent constants'
     RETURN
   END IF
 
   status = template_file_object%get_column_dependent_constants(               &
                                               self%column_dependent_constants)
-  IF (status%icode > 0_int64) THEN
+  IF (status%icode > SHUMLIB_SUCCESS) THEN
     status%message = 'Failed to copy column-dependent constants'
     RETURN
   END IF
 
   status = template_file_object%get_additional_parameters(                    &
                                                    self%additional_parameters)
-  IF (status%icode > 0_int64) THEN
+  IF (status%icode > SHUMLIB_SUCCESS) THEN
     status%message = 'Failed to copy additional parameters'
     RETURN
   END IF
 
   status = template_file_object%get_extra_constants(self%extra_constants)
-  IF (status%icode > 0_int64) THEN
+  IF (status%icode > SHUMLIB_SUCCESS) THEN
     status%message = 'Failed to copy extra constants'
     RETURN
   END IF
 
   status = template_file_object%get_temp_histfile(self%temp_histfile)
-  IF (status%icode > 0_int64) THEN
+  IF (status%icode > SHUMLIB_SUCCESS) THEN
     status%message = 'Failed to copy temporary histfile'
     RETURN
   END IF
 
   status = template_file_object%get_compressed_index(1_int64,                 &
                                                       self%compressed_index_1)
-  IF (status%icode > 0_int64) THEN
+  IF (status%icode > SHUMLIB_SUCCESS) THEN
     status%message = 'Failed to copy compressed index 1'
     RETURN
   END IF
 
   status = template_file_object%get_compressed_index(2_int64,                 &
                                                       self%compressed_index_2)
-  IF (status%icode > 0_int64) THEN
+  IF (status%icode > SHUMLIB_SUCCESS) THEN
     status%message = 'Failed to copy compressed index 2'
     RETURN
   END IF
 
   status = template_file_object%get_compressed_index(3_int64,                 &
                                                       self%compressed_index_3)
-  IF (status%icode > 0_int64) THEN
+  IF (status%icode > SHUMLIB_SUCCESS) THEN
     status%message = 'Failed to copy compressed index 3'
     RETURN
   END IF
 
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
   status%message = 'Loaded headers from another file'
 END FUNCTION copy_headers_from_file_object
 
@@ -2738,7 +2744,7 @@ FUNCTION add_field(self, new_field) RESULT(status)
 
   ! Return the position in the file the new field was added as
   status = new_field%get_timestring(timestring)
-  status%icode = 0_int64
+  status%icode = SHUMLIB_SUCCESS
   WRITE(status%message, '(A,I0,A,A,A,I0)') 'Added new field (STASH ',stash,   &
          ', validity ', timestring, ') in position ', self%num_fields
 
