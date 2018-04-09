@@ -37,19 +37,15 @@ FCFLAGS_STATIC_TRAIL=
 # C
 #--
 # Compiler command
-CC=gcc
+CC=icc
 # Precision flags (passed to all compilation commands)
 CCFLAGS_PREC=
 # Flag used to set OpenMP (passed to all compilation commands)
-CCFLAGS_OPENMP=-fopenmp
+CCFLAGS_OPENMP=-openmp
 # Flag used to unset OpenMP (passed to all compilation commands)
-CCFLAGS_NOOPENMP=-Wno-unknown-pragmas
+CCFLAGS_NOOPENMP=-diag-disable 3180
 # Any other flags (to be passed to all compilation commands)
-CCFLAGS_EXTRA=-std=c99 -Wall -Wextra -Werror -Wformat=2 -Winit-self -Wfloat-equal   \
-              -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wcast-align          \
-              -Wconversion -Wlogical-op -Wstrict-prototypes -Wmissing-declarations  \
-              -Wredundant-decls -Wnested-externs -Woverlength-strings               \
-              -fdiagnostics-show-option
+CCFLAGS_EXTRA=-std=c99 -w3 -Werror-all -no-inline-max-size
 # Flag used to set PIC (Position-independent-code; required by dynamic lib 
 # and so will only be passed to compile objects destined for the dynamic lib)
 CCFLAGS_PIC=-fPIC
@@ -61,7 +57,7 @@ AR=ar -rc
 
 # Set the name of this platform; this will be included as the name of the 
 # top-level directory in the build
-PLATFORM=uoe-emps-ifort-gcc
+PLATFORM=uoe-emps-ifort-icc
 
 # Proceed to include the rest of the common makefile
 include Makefile
