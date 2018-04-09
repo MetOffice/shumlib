@@ -23,30 +23,37 @@
 /*   Version inclusion header;                                                */
 /******************************************************************************/
 
-// Protection from including this file multiple times
+/* Check the macro we need is defined.
+ * This should happen outside the include guard, else only the top level library
+ * is validated
+ */
+#if !defined(SHUMLIB_LIBNAME)
+#error "Please define 'SHUMLIB_LIBNAME' when including this header"
+#endif
+
+/* Include guard to prevent including this file multiple times */
 #if !defined(SHUMLIB_VERSION_H)
 #define SHUMLIB_VERSION_H
 
 #include <inttypes.h>
 
-// Master definition of version number (uses YYYYMMX format) 
-//                              where "X" is the release number in month MM
+/* Master definition of version number (uses YYYYMMX format)
+ * where "X" is the release number in month "MM" of year "YYYY"
+ */
 #if !defined(SHUMLIB_VERSION)
 #define SHUMLIB_VERSION 2018021
 #endif
 
-// Check the macro we need is defined
-#if !defined(SHUMLIB_LIBNAME)
-#error "Please define 'SHUMLIB_LIBNAME' when including this header"
-#endif
-
 /* 2-stage expansion which will replace in the including code:
-     GET_SHUMLIB_VERSION(my_name)  ->   get_my_name_version()     
-   to allow each library to create its own unique version function
-*/
+ *    GET_SHUMLIB_VERSION(my_name)  ->   get_my_name_version()
+ *  to allow each library to create its own unique version function
+ */
 #define SHUMLIB_XSTRING_EXPANSION(str) get_##str##_version
 #define GET_SHUMLIB_VERSION(libname) SHUMLIB_XSTRING_EXPANSION(libname)(void)
 
 #endif
 
+/* The prototype should be OUTSIDE the include guard, because it is preprocessed
+ * to a different function in every include instance.
+ */
 extern int64_t GET_SHUMLIB_VERSION(SHUMLIB_LIBNAME);
