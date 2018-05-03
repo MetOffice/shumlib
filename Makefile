@@ -39,11 +39,12 @@ endif
 # Default target - build all available libraries
 #--------------------------------------------------------------------------------
 .PHONY: default
-default: libs
+default: all_libs
 
 # Output directories
 #--------------------------------------------------------------------------------
 OUTDIRS=${LIBDIR_OUT}/lib ${LIBDIR_OUT}/include
+
 ${OUTDIRS}:
 	mkdir -p ${LIBDIR_OUT}/lib
 	mkdir -p ${LIBDIR_OUT}/include
@@ -120,11 +121,16 @@ SPIRAL_PREREQ=
 FFCLASS=shum_fieldsfile_class
 FFCLASS_PREREQ=FFILE PACK
 
-# All libs targets
+# All libs vars
 #--------------
 ALL_LIBS_VARS=BSWAP STR_CONV DATA_CONV PACK THREAD_UTILS LLEQ FFILE \
 	      HORIZ_INTERP SPIRAL FFCLASS
 ALL_LIBS=$(foreach lib,${ALL_LIBS_VARS},${${lib}})
+
+# Forward targets (targets with "VAR" names)
+#--------------------------------------------------------------------------------
+
+.PHONY: ${ALL_LIBS_VARS} $(addsuffix _PREREQ, ${ALL_LIBS_VARS}) $(addsuffix _TESTS, ${ALL_LIBS_VARS}) $(addsuffix _PREREQ_TESTS, ${ALL_LIBS_VARS})
 
 # auto-generate main targets
 ${ALL_LIBS_VARS}: %: %_PREREQ ${OUTDIRS}
@@ -134,17 +140,23 @@ ${ALL_LIBS_VARS}: %: %_PREREQ ${OUTDIRS}
 $(addsuffix _PREREQ, ${ALL_LIBS_VARS}): %:
 	$(foreach prereq,${$@},${MAKE} -C ${DIR_ROOT} ${prereq};)
 
-# auto-generate test targets
+# auto-generate test makefile path targets
 $(wildcard $(addprefix ${DIR_ROOT}/, $(addsuffix /test, ${ALL_LIBS}))): ${DIR_ROOT}/%/test: ${FRUIT} %
-	test ! -d $@ || ${MAKE} -C $@
-	@test -d $@ || echo "No tests in $@"
 
-# auto-generate test prerequisite targets
-$(addsuffix _tests, ${ALL_LIBS_VARS}): %_tests: % ${OUTDIR_TESTS}
-	$(foreach prereq,${$(subst _tests,,$@)_PREREQ},${MAKE} -C ${DIR_ROOT} ${prereq}_tests;)
-	${MAKE} -C ${DIR_ROOT} ${DIR_ROOT}/${$(subst _tests,,$@)}/test
+# auto-generate test targets
+$(addsuffix _TESTS, ${ALL_LIBS_VARS}): %_TESTS: ${FRUIT} % %_PREREQ_TESTS ${OUTDIR_TESTS}
+	test ! -d ${DIR_ROOT}/${$(subst _TESTS,,$@)}/test || ${MAKE} -C ${DIR_ROOT}/${$(subst _TESTS,,$@)}/test
+	@test -d ${DIR_ROOT}/${$(subst _TESTS,,$@)}/test || echo "No tests for ${$(subst _TESTS,,$@)}"
 
-# reverse targets
+# auto-generate prerequisite test targets
+$(addsuffix _PREREQ_TESTS, ${ALL_LIBS_VARS}): %:
+	$(foreach prereq,${$(subst _PREREQ_TESTS,,$@)_PREREQ},${MAKE} -C ${DIR_ROOT} ${prereq}_TESTS;)
+
+# reverse targets  (targets with natural names, resolving to targets with "VAR" names)
+#--------------------------------------------------------------------------------
+
+.PHONY: ${ALL_LIBS} $(addsuffix _tests, ${ALL_LIBS}) $(addsuffix _prereq, ${ALL_LIBS}) $(addsuffix _prereq_tests, ${ALL_LIBS})
+
 REVERSE_template = $(strip $(foreach revlib,${ALL_LIBS_VARS},$(if $(filter $(1),${${revlib}}),${revlib},)))
 
 # auto-generate reverse targets
@@ -153,42 +165,51 @@ ${ALL_LIBS}: %:
 
 # auto-generate reverse test targets
 $(addsuffix _tests, ${ALL_LIBS}): %:
-	${MAKE} -C ${DIR_ROOT} $(call REVERSE_template,$(subst _tests,,$@))_tests
+	${MAKE} -C ${DIR_ROOT} $(call REVERSE_template,$(subst _tests,,$@))_TESTS
 
-.PHONY: libs ${ALL_LIBS} ${ALL_LIBS_VARS} $(addsuffix _PREREQ, ${ALL_LIBS_VARS}) $(addprefix ${DIR_ROOT}/, $(addsuffix /test, ${ALL_LIBS})) $(addsuffix _tests, ${ALL_LIBS_VARS}) $(addsuffix _tests, ${ALL_LIBS})
+# auto-generate reverse prereq targets
+$(addsuffix _prereq, ${ALL_LIBS}): %:
+	${MAKE} -C ${DIR_ROOT} $(call REVERSE_template,$(subst _prereq,,$@))_PREREQ
 
-# Add a target which points to all libraries
-libs: ${ALL_LIBS}
+# auto-generate reverse prereq test targets
+$(addsuffix _prereq_tests, ${ALL_LIBS}): %:
+	${MAKE} -C ${DIR_ROOT} $(call REVERSE_template,$(subst _prereq_tests,,$@))_PREREQ_TESTS
+
+# All library targets
+#--------------------------------------------------------------------------------
+
+.PHONY: all_libs all_tests
+
+# 'make all_libs' builds all libraries
+all_libs: ${ALL_LIBS}
+
+# 'make all_tests' builds all tests (but does not run them)
+all_tests: $(addsuffix _tests, ${ALL_LIBS})
 
 # FRUIT testing control
 #--------------------------------------------------------------------------------
 
-.PHONY: test test_generic check
+.PHONY: test run_tests check fruit_tests
 
-check: ${OUTDIR_TESTS} $(wildcard $(addprefix ${DIR_ROOT}/, $(addsuffix /test, ${ALL_LIBS})))
-	${MAKE} -C ${DIR_ROOT} libs
-	${MAKE} -C ${DIR_ROOT} test_generic
+# 'make check' builds all libraries, then tests, then runs them.
+check:
+	${MAKE} -C ${DIR_ROOT} all_libs
+	${MAKE} -C ${DIR_ROOT} all_tests
+	${MAKE} -C ${DIR_ROOT} run_tests
 
-# All of the libraries which have FRUIT tests
-FRUITTESTS=$(patsubst %/test,%,$(wildcard $(addsuffix /test, ${ALL_LIBS})))
+# 'make test' builds the tests for currently build libraries, then runs them
+test: ${FRUIT} $(addsuffix _tests, $(patsubst lib%.so, %, $(notdir $(wildcard ${LIBDIR_OUT}/lib/*.so))))
+	${MAKE} -C ${DIR_ROOT} run_tests
 
-# Currently built libraries
-FRUIT_CURRENT_LIBS=$(patsubst lib%.so, %, $(notdir $(wildcard ${LIBDIR_OUT}/lib/*.so)))
-
-# Intersection of the above - i.e. names of libraries which are both compiled
-# and have tests available (so we can compile only tests that actually exist)
-FRUIT_AVAILABLE_TESTS=$(foreach libname,                                       \
-                        ${FRUIT_CURRENT_LIBS},                                 \
-                        $(filter ${libname},                                   \
-                        ${FRUITTESTS}))
-
-test: ${OUTDIR_TESTS} $(addsuffix _tests, ${FRUIT_AVAILABLE_TESTS})
-	${MAKE} -C ${DIR_ROOT} test_generic
-
-test_generic:
+# 'make run_tests' runs the currently built tests
+run_tests:
 	${MAKE} -C ${DIR_ROOT} -f ${DIR_ROOT}/${FRUIT}/Makefile-driver
 	${LIBDIR_OUT}/tests/fruit_tests_static.exe
 	${LIBDIR_OUT}/tests/fruit_tests_dynamic.exe
+
+# dummy target for fruit
+fruit_tests:
+	@echo "Fruit Lib Built"
 
 # Cleanup targets
 #--------------------------------------------------------------------------------

@@ -84,6 +84,12 @@ You can control the build destination using the following environment variables:
    value of ``<platform>`` above will be disregarded and your exact name will
    be used); the default for this is ``$LIBDIR_ROOT/$PLATFORM``.
 
+You can also control the build source using the following environment variables:
+
+ - ``ROOT_DIR``: this sets the root directory, from which all the makefile paths are
+   relative. This allows the makefile to build from an alternative working copy of
+   the Shumlib source. The default for this variable is ``$PWD``.
+
 FRUIT Testing
 %%%%%%%%%%%%%
 
@@ -100,27 +106,39 @@ than one test at a time; e.g:
   make -f <configuration> <library_name>_tests [<library_name2>_tests ...]
 
 This will compile the specified libraries and their depdendancies as required.
-Following this it will compile the unit tests for the specified libraries. It
-will then compile the FRUIT driver (FRUIT is an external unit testing framework
-distributed with Shumlib) and execute the tests, displaying the results. You
-will notice that the test output appears twice - this is because each library is
+Following this it will compile the unit tests for the specified libraries.
+
+To execute the tests you have just built, you can use either the ``test`` or
+``run_tests`` targets. This will compile the FRUIT driver (FRUIT is an external
+unit testing framework distributed with Shumlib) and execute the tests, displaying
+the results.
+
+.. parsed-literal::
+
+  make -f <configuration> run_tests
+
+You will notice that the test output appears twice - this is because each library is
 also built twice; once as a dynamic library and once as a static library, and
 these are tested separately.
 
-If you wish to build and run *all* of the availible tests, you can run make with
-the ``check`` target; e.g:
+(The difference between the ``test`` and ``run_tests`` targets, is that ``test`` will
+first attempt to compile any availible tests from previously built libraries, whereas
+``run_tests`` will only execute pre-built tests.)
+
+Alternatively, if you wish to build and run *all* of the availible tests, you can run do
+so in a single step with the ``check`` make target; e.g:
 
 .. parsed-literal::
 
   make -f <configuration> check
 
-This will build all the libraries which contain unit tests, their dependancies,
+This will build all the libraries, their dependancies, their unit tests
 and the FRUIT driver as required. It will then execute and display the tests as
 above.
 
-Note that this will not necessarily mean *all* the libraries within
-Shumlib are compiled, as not all of them will necessarily have tests, or be
-dependancies of libraries which do.
+Note that not *all* the libraries within Shumlib will necessarily have tests. If
+this is the case for a given library, it will still be compiled, although it won't
+be verified or displayed within the fruit output.
 
 Note also, that any additional environment variables passed to the initial build
 must also be passed to the above commands (e.g. if you specified an alternative
@@ -133,7 +151,7 @@ As an example, to compile and run the WGDOS packing library unit tests using the
 
 .. parsed-literal::
 
-    make -f make/meto-x86-ifort-gcc.mk shum_wgdos_packing_tests
+    make -f make/meto-x86-ifort-gcc.mk shum_wgdos_packing_tests test
 
 Cleanup
 %%%%%%%

@@ -132,24 +132,32 @@ For the most part the best sources of information about what the main makefile
 does are the inline comments. However a few details not explicitly mentioned or
 benefitting from additional information will be discussed here.
 
-Note in the "Libraries" section, each library name is assigned to a variable
-(e.g. ``BSWAP=shum_byteswap``). These are used as the make targets (so you are
-able to type ``make -f <configuration> library_name``) and also as make
-dependencies, to indicate where one library depends on another.  So for example
-one can see the following definition for the byteswapping library:
+Note in the "Libraries" section, each library has a main library variable listed. This is
+assigned from a human-readble name for the library, which should match the name of the
+top level directory under ``${DIR_ROOT}`` containing that library's code directories
+(the ``src`` or ``test`` directories). Following this, there is another vaiariable -
+the prerequisites variable - which is formed of the main library variable with the suffix
+``_PREREQ`` appended. This is assigned a space seperated list of the main variables for
+other libraries upon which this library depends. Finally, there is the ``ALL_LIBS_VARS``
+varaible, which is composed of a space seperated list of all the main libraray variables
+defined in the makefile.
+
+These variables are used to auto-generate the library make targets (so you are
+able to type ``make -f <configuration> library_name``). For example
+one can see the following definition for the Fieldsfile Class library:
 
 .. parsed-literal::
 
-    BSWAP=shum_byteswap
-    ${BSWAP}: ${STR_CONV} ${OUTDIRS}
-	    ${MAKE} -C ${BSWAP}/src
+    FFCLASS=shum_fieldsfile_class
+    FFCLASS_PREREQ=FFILE PACK
 
-Notice that the dependencies for the ``${BSWAP}`` target include the variable
-``${STR_CONV}`` - this is the target for the ``shum_string_conv`` library and
-including the name here makes the system aware that the byteswapping library
-depends on functions from the string conversion library. By setting it up this
-way the string conversion library will *always* be built before the byteswapping
-library if required.
+Notice that the dependencies for the ``${FFCLASS}`` variable include the variables
+``${FFILE}`` and ``${PACK}``. This will be used to auto-generate the make target
+``shum_fieldsfile_class`` that will build code from the
+``${DIR_ROOT}/shum_fieldsfile_class/src`` directory, and which will automatically
+depend on the ``shum_fieldsfile`` and ``shum_wgdos_packing`` targets. By setting it up this
+way the Fieldsfile API and WGDOS Packing libraries (corresponding to ``${FFILE}``
+and ``${PACK}`` respectively) will *always* be built before the Fieldsfile Class if required.
 
 Libraries for which tests are defined will also auto-generate a second build
 target (the library name appended with ``_tests``) that depends on both
@@ -157,10 +165,56 @@ target (the library name appended with ``_tests``) that depends on both
 library (to ensure the library is always recompiled if needed before tests are
 run).
 
+| So in our example, the ``shum_fieldsfile_class_tests`` target would first build the following targets
+  as prerequisite depenadancies:
+|  ``fruit``
+|  ``shum_fieldsfile``
+|  ``shum_wgdos_packing``
+|  ``shum_fieldsfile_test``
+|  ``shum_wgdos_packing_test``
+|  ``shum_fieldsfile_class``
+
+There are two further special auto-generated targets for each library:
+
+i) A target to build only that library's prerequisites (the library name appended with ``_prereq``)
+
+ii) A target to build only that library's prerequisites and their tests (the library name appended with ``_prereq_test``)
+
+| In our example, these are the ``shum_fieldsfile_class_prereq`` target, which is equivelent to:
+|  ``shum_fieldsfile``
+|  ``shum_wgdos_packing``
+
+| And the the ``shum_fieldsfile_class_prereq_test`` target, which is equivelent to:
+|  ``fruit``
+|  ``shum_fieldsfile_class_prereq``
+|  ``shum_fieldsfile_test``
+|  ``shum_wgdos_packing_test``
+
+At any point following the building of one or more library, the generic ``test`` target can be built.
+This will compile and run the fruit driver and any tests using only the libraries which have already been built.
+If tests have already been built, and you only wish to execute them, you can use the ``run_tests`` target.
+(Note that running either of these targets without first having built at least one library or test will result in
+errors.)
+
+There are a few more generic targets which apply to all availible libraries. These are:
+
+i) The ``all_libs`` target builds all the availible libraries (and dependacies) as required. Note that this is the default target if none is explicitly given.
+
+ii) The ``all_tests`` target builds all the availible libraries (and dependacies) as required.
+
+iii) The ``check`` target is equivalent to ``all_libs`` followed by ``all_tests`` and ``run_tests`` (ie. build all libraries, then build and run all availible tests).
+
+Finally, there are two targets for cleaning the build structure.
+
+i) ``clean`` to completely remove *all* build output including the produced libraries and test executables.
+
+ii) ``clean-temps`` to *only* remove intermediate files but leave the build output itself in place.
+
 Most of the actual build instructions in this file simply spawn sub-make
 commands located in the required directories (the ``src`` or ``test``
 directories of a library, or special directories such as that of the FRUIT
 testing framework)
+
 
 Structure of library makefiles
 ''''''''''''''''''''''''''''''
