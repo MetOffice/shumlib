@@ -37,7 +37,10 @@ PRIVATE
 PUBLIC :: f_shum_horizontal_field_bi_lin_interp_get_coeffs                    &
         , f_shum_horizontal_field_bi_lin_interp_calc                          &
         , f_shum_find_source_box_indices                                      &
-        , f_shum_calc_weights
+        , f_shum_calc_weights                                                 &
+        , f_shum_cart_horizontal_field_bi_lin_interp_get_coeffs               &
+        , f_shum_find_source_cart_box_indices                                 &
+        , f_shum_calc_cart_weights
 
 
 !------------------------------------------------------------------------------!
@@ -61,7 +64,7 @@ CONTAINS
 
 SUBROUTINE f_shum_horizontal_field_bi_lin_interp_calc                          &
                   ( rows_in, row_length_in, len_field_out                      &
-                  , index_b_l, index_b_r, data_in                              &
+                  , index_b_l, index_b_r, index_t_l, index_t_r, data_in        &
                   , weight_b_l, weight_b_r, weight_t_l, weight_t_r             &
                   , data_out )
 
@@ -87,6 +90,12 @@ INTEGER(KIND=int64), INTENT(IN) :: index_b_l(len_field_out)
                                  ! corner of source gridbox
 INTEGER(KIND=int64), INTENT(IN) :: index_b_r(len_field_out)
                                  ! Index of bottom right
+                                 ! corner of source gridbox
+INTEGER(KIND=int64), INTENT(IN) :: index_t_l(len_field_out)
+                                 ! Index of top left
+                                 ! corner of source gridbox
+INTEGER(KIND=int64), INTENT(IN) :: index_t_r(len_field_out)
+                                 ! Index of top right
                                  ! corner of source gridbox
 
 REAL(KIND=real64), INTENT(IN) :: data_in(rows_in*row_length_in)
@@ -115,14 +124,15 @@ INTEGER(KIND=int64) :: i  ! loop index
 !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE)                               &
 !$OMP&         SHARED(len_field_out, data_out, weight_b_l, weight_b_r,         &
 !$OMP&                weight_t_l, weight_t_r, index_b_l, index_b_r,            &
-!$OMP&                data_in, row_length_in)                                  &
+!$OMP&                index_t_l, index_t_r,                                    &
+!$OMP&                data_in)                                                 &
 !$OMP&         PRIVATE(i)
 DO i=1, len_field_out
 
   data_out(i) = weight_b_l(i)*data_in(index_b_l(i))                            &
               + weight_b_r(i)*data_in(index_b_r(i))                            &
-              + weight_t_l(i)*data_in(index_b_l(i)+row_length_in)              &
-              + weight_t_r(i)*data_in(index_b_r(i)+row_length_in)
+              + weight_t_l(i)*data_in(index_t_l(i))                            &
+              + weight_t_r(i)*data_in(index_t_r(i))
 
 END DO
 !$OMP END PARALLEL DO
@@ -159,7 +169,7 @@ END SUBROUTINE f_shum_horizontal_field_bi_lin_interp_calc
 !              the branch that introduced this code.
 
 SUBROUTINE f_shum_horizontal_field_bi_lin_interp_get_coeffs                    &
-                  ( index_b_l, index_b_r                                       &
+                  ( index_b_l, index_b_r, index_t_l, index_t_r                 &
                   , weight_t_r, weight_b_r, weight_t_l, weight_b_l             &
                   , lambda_srce, phi_srce, lambda_targ, phi_targ               &
                   , points_lambda_srce, points_phi_srce, points, cyclic )
@@ -177,6 +187,12 @@ INTEGER(KIND=int64), INTENT(OUT) :: index_b_l(points)
                                   ! of source gridbox
 INTEGER(KIND=int64), INTENT(OUT) :: index_b_r(points)
                                   ! Index of bottom right corner
+                                  ! of source gridbox
+INTEGER(KIND=int64), INTENT(OUT) :: index_t_l(points)
+                                  ! Index of top left corner
+                                  ! of source gridbox
+INTEGER(KIND=int64), INTENT(OUT) :: index_t_r(points)
+                                  ! Index of top right corner
                                   ! of source gridbox
 
 REAL(KIND=real64), INTENT(IN)  :: lambda_targ(points)
@@ -215,7 +231,7 @@ INTEGER(KIND=int64) :: iy(points)       ! Latitudinal index
 ! ----------------------------------------------------------------------
 
 CALL f_shum_find_source_box_indices                                            &
-                  ( index_b_l, index_b_r                                       &
+                  ( index_b_l, index_b_r, index_t_l, index_t_r                 &
                   , lambda_srce, phi_srce, lambda_targ, phi_targ               &
                   , points_lambda_srce, points_phi_srce, points, cyclic        &
                   , t_lambda, ixp1, ix, iy )
@@ -231,7 +247,7 @@ END SUBROUTINE f_shum_horizontal_field_bi_lin_interp_get_coeffs
 !------------------------------------------------------------------------------!
 
 SUBROUTINE f_shum_find_source_box_indices                                      &
-                  ( index_b_l, index_b_r                                       &
+                  ( index_b_l, index_b_r, index_t_l, index_t_r                 &
                   , lambda_srce, phi_srce, lambda_targ, phi_targ               &
                   , points_lambda_srce, points_phi_srce, points, cyclic        &
                   , t_lambda, ixp1, ix, iy )
@@ -249,6 +265,12 @@ INTEGER(KIND=int64), INTENT(OUT) :: index_b_l(points)
                                   ! of source gridbox
 INTEGER(KIND=int64), INTENT(OUT) :: index_b_r(points)
                                   ! Index of bottom right corner
+                                  ! of source gridbox
+INTEGER(KIND=int64), INTENT(OUT) :: index_t_l(points)
+                                  ! Index of top left corner
+                                  ! of source gridbox
+INTEGER(KIND=int64), INTENT(OUT) :: index_t_r(points)
+                                  ! Index of top right corner
                                   ! of source gridbox
 INTEGER(KIND=int64), INTENT(OUT) :: ixp1(points)
                                   ! Longitudinal index plus 1
@@ -381,6 +403,8 @@ IF (cyclic) THEN
       ixp1(i)      = ixp1(i)      - points_lambda_srce
     END IF
 
+    index_t_l(i) = index_b_l(i) + points_lambda_srce
+    index_t_r(i) = index_b_r(i) + points_lambda_srce
   END DO
 
 ELSE
@@ -427,6 +451,8 @@ ELSE
     index_b_l(i) = ix(i)   + (iy(i)-1_int64)*points_lambda_srce
     index_b_r(i) = ixp1(i) + (iy(i)-1_int64)*points_lambda_srce
 
+    index_t_l(i) = index_b_l(i) + points_lambda_srce
+    index_t_r(i) = index_b_r(i) + points_lambda_srce
   END DO
 
 END IF
@@ -515,5 +541,437 @@ END DO
 RETURN
 
 END SUBROUTINE f_shum_calc_weights
+!------------------------------------------------------------------------------!
+
+!    SUBROUTINE f_shum_cart_horizontal_field_bi-lin_interp_get_coeffs -----
+!
+!    Purpose:  Calculates bi-linear horizontal interpolation
+!              coefficients and gather indices for interpolating
+!              between generalised cartesian grids (i.e. bicyclic, channel
+!              or nowrap LAM) in which the x and y grids lengths are fixed.
+!              The interpolation is carried out by subroutine
+!              f_shum_horizontal_field_bi_lin_interp_calc.
+!              Gather indices point to bottom left hand corner, bottom
+!              right hand corner, top left hand corner and top right hand
+!              corner of each grid box on source grid enclosing a
+!              target point. 
+!              If a target point falls outside the domain of the source
+!              data, one sided differencing is used. The source Y
+!              coordinates must be supplied in decreasing order. The source
+!              X coordinates must be supplied in increasing order,
+!              starting at any value, but not wrapping round. The target
+!              points may be specified in any order.
+!
+!   Vector Machines : The original versions of this code had sections designed
+!              for improved performance on vector machines controlled by
+!              compiler defs. Please see UM code at 10.9 or early revisions of
+!              the branch that introduced this code.
+
+SUBROUTINE f_shum_cart_horizontal_field_bi_lin_interp_get_coeffs               &
+                  ( index_b_l, index_b_r, index_t_l, index_t_r                 &
+                  , weight_t_r, weight_b_r, weight_t_l, weight_b_l             &
+                  , x_srce, y_srce, x_targ, y_targ                             &
+                  , points_x_srce, points_y_srce, points, grid_type , icode    &
+                  , cmessage )
+
+IMPLICIT NONE
+
+INTEGER(KIND=int64), INTENT(IN)  :: points_x_srce
+                                  ! Number of X on source grid
+INTEGER(KIND=int64), INTENT(IN)  :: points_y_srce
+                                  ! Number of Y points on source grid
+INTEGER(KIND=int64), INTENT(IN)  :: points
+                                  ! Total number of points on target grid
+INTEGER(KIND=int64), INTENT(IN)  :: grid_type
+                                  ! Source grid type
+                                  ! 3 - LAM no wray around
+                                  ! 4 - LAM bicylic wrap in X and Y
+                                  !   - LAM channel wrap in X only
+INTEGER(KIND=int64), INTENT(OUT) :: index_b_l(points)
+                                  ! Index of bottom left corner
+                                  ! of source gridbox
+INTEGER(KIND=int64), INTENT(OUT) :: index_b_r(points)
+                                  ! Index of bottom right corner
+                                  ! of source gridbox
+INTEGER(KIND=int64), INTENT(OUT) :: index_t_l(points)
+                                  ! Index of top left corner
+                                  ! of source gridbox
+INTEGER(KIND=int64), INTENT(OUT) :: index_t_r(points)
+                                  ! Index of top right corner
+                                  ! of source gridbox
+
+REAL(KIND=real64), INTENT(IN)  :: x_targ(points)
+                                ! X coords of target grid in m
+REAL(KIND=real64), INTENT(IN)  :: y_targ(points)
+                                ! Y coords of target grid in m
+REAL(KIND=real64), INTENT(IN)  :: x_srce(points_x_srce)
+                                ! X coords of source grid in m
+REAL(KIND=real64), INTENT(IN)  :: y_srce(points_y_srce)
+                                ! Y coords of source grid in m
+REAL(KIND=real64), INTENT(OUT) :: weight_t_r(points)
+                                ! Weight applied to value at top
+                                ! right corner of source gridbox
+REAL(KIND=real64), INTENT(OUT) :: weight_b_l(points)
+                                ! Weight applied to value at bot.
+                                ! left corner of source gridbox
+REAL(KIND=real64), INTENT(OUT) :: weight_b_r(points)
+                                ! Weight applied to value at bot.
+                                ! right corner of source gridbox
+REAL(KIND=real64), INTENT(OUT) :: weight_t_l(points)
+                                ! Weight applied to value at top
+                                ! left corner of source gridbox
+
+INTEGER(KIND=int64), INTENT(OUT) :: icode    ! error code
+
+CHARACTER(LEN=*), INTENT(OUT) :: cmessage  ! error message
+
+
+!--- Local variables:---------------------------------------------------
+
+INTEGER(KIND=int64) :: ixp1(points)     ! X index plus 1
+INTEGER(KIND=int64) :: ix(points)       ! X index
+INTEGER(KIND=int64) :: iyp1(points)     ! Y index plus 1
+INTEGER(KIND=int64) :: iy(points)       ! Y index
+! ----------------------------------------------------------------------
+
+CALL f_shum_find_source_cart_box_indices                                       &
+                  ( index_b_l, index_b_r, index_t_l, index_t_r                 &
+                  , x_srce, y_srce, x_targ, y_targ                             &
+                  , points_x_srce, points_y_srce, points, grid_type            &
+                  , ixp1, ix, iyp1,iy, icode, cmessage )
+
+IF (icode > 0) THEN  ! Problem error detected in find_source_cart_box_indices
+  RETURN
+END IF
+
+CALL f_shum_calc_cart_weights                                                  &
+                  ( weight_t_r, weight_b_r, weight_t_l, weight_b_l             &
+                  , x_srce, y_srce, x_targ, y_targ                             &
+                  , points_x_srce, points_y_srce, points                       &
+                  , ixp1, ix, iyp1, iy )
+
+END SUBROUTINE f_shum_cart_horizontal_field_bi_lin_interp_get_coeffs
+
+!------------------------------------------------------------------------------!
+
+SUBROUTINE f_shum_find_source_cart_box_indices                                 &
+                  ( index_b_l, index_b_r, index_t_l, index_t_r                 &
+                  , x_srce, y_srce, x_targ, y_targ                             &
+                  , points_x_srce, points_y_srce, points, grid_type            &
+                  , ixp1, ix, iyp1,iy, icode, cmessage )
+
+IMPLICIT NONE
+
+INTEGER(KIND=int64), INTENT(IN)  :: points_x_srce
+                                  ! Number of x points on source grid
+INTEGER(KIND=int64), INTENT(IN)  :: points_y_srce
+                                  ! Number of y points on source grid
+INTEGER(KIND=int64), INTENT(IN)  :: points
+                                  ! Total number of points on target grid
+INTEGER(KIND=int64), INTENT(IN)  :: grid_type
+                                  ! Source grid type
+                                  ! 3 - LAM no wray around
+                                  ! 4 - LAM bicylic wrap in X and Y
+                                  !   - LAM channel wrap in X only
+INTEGER(KIND=int64), INTENT(OUT) :: index_b_l(points)
+                                  ! Index of bottom left corner
+                                  ! of source gridbox
+INTEGER(KIND=int64), INTENT(OUT) :: index_b_r(points)
+                                  ! Index of bottom right corner
+                                  ! of source gridbox
+INTEGER(KIND=int64), INTENT(OUT) :: index_t_l(points)
+                                  ! Index of top left corner
+                                  ! of source gridbox
+INTEGER(KIND=int64), INTENT(OUT) :: index_t_r(points)
+                                  ! Index of top right corner
+                                  ! of source gridbox
+INTEGER(KIND=int64), INTENT(OUT) :: ixp1(points)
+                                  ! X index plus 1
+INTEGER(KIND=int64), INTENT(OUT) :: ix(points)
+                                  ! X index
+INTEGER(KIND=int64), INTENT(OUT) :: iyp1(points)
+                                  ! Y index plus 1
+INTEGER(KIND=int64), INTENT(OUT) :: iy(points)
+                                  ! Y index
+INTEGER(KIND=int64), INTENT(OUT) :: icode     ! error code
+
+CHARACTER(LEN=*), INTENT(OUT) :: cmessage  ! error message
+
+
+REAL(KIND=real64), INTENT(IN)  :: x_targ(points)
+                                ! x coords of target grid in m
+REAL(KIND=real64), INTENT(IN)  :: y_targ(points)
+                                ! y coords of target grid in m
+REAL(KIND=real64), INTENT(IN)  :: x_srce(points_x_srce)
+                                ! x coords of source grid in m
+REAL(KIND=real64), INTENT(IN)  :: y_srce(points_y_srce)
+                                ! y coords of source grid in m
+
+!--- Local variables:---------------------------------------------------
+INTEGER(KIND=int64)  :: i      ! Loop index
+INTEGER(KIND=int64)  :: j      ! Loop index
+
+! Grid types
+INTEGER(KIND=int64), PARAMETER  :: bicylic = 4
+INTEGER(KIND=int64), PARAMETER  :: channel = 3
+INTEGER(KIND=int64), PARAMETER  :: nowrap  = 2
+! ----------------------------------------------------------------------
+
+! Set error code to zero 
+icode = 0_int64
+
+! 1. Initialise arrays
+IF (grid_type == bicylic) THEN
+
+  DO i = 1_int64, points
+    DO j = 1_int64, points_x_srce-1_int64 
+      IF ( x_targ(i) >= x_srce(j) .AND. x_targ(i) < x_srce(j+1_int64) ) THEN
+        ix(i)   = j   
+        ixp1(i) = j+1_int64   
+      END IF
+    END DO
+    ! Wrap around grid 
+    ! Note as at present all Cartesian grids start at x= 0.0 but the first 
+    ! P grid point will be 0.5 gridbox width offset from zero. 
+    ! The locations of the source and target grids covering the same area
+    ! all have values between 0.0 and grid max dimension which is the number
+    ! of rows or columns multiplied by the grid length.
+    !
+    !   x - >  1           2           3          4      End grid 
+    !    |  A  X           X           X          X  B   |
+    !   0.0                                             max_x_srce
+    !   
+    !  Test for points in locations A or B 
+    IF ( x_targ(i) < x_srce(1_int64) .OR.                             &
+                                  x_targ(i) >= x_srce(points_x_srce) ) THEN
+      ix(i)   = points_x_srce   
+      ixp1(i) = 1_int64
+    END IF
+    DO j = 1_int64, points_y_srce-1_int64 
+      IF ( y_targ(i) >= y_srce(j) .AND. y_targ(i) < y_srce(j+1) ) THEN
+        iy(i)   = j   
+        iyp1(i) = j+1_int64   
+      END IF
+    END DO
+    ! Wrap around  tests as for X
+    IF ( y_targ(i) < y_srce(1_int64) .OR.                             &
+                                  y_targ(i) >= y_srce(points_y_srce) ) THEN
+      iy(i)   = points_y_srce   
+      iyp1(i) = 1_int64 
+    END IF
+  END DO
+
+ELSE IF (grid_type == nowrap) THEN
+
+  DO i = 1_int64, points
+    DO j = 1_int64, points_x_srce-1_int64 
+      IF ( x_targ(i) >= x_srce(j) .AND. x_targ(i) < x_srce(j+1_int64) ) THEN
+        ix(i)   = j   
+        ixp1(i) = j+1_int64   
+      END IF
+    END DO
+    IF ( x_targ(i) < x_srce(1_int64) ) THEN
+      ix(i)   = 1_int64
+      ixp1(i) = 1_int64  
+    END IF
+    IF ( x_targ(i) >= x_srce(points_x_srce) ) THEN
+      ix(i)   = points_x_srce
+      ixp1(i) = points_x_srce
+    END IF
+    DO j = 1_int64, points_y_srce-1 
+      IF ( y_targ(i) >= y_srce(j) .AND. y_targ(i) < y_srce(j+1_int64) ) THEN
+        iy(i)   = j   
+        iyp1(i) = j+1_int64   
+      END IF
+    END DO
+    IF ( y_targ(i) < y_srce(1_int64) ) THEN
+      iy(i)   = 1_int64
+      iyp1(i) = 1_int64  
+    END IF
+    IF ( y_targ(i) >= y_srce(points_y_srce) ) THEN
+      iy(i)   = points_y_srce
+      iyp1(i) = points_y_srce
+    END IF
+  END DO
+
+ELSE IF (grid_type == channel) THEN ! wrap in x direction only
+
+  DO i = 1_int64, points
+    DO j = 1_int64, points_x_srce-1_int64 
+      IF ( x_targ(i) >= x_srce(j) .AND. x_targ(i) < x_srce(j+1_int64) ) THEN
+        ix(i)   = j   
+        ixp1(i) = j+1_int64   
+      END IF
+    END DO
+    ! Wrap around tests as for bicyclic case
+    IF ( x_targ(i) < x_srce(1) .OR. x_targ(i) >= x_srce(points_x_srce) ) THEN
+
+      ix(i)   = points_x_srce   
+      ixp1(i) = 1_int64
+    END IF
+    ! No wrap around
+    DO j = 1_int64, points_y_srce-1 
+      IF ( y_targ(i) >= y_srce(j) .AND. y_targ(i) < y_srce(j+1_int64) ) THEN
+        iy(i)   = j   
+        iyp1(i) = j+1_int64   
+      END IF
+    END DO
+    IF (y_targ(i) < y_srce(1_int64) ) THEN
+      iy(i)   = 1_int64
+      iyp1(i) = 1_int64  
+    END IF
+    IF (y_targ(i) >= y_srce(points_y_srce) ) THEN
+      iy(i)   = points_y_srce
+      iyp1(i) = points_y_srce
+    END IF
+  END DO
+
+ELSE     ! unrecognised grid type, should never reach here
+
+  icode = 10 
+  WRITE(cmessage,'(A,I0)') 'Unrecognised grid type ',grid_type
+  RETURN
+
+END IF   ! test on input grid type
+
+!---------------------------------------------------------------------------
+! 2. From ix and iy work out four surrounding grid point locations in full 
+!    grid. Assumes input and target grids are cartesian, and have regular
+!    grid spacing in X and Y. 
+!---------------------------------------------------------------------------
+
+! location   in 1d array is  (row-1)* row length + column number
+! Left hand bottom   corner coordinates ix,   iy 
+! Left hand top      corner coordinates ix,   iyp1 
+! Right hand bottom  corner coordinates ixp1, iy 
+! Right hand top     corner coordinates ixp1, iyp1 
+
+DO i = 1_int64, points
+  index_b_l(i) = ix(i)   + (iy(i)-1_int64)*points_x_srce
+  index_b_r(i) = ixp1(i) + (iy(i)-1_int64)*points_x_srce
+  index_t_l(i) = ix(i)   + (iyp1(i)-1_int64)*points_x_srce
+  index_t_r(i) = ixp1(i) + (iyp1(i)-1_int64)*points_x_srce
+END DO
+
+
+END SUBROUTINE f_shum_find_source_cart_box_indices
+
+!------------------------------------------------------------------------------!
+
+SUBROUTINE f_shum_calc_cart_weights                                            &
+                  ( weight_t_r, weight_b_r, weight_t_l, weight_b_l             &
+                  , x_srce, y_srce, x_targ, y_targ                             &
+                  , points_x_srce, points_y_srce, points                       &
+                  , ixp1, ix, iyp1,iy )
+
+
+IMPLICIT NONE
+
+INTEGER(KIND=int64), INTENT(IN)  :: points_x_srce
+                                  ! Number of x points on source grid
+INTEGER(KIND=int64), INTENT(IN)  :: points_y_srce
+                                  ! Number of y points on source grid
+INTEGER(KIND=int64), INTENT(IN)  :: points
+                                  ! Total number of points on target grid
+INTEGER(KIND=int64), INTENT(IN)  :: ixp1(points)
+                                  ! X index plus 1
+INTEGER(KIND=int64), INTENT(IN)  :: ix(points)
+                                  ! X index
+INTEGER(KIND=int64), INTENT(IN)  :: iyp1(points)
+                                  ! Y index plus 1
+INTEGER(KIND=int64), INTENT(IN)  :: iy(points)
+                                  ! Y index
+
+REAL(KIND=real64), INTENT(IN)  :: x_targ(points)
+                                ! X coords of target grid in m
+REAL(KIND=real64), INTENT(IN)  :: y_targ(points)
+                                ! y coords of target grid in m
+REAL(KIND=real64), INTENT(IN)  :: x_srce(points_x_srce)
+                                ! x coords of source grid in m
+REAL(KIND=real64), INTENT(IN)  :: y_srce(points_y_srce)
+                                ! y coords of source grid in m
+
+REAL(KIND=real64), INTENT(OUT) :: weight_t_r(points)
+                                ! Weight applied to value at top
+                                ! right corner of source gridbox
+REAL(KIND=real64), INTENT(OUT) :: weight_b_l(points)
+                                ! Weight applied to value at bot.
+                                ! left corner of source gridbox
+REAL(KIND=real64), INTENT(OUT) :: weight_b_r(points)
+                                ! Weight applied to value at bot.
+                                ! right corner of source gridbox
+REAL(KIND=real64), INTENT(OUT) :: weight_t_l(points)
+                                ! Weight applied to value at top
+                                ! left corner of source gridbox
+
+!--- Local variables:---------------------------------------------------
+REAL(KIND=real64)    :: a      ! x weight
+REAL(KIND=real64)    :: b      ! y weight
+REAL(KIND=real64)    :: dx_srce  ! x grid length on source grid (m)
+REAL(KIND=real64)    :: dy_srce  ! y grid length on source grid (m)
+REAL(KIND=real64)    :: max_x_srce  ! x length of source grid (m)
+REAL(KIND=real64)    :: max_y_srce  ! y length of source grid (m)
+INTEGER(KIND=int64)  :: i      ! Loop index
+
+! ----------------------------------------------------------------------
+! Cartesian grid spacing assumed regular
+dx_srce = x_srce(2_int64) - x_srce(1_int64)
+dy_srce = y_srce(2_int64) - y_srce(1_int64)
+
+! Required for wrap around cases
+max_x_srce = points_x_srce*dx_srce
+max_y_srce = points_y_srce*dy_srce
+
+!  1. Compute interpolation weights
+DO i=1_int64, points
+
+  ! Calculate basic weights need different ix values
+  IF (ixp1(i) > ix(i)) THEN
+    a = (MAX(x_targ(i)-x_srce(ix(i)),0.0_real64))/dx_srce
+  ELSE IF (ixp1(i) < ix(i)) THEN ! Wrap around case 
+    ! Note first grid point X is not always 0.0 depends on whether U, V or P
+    ! grid so target grid value can be > final source_grid_y  but less than
+    ! grid max so orignal code ok  (poistion B) or in position A
+    ! 
+    !   x - >  1           2           3          4      End grid 
+    !    |  A  X           X           X          X  B   |
+    !   0.0                                             max_x_srce
+    ! Case of wrap around with a finer grid, X coarse source grid point centre
+    ! The new point in the wrap around region can be in position A or B  
+                   
+    IF ( x_targ(i) < x_srce(ix(i))) THEN   ! target in position A
+      a = (MAX(x_targ(i)-(x_srce(ix(i))-max_x_srce),0.0_real64))/dx_srce
+    ELSE   ! Target in position B
+      a = (MAX(x_targ(i)-x_srce(ix(i)),0.0_real64))/dx_srce
+    END IF
+  ELSE   ! values equal so zero
+    a = 0.0_real64
+  END IF
+
+  ! Calculate basic weights need different iy values
+  IF (iyp1(i) > iy(i)) THEN
+    b = (MAX(y_targ(i)-y_srce(iy(i)),0.0_real64))/dy_srce
+  ELSE IF (iyp1(i) < iy(i)) THEN ! Wrap around case
+    ! Same problems in Y direction as X direction.
+    IF ( y_targ(i) < y_srce(iy(i))) THEN   ! Like position A   
+      b = (MAX(y_targ(i)-(y_srce(iy(i))-max_y_srce),0.0_real64))/dy_srce
+    ELSE        ! like position B
+      b = (MAX(y_targ(i)-y_srce(iy(i)),0.0_real64))/dy_srce
+    END IF
+  ELSE  ! Corners the same so zero
+    b = 0.0_real64
+  END IF
+
+  ! Calculate bi-linear interpolation weights
+  weight_t_r(i) = a*b
+  weight_b_l(i) = (1.0_real64-a)*(1.0_real64-b)
+  weight_t_l(i) = (1.0_real64-a)*b
+  weight_b_r(i) = a*(1.0_real64-b)
+
+END DO
+
+RETURN
+
+END SUBROUTINE f_shum_calc_cart_weights
 
 END MODULE f_shum_horizontal_field_interp_mod
