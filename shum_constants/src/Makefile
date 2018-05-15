@@ -65,7 +65,7 @@ f_shum_water_constants_mod_PIC.o: f_shum_water_constants_mod.f90
 libshum_constants.so: \
 	f_shum_chemistry_constants_mod_PIC.o f_shum_conversions_mod_PIC.o \
         f_shum_planet_earth_constants_mod_PIC.o \
-        f_shum_rel_mol_mass_mod.o f_shum_water_constants_mod.o \
+        f_shum_rel_mol_mass_mod_PIC.o f_shum_water_constants_mod_PIC.o \
 	${VERSION_OBJECTS_PIC}
 	${FC} ${FCFLAGS_SHARED} ${FCFLAGS} ${FCFLAGS_PIC} $^ -o $@
 
