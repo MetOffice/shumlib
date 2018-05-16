@@ -1158,7 +1158,7 @@ if(format == IBM32FLT_FORMAT || format == IBM64FLT_FORMAT ){
 
   expo = in_expo/4 + (in_expo >= 0);
 
-  expo_diff = (4 - ((uint64_t)in_expo & 3));
+  expo_diff = (size_t)(4 - ((uint64_t)in_expo & 3));
   // equivalent to expo_diff = (in_expo>=0)*4-(in_expo%4) on
   // a two's compliment system.
   // C99 standard requires two's compliment representation for fixed width

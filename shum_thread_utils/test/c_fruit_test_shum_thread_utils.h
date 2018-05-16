@@ -37,5 +37,12 @@ extern void c_test_sweep_release_locks     (bool *);
 extern void c_test_inpar                   (bool *, int64_t *);
 extern void c_test_threadid                (bool *, int64_t *);
 extern void c_test_threadflush             (bool *, volatile int64_t *);
+extern void c_test_numthreads              (bool *, int64_t *);
+extern void c_test_startOMPparallel        (bool *, int64_t *);
+extern void c_test_startOMPparallelfor     (bool *,
+                                            int64_t *,
+                                            int64_t *,
+                                            int64_t *,
+                                            int64_t *);
 
 #endif

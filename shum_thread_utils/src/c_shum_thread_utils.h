@@ -26,20 +26,34 @@
 
 #include <stdint.h>
 
-extern int64_t f_shum_threadFlush (void);
+extern int64_t f_shum_threadFlush         (void);
 
-extern int64_t f_shum_newLock     (void);
+extern int64_t f_shum_newLock             (void);
 
-extern int64_t f_shum_releaseLock (int64_t *);
+extern int64_t f_shum_releaseLock         (int64_t *);
 
-extern int64_t f_shum_Lock        (int64_t *);
+extern int64_t f_shum_Lock                (int64_t *);
 
-extern int64_t f_shum_TestLock    (int64_t *);
+extern int64_t f_shum_TestLock            (int64_t *);
 
-extern int64_t f_shum_unLock      (int64_t *);
+extern int64_t f_shum_unLock              (int64_t *);
 
-extern int64_t f_shum_threadID    (void);
+extern int64_t f_shum_threadID            (void);
 
-extern int64_t f_shum_inPar       (void);
+extern int64_t f_shum_inPar               (void);
+
+extern int64_t f_shum_numThreads          (void);
+
+extern void    f_shum_startOMPparallel    (void **,
+                                           void (*)(void **const));
+
+extern void    f_shum_startOMPparallelfor (void **,
+                                           void (*)(void **const,
+                                                 const int64_t *const restrict,
+                                                 const int64_t *const restrict,
+                                                 const int64_t *const restrict),
+                                           const int64_t *,
+                                           const int64_t *,
+                                           const int64_t *);
 
 #endif

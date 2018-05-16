@@ -232,3 +232,115 @@ and ``0`` otherwise
         ``(int64_t)``
             ``1`` when called within an OpenMP parallel region,
             and ``0`` otherwise
+
+``f_shum_numThreads``
+''''''''''''''''''''''''''''
+
+This returns the current number of OpenMP threads in the parallel team.
+
+    **Required header/s**
+        ``c_shum_thread_utils.h``
+
+    **Syntax**
+        ``threads = f_shum_numThreads()``
+
+    **Arguments**
+        None
+
+    **Return Value**
+        ``(int64_t)``
+            the current number of OpenMP threads
+
+``f_shum_startOMPparallel``
+'''''''''''''''''''''''''''
+
+Starts an OpenMP parallel region, and executes ``par_ftn_ptr()`` within it.
+
+    **Required header/s**
+        ``c_shum_thread_utils.h``
+
+    **Syntax**
+        ``f_shum_startOMPparallel(struct_ptr,par_ftn_ptr)``
+
+    **Arguments**
+        ``struct_ptr (void **)``
+            A pointer to a shared memory pointer. Typically this points to a
+            struct pointer, which is used to access all the SHARED variables
+            needed within the parallel region.
+
+        ``par_ftn_ptr (void (*)(void **const))``
+            A function pointer to the code to execute in the parallel region.
+            It will be exectuted with ``struct_ptr`` passed as an argument.
+
+    **Return Value**
+        None
+
+``f_shum_startOMPparallelfor``
+''''''''''''''''''''''''''''''
+
+Starts an OpenMP parallel region, and executes ``par_ftn_ptr()`` within it.
+Similar to ``f_shum_startOMPparallel()``, except it also includes an iteration
+range (``istart``; ``iend``) and increment (``incr``) as arguments. This
+iteration range is divided as equally as possible between the threads, which
+each recieve a contiguous sub-range.
+
+    **Required header/s**
+        ``c_shum_thread_utils.h``
+
+    **Syntax**
+        ``f_shum_startOMPparallelfor(struct_ptr,par_ftn_ptr,istart,iend,incr)``
+
+    **Arguments**
+        ``struct_ptr (void **)``
+            A pointer to a shared memory pointer. Typically this points to a
+            struct pointer, which is used to access all the SHARED variables
+            needed within the parallel region.
+
+        ``par_ftn_ptr (<par_ftn_ptr_spec>)``
+            A function pointer to the code to execute in the parallel region. 
+            See additional notes below for more details on the 
+            ``<par_ftn_ptr_spec>`` specification.
+
+        ``istart (const int64_t *)``
+            A pointer to the start value of the iteration range.
+
+        ``iend (const int64_t *)``
+            A pointer to the end value of the iteration range.
+
+        ``incr (const int64_t *)``
+            A pointer to the increment value for each iteration.
+
+    **Return Value**
+        None
+
+    **Additional Notes**
+        ``<par_ftn_ptr_spec>``
+            The specification for ``par_ftn_ptr`` is further detailed here. It
+            is a pointer to a function taking four arguments, derived from those
+            passed to ``f_shum_startOMPparallelfor``
+
+                ``par_ftn_ptr (void (*)())``
+                    The function pointed to retuns ``void`` - it has no return
+                    value.
+
+                ``struct_ptr (void **)``
+                    The first argument is ``struct_ptr``, the pointer passed on 
+                    from the parent (``f_shum_startOMPparallelfor``).
+
+                ``istart (const int64_t *const restrict)``
+                    The second argument is a pointer to a value derived from the
+                    ``istart`` value passed to the parent. Rather than directly 
+                    pass the value, it is modified such that the iteration
+                    range passed to the parent is divided into a different
+                    sub-range for each thread.
+
+                ``iend (const int64_t *const restrict)``
+                    The third argument is a pointer to a value derived from the
+                    ``iend`` value passed to the parent. Rather than directly 
+                    pass the value, it is modified such that the iteration
+                    range passed to the parent is divided into a different
+                    sub-range for each thread.
+
+                ``incr (const int64_t *const restrict)``
+                    The first argument is ``incr``, a pointer to a value passed
+                    on from the parent.

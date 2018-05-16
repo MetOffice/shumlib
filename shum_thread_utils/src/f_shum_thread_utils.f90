@@ -24,7 +24,8 @@
 MODULE f_shum_thread_utils_mod
 
 !$ USE OMP_LIB
-USE, INTRINSIC :: ISO_C_BINDING, ONLY: C_INT64_T
+USE, INTRINSIC :: ISO_C_BINDING, ONLY: C_INT64_T, C_PTR, C_FUNPTR,             &
+                                       C_F_PROCPOINTER
 
 IMPLICIT NONE
 PRIVATE
@@ -45,6 +46,34 @@ INTEGER, PARAMETER                  :: chunk = 10
 INTEGER, PARAMETER                  :: successCode       =  0
 INTEGER, PARAMETER                  :: failCode          =  1
 INTEGER, PARAMETER                  :: alreadyLockedCode = -1
+
+! Due to a bug in the Intel compilers (at least up to version 15.0.0),
+! arguments in the abstract interfaces cannot have the VALUE attribute
+
+ABSTRACT INTERFACE
+SUBROUTINE parallel_sub(sharepointer)
+
+IMPORT :: C_PTR
+
+IMPLICIT NONE
+
+TYPE(C_PTR), INTENT(IN) :: sharepointer
+
+END SUBROUTINE parallel_sub
+END INTERFACE
+
+ABSTRACT INTERFACE
+SUBROUTINE parallelfor_sub(sharepointer, istart, iend, incr)
+
+IMPORT :: C_PTR, C_INT64_T
+
+IMPLICIT NONE
+
+TYPE(C_PTR), INTENT(IN) :: sharepointer
+INTEGER(KIND=C_INT64_T), INTENT(IN) :: istart, iend, incr
+
+END SUBROUTINE parallelfor_sub
+END INTERFACE
 
 CONTAINS
 
@@ -379,6 +408,104 @@ r = 0
 !$ IF(omp_in_parallel()) r = 1
 
 END FUNCTION inPar
+
+!------------------------------------------------------------------------------!
+
+! numThreads() returns the current number of openMP threads
+
+FUNCTION numThreads()                                                          &
+  BIND(c,NAME="f_shum_numThreads")                                             &
+  RESULT(r)
+
+IMPLICIT NONE
+
+INTEGER(KIND=c_int64_t) :: r
+
+r = 1
+!$ r = omp_get_num_threads()
+
+END FUNCTION numThreads
+
+!------------------------------------------------------------------------------!
+
+! startOMPparallel() starts an OpenMP parallel region
+
+SUBROUTINE startOMPparallel(sharepointer, routine)                             &
+  BIND(c,NAME="f_shum_startOMPparallel")
+
+IMPLICIT NONE
+
+TYPE(C_PTR), INTENT(IN) :: sharepointer
+TYPE(C_FUNPTR), INTENT(IN), VALUE :: routine
+
+PROCEDURE(parallel_sub), POINTER :: f_routine
+
+CALL C_F_PROCPOINTER(routine, f_routine)
+
+!$OMP PARALLEL DEFAULT(NONE) SHARED(sharepointer, f_routine)
+CALL f_routine(sharepointer)
+!$OMP END PARALLEL
+
+END SUBROUTINE startOMPparallel
+
+!------------------------------------------------------------------------------!
+
+! startOMPparallel() creates an OpenMP parallel do (for) region, and divides
+! the loop index range over the threads
+
+SUBROUTINE startOMPparallelfor(sharepointer, routine, istart, iend, incr)      &
+  BIND(c,NAME="f_shum_startOMPparallelfor")
+
+IMPLICIT NONE
+
+TYPE(C_PTR), INTENT(IN) :: sharepointer
+TYPE(C_FUNPTR), INTENT(IN), VALUE :: routine
+INTEGER(KIND=C_INT64_T), INTENT(IN) :: istart, iend, incr
+
+INTEGER(KIND=C_INT64_T) ::  t_istart, t_iend
+
+INTEGER :: blocksize, excess, extra, tid, t_incr
+
+PROCEDURE(parallelfor_sub), POINTER :: f_routine
+
+CALL C_F_PROCPOINTER(routine, f_routine)
+
+IF (incr==0) THEN
+t_incr = 1
+ELSE
+t_incr = incr
+END IF
+
+!$OMP PARALLEL DEFAULT(NONE)                                                   &
+!$OMP SHARED(sharepointer, f_routine, istart, iend, incr, t_incr)              &
+!$OMP PRIVATE(t_istart, t_iend, blocksize, extra, excess, tid)
+
+tid = threadID()
+
+blocksize = ((iend-istart)/t_incr)/numThreads()
+
+excess = (iend-istart - blocksize*numThreads()*t_incr)/t_incr+1
+
+IF (excess > tid) THEN
+  extra = 0
+  blocksize = blocksize + 1
+ELSE
+  extra = excess * t_incr
+END IF
+
+t_istart = istart + extra + tid*blocksize*t_incr
+
+IF (t_incr>0) THEN
+  t_iend = MIN(iend,t_istart+blocksize*t_incr-1)
+ELSE
+  t_iend = MAX(iend,t_istart+blocksize*t_incr+1)
+END IF
+
+CALL f_routine(sharepointer, t_istart, t_iend, incr)
+
+!$OMP END PARALLEL
+
+END SUBROUTINE startOMPparallelfor
 
 !------------------------------------------------------------------------------!
 
