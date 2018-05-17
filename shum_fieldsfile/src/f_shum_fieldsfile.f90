@@ -294,6 +294,9 @@ LOGICAL                :: is_open
 
 INTEGER(KIND=int64), ALLOCATABLE :: lookup(:, :)
 
+status = 0_int64
+message = ""
+
 ! TODO: Replace this with portio; for now we're just using intrinsic read
 ! and write methods, so the ff_id is just file unit; but we'll randomise it
 ! and keep it above a certain range to try and avoid clashes with genuine
@@ -363,6 +366,9 @@ TYPE(ff_type), POINTER :: ff
 REAL(KIND=real64)      :: rand
 LOGICAL                :: is_open
 CHARACTER(LEN=7)       :: open_status
+
+status = 0_int64
+message = ""
 
 ! TODO: Replace this with portio; for now we're just using intrinsic read
 ! and write methods, so the ff_id is just file unit; but we'll randomise it
@@ -436,6 +442,9 @@ INTEGER(KIND=int64)            :: i
 INTEGER(KIND=int64)            :: i_last
 TYPE(ff_type), POINTER         :: ff
 REAL(KIND=real64), ALLOCATABLE :: padding(:)
+
+status = 0_int64
+message = ""
 
 ff => unique_id_to_ff(ff_id)
 
@@ -515,6 +524,7 @@ TYPE(ff_type), POINTER :: ff
 
 ! Set status for successful exit
 status = 0_int64
+message = ""
 
 ! Since the private file object keeps a copy of the header, we can return
 ! it without re-reading if it has already been read
@@ -563,6 +573,7 @@ TYPE(ff_type), POINTER :: ff
 
 ! Set status for successful exit
 status = 0_int64
+message = ""
 
 ! Retrieve stored fixed length header
 ff => unique_id_to_ff(ff_id)
@@ -633,6 +644,7 @@ TYPE(ff_type), POINTER :: ff
 
 ! Set status for successful exit
 status = 0_int64
+message = ""
 
 ! Retrieve stored fixed length header
 ff => unique_id_to_ff(ff_id)
@@ -705,6 +717,7 @@ TYPE(ff_type), POINTER :: ff
 
 ! Set status for successful exit
 status = 0_int64
+message = ""
 
 ! Retrieve stored fixed length header
 ff => unique_id_to_ff(ff_id)
@@ -783,6 +796,7 @@ TYPE(ff_type), POINTER :: ff
 
 ! Set status for successful exit
 status = 0_int64
+message = ""
 
 ! Retrieve stored fixed length header
 ff => unique_id_to_ff(ff_id)
@@ -860,6 +874,7 @@ TYPE(ff_type), POINTER :: ff
 
 ! Set status for successful exit
 status = 0_int64
+message = ""
 
 ! Retrieve stored fixed length header
 ff => unique_id_to_ff(ff_id)
@@ -938,6 +953,7 @@ TYPE(ff_type), POINTER :: ff
 
 ! Set status for successful exit
 status = 0_int64
+message = ""
 
 ! Retrieve stored fixed length header
 ff => unique_id_to_ff(ff_id)
@@ -1014,6 +1030,7 @@ TYPE(ff_type), POINTER :: ff
 
 ! Set status for successful exit
 status = 0_int64
+message = ""
 
 ! Retrieve stored fixed length header
 ff => unique_id_to_ff(ff_id)
@@ -1084,6 +1101,7 @@ TYPE(ff_type), POINTER :: ff
 
 ! Set status for successful exit
 status = 0_int64
+message = ""
 
 ! Retrieve stored fixed length header
 ff => unique_id_to_ff(ff_id)
@@ -1156,6 +1174,7 @@ TYPE(ff_type), POINTER :: ff
 
 ! Set status for successful exit
 status = 0_int64
+message = ""
 
 ! Retrieve stored fixed length header
 ff => unique_id_to_ff(ff_id)
@@ -1241,6 +1260,7 @@ TYPE(ff_type), POINTER :: ff
 
 ! Set status for successful exit
 status = 0_int64
+message = ""
 
 ! Retrieve stored fixed length header
 ff => unique_id_to_ff(ff_id)
@@ -1408,6 +1428,7 @@ TYPE(ff_type), POINTER :: ff
 
 ! Set status for successful exit
 status = 0_int64
+message = ""
 
 ! Retrieve stored lookup
 ff => unique_id_to_ff(ff_id)
@@ -1526,6 +1547,7 @@ TYPE(ff_type), POINTER :: ff
 
 ! Set status for successful exit
 status = 0_int64
+message = ""
 
 ! Retrieve stored lookup
 ff => unique_id_to_ff(ff_id)
@@ -1644,6 +1666,7 @@ TYPE(ff_type), POINTER :: ff
 
 ! Set status for successful exit
 status = 0_int64
+message = ""
 
 ! Retrieve stored lookup
 ff => unique_id_to_ff(ff_id)
@@ -1765,6 +1788,7 @@ TYPE(ff_type), POINTER :: ff
 
 ! Set status for successful exit
 status = 0_int64
+message = ""
 
 ! Retrieve stored lookup
 ff => unique_id_to_ff(ff_id)
@@ -1884,6 +1908,7 @@ TYPE(ff_type), POINTER :: ff
 ff => unique_id_to_ff(ff_id)
 
 status = 0_int64
+message = ""
 IF (ff % read_only) THEN
   status = 1_int64
   message = "Attempted write command in read-only mode"
@@ -1910,6 +1935,9 @@ CHARACTER(LEN=*)    :: message
 INTEGER(KIND=int64) :: status
 
 INTEGER(KIND=int64), ALLOCATABLE :: swap_header(:)
+
+status = 0_int64
+message = ""
 
 IF (ff % read_only) THEN
   status = 1_int64
@@ -2141,6 +2169,9 @@ TYPE(ff_type), POINTER :: ff
 
 INTEGER(KIND=int64), ALLOCATABLE :: swap_header(:)
 
+status = 0_int64
+message = ""
+
 ! Retrieve stored fixed length header index
 ff => unique_id_to_ff(ff_id)
 
@@ -2220,6 +2251,9 @@ TYPE(ff_type), POINTER :: ff
 
 REAL(KIND=real64), ALLOCATABLE :: swap_header(:)
 
+status = 0_int64
+message = ""
+
 ! Retrieve stored fixed length header index
 ff => unique_id_to_ff(ff_id)
 
@@ -2298,6 +2332,9 @@ INTEGER(KIND=int64)    :: next_start
 TYPE(ff_type), POINTER :: ff
 
 REAL(KIND=real64), ALLOCATABLE :: swap_header(:,:)
+
+status = 0_int64
+message = ""
 
 ! Retrieve stored fixed length header index
 ff => unique_id_to_ff(ff_id)
@@ -2383,6 +2420,9 @@ TYPE(ff_type), POINTER :: ff
 
 REAL(KIND=real64), ALLOCATABLE :: swap_header(:,:)
 
+status = 0_int64
+message = ""
+
 ! Retrieve stored fixed length header index
 ff => unique_id_to_ff(ff_id)
 
@@ -2465,6 +2505,9 @@ INTEGER(KIND=int64)    :: next_start
 TYPE(ff_type), POINTER :: ff
 
 REAL(KIND=real64), ALLOCATABLE :: swap_header(:,:)
+
+status = 0_int64
+message = ""
 
 ! Retrieve stored fixed length header index
 ff => unique_id_to_ff(ff_id)
@@ -2550,6 +2593,9 @@ TYPE(ff_type), POINTER :: ff
 
 REAL(KIND=real64), ALLOCATABLE :: swap_header(:,:)
 
+status = 0_int64
+message = ""
+
 ! Retrieve stored fixed length header index
 ff => unique_id_to_ff(ff_id)
 
@@ -2632,6 +2678,9 @@ TYPE(ff_type), POINTER :: ff
 
 REAL(KIND=real64), ALLOCATABLE :: swap_header(:)
 
+status = 0_int64
+message = ""
+
 ! Retrieve stored fixed length header index
 ff => unique_id_to_ff(ff_id)
 
@@ -2709,6 +2758,9 @@ INTEGER(KIND=int64)    :: next_start
 TYPE(ff_type), POINTER :: ff
 
 REAL(KIND=real64), ALLOCATABLE :: swap_header(:)
+
+status = 0_int64
+message = ""
 
 ! Retrieve stored fixed length header index
 ff => unique_id_to_ff(ff_id)
@@ -2788,6 +2840,9 @@ INTEGER(KIND=int64)    :: next_start
 TYPE(ff_type), POINTER :: ff
 
 REAL(KIND=real64), ALLOCATABLE :: swap_header(:)
+
+status = 0_int64
+message = ""
 
 ! Retrieve stored fixed length header index
 ff => unique_id_to_ff(ff_id)
@@ -2888,6 +2943,9 @@ INTEGER(KIND=int64)    :: dim1
 INTEGER(KIND=int64)    :: dim2
 TYPE(ff_type), POINTER :: ff
 
+status = 0_int64
+message = ""
+
 ! Retrieve stored fixed length header index
 ff => unique_id_to_ff(ff_id)
 
@@ -2949,6 +3007,9 @@ INTEGER(KIND=int64) :: status
 INTEGER(KIND=int64) :: start
 
 INTEGER(KIND=int64), ALLOCATABLE :: swap_header(:,:)
+
+status = 0_int64
+message = ""
 
 IF (ff % read_only) THEN
   status = 1_int64
@@ -3030,6 +3091,7 @@ TYPE(ff_type), POINTER :: ff
 
 ! Set status for successful exit
 status = 0_int64
+message = ""
 
 ! Retrieve stored lookup
 ff => unique_id_to_ff(ff_id)
@@ -3149,6 +3211,7 @@ REAL(KIND=real64), ALLOCATABLE :: swap_header(:)
 
 ! Set status for successful exit
 status = 0_int64
+message = ""
 
 ! Retrieve stored lookup
 ff => unique_id_to_ff(ff_id)
@@ -3281,6 +3344,7 @@ INTEGER(KIND=int64), ALLOCATABLE :: swap_header(:)
 
 ! Set status for successful exit
 status = 0_int64
+message = ""
 
 ! Retrieve stored lookup
 ff => unique_id_to_ff(ff_id)
@@ -3413,6 +3477,7 @@ REAL(KIND=real32), ALLOCATABLE :: swap_header(:)
 
 ! Set status for successful exit
 status = 0_int64
+message = ""
 
 ! Retrieve stored lookup
 ff => unique_id_to_ff(ff_id)
@@ -3554,6 +3619,7 @@ INTEGER(KIND=int32), ALLOCATABLE :: swap_header(:)
 
 ! Set status for successful exit
 status = 0_int64
+message = ""
 
 ! Retrieve stored lookup
 ff => unique_id_to_ff(ff_id)
@@ -3697,6 +3763,7 @@ REAL(KIND=real64), ALLOCATABLE :: swap_header(:)
 
 ! Set status for successful exit
 status = 0_int64
+message = ""
 
 ! Retrieve stored lookup
 ff => unique_id_to_ff(ff_id)
@@ -3839,6 +3906,7 @@ INTEGER(KIND=int64), ALLOCATABLE :: swap_header(:)
 
 ! Set status for successful exit
 status = 0_int64
+message = ""
 
 ! Retrieve stored lookup
 ff => unique_id_to_ff(ff_id)
@@ -3981,6 +4049,7 @@ REAL(KIND=real32), ALLOCATABLE :: swap_header(:)
 
 ! Set status for successful exit
 status = 0_int64
+message = ""
 
 ! Retrieve stored lookup
 ff => unique_id_to_ff(ff_id)
@@ -4135,6 +4204,7 @@ INTEGER(KIND=int32), ALLOCATABLE :: swap_header(:)
 
 ! Set status for successful exit
 status = 0_int64
+message = ""
 
 ! Retrieve stored lookup
 ff => unique_id_to_ff(ff_id)

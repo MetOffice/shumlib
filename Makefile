@@ -208,7 +208,7 @@ test: ${FRUIT} $(addsuffix _tests, $(patsubst lib%.so, %, $(notdir $(wildcard ${
 
 # 'make run_tests' runs the currently built tests
 run_tests:
-	${MAKE} -C ${DIR_ROOT} -f ${DIR_ROOT}/${FRUIT}/Makefile-driver
+	${MAKE} -C ${DIR_ROOT}/${FRUIT} -f Makefile-driver
 	${LIBDIR_OUT}/tests/fruit_tests_static.exe
 	${LIBDIR_OUT}/tests/fruit_tests_dynamic.exe
 
@@ -223,7 +223,7 @@ clean-temp:
 	@$(foreach libname,$(ALL_LIBS),${MAKE} -C ${DIR_ROOT}/$(libname)/src clean;)
 	@$(foreach libname_test,$(wildcard $(addsuffix /test, ${ALL_LIBS})),${MAKE} -C ${DIR_ROOT}/$(libname_test) clean;)
 	${MAKE} -C ${DIR_ROOT}/${FRUIT} clean
-	${MAKE} -C ${DIR_ROOT} -f ${DIR_ROOT}/${FRUIT}/Makefile-driver clean
+	${MAKE} -C ${DIR_ROOT}/${FRUIT} -f Makefile-driver clean
 
 clean-build:
 	rm -rf ${OUTDIRS} ${OUTDIR_TESTS}
@@ -231,3 +231,4 @@ clean-build:
 	rmdir ${LIBDIR_ROOT} || :
 
 clean: clean-temp clean-build
+

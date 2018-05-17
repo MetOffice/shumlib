@@ -13,10 +13,10 @@ FC=ftn
 # Precision flags (passed to all compilation commands)
 FCFLAGS_PREC=-fp-model precise
 # Flag used to set OpenMP (passed to all compilation commands)
-FCFLAGS_OPENMP=-openmp
+FCFLAGS_OPENMP=-qopenmp
 # Flag used to unset OpenMP (passed to all compilation commands)
 FCFLAGS_NOOPENMP=
-# Any other flags (to be passed to all compliation commands)
+# Any other flags (to be passed to all compilation commands)
 FCFLAGS_EXTRA=-standard-semantics -assume nostd_mod_proc_name -std03
 # Flag used to set PIC (Position-independent-code; required by dynamic lib 
 # and so will only be passed to compile objects destined for the dynamic lib)

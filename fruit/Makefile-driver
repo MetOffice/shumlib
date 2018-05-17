@@ -4,12 +4,11 @@
 # test function from any included library tests.
 
 # Setup variables to store the target objects
-DRIVER=${PWD}/fruit/fruit_driver.f90
 STATIC_EXEC=${LIBDIR_OUT}/tests/fruit_tests_static.exe
 DYNAMIC_EXEC=${LIBDIR_OUT}/tests/fruit_tests_dynamic.exe
 
 # All of the libraries which have FRUIT tests
-FRUITTESTS=$(patsubst %/test,%,$(wildcard $(addsuffix /test, ${ALL_LIBS})))
+FRUITTESTS=$(patsubst ../%/test,%,$(wildcard $(addprefix ../, $(addsuffix /test, ${ALL_LIBS}))))
 
 # Currently built libraries
 FRUIT_CURRENT_LIBS=$(patsubst lib%.so, %, $(notdir $(wildcard ${LIBDIR_OUT}/lib/*.so)))
@@ -25,7 +24,7 @@ FRUIT_AVAILABLE_TESTS=$(foreach libname,                                       \
 test: $(STATIC_EXEC) $(DYNAMIC_EXEC)
 
 # Construct the paths to the test directories from the names
-TEST_DIR=$(patsubst %, $(PWD)/%/test/, $(FRUIT_AVAILABLE_TESTS))
+TEST_DIR=$(patsubst %, $(DIR_ROOT)/%/test/, $(FRUIT_AVAILABLE_TESTS))
 
 # Include flags for the test directories
 TEST_FLAGS_INCL=$(addprefix -I, $(TEST_DIR))
@@ -48,31 +47,31 @@ TEST_FLAGS_LINK=$(addprefix -l, $(FRUIT_CURRENT_LIBS))
 # Write the driver file - it is a very simple Fortran file which contains
 # the means to call each test module - note that everything must be named
 # according to a specific convention for this to work
-$(DRIVER): ${TEST_DYNAMIC} ${TEST_STATIC}
-	@echo "PROGRAM fruit_driver" > ${DRIVER}
-	@echo "USE iso_c_binding" >> ${DRIVER}
-	@echo "USE fruit" >> ${DRIVER}
+fruit_driver.f90: ${TEST_DYNAMIC} ${TEST_STATIC}
+	@echo "PROGRAM fruit_driver" > $@
+	@echo "USE iso_c_binding" >> $@
+	@echo "USE fruit" >> $@
 	@for name in $(FRUIT_AVAILABLE_TESTS) ; do \
-	    echo "USE fruit_test_$${name}_mod" >> ${DRIVER} ; \
+	    echo "USE fruit_test_$${name}_mod" >> $@ ; \
 	done
-	@echo "IMPLICIT NONE" >> ${DRIVER}
-	@echo "INTERFACE" >> ${DRIVER}
-	@echo "SUBROUTINE c_exit(status)  BIND(c,NAME=\"exit\")" >> ${DRIVER}
-	@echo "IMPORT :: C_INT" >> ${DRIVER}
-	@echo "IMPLICIT NONE" >> ${DRIVER}
-	@echo "INTEGER(KIND=C_INT), VALUE, INTENT(IN) :: status" >> ${DRIVER}
-	@echo "END SUBROUTINE" >> ${DRIVER}
-	@echo "END INTERFACE" >> ${DRIVER}
-	@echo "INTEGER :: status" >> ${DRIVER}
-	@echo "CALL init_fruit" >> ${DRIVER}
+	@echo "IMPLICIT NONE" >> $@
+	@echo "INTERFACE" >> $@
+	@echo "SUBROUTINE c_exit(status)  BIND(c,NAME=\"exit\")" >> $@
+	@echo "IMPORT :: C_INT" >> $@
+	@echo "IMPLICIT NONE" >> $@
+	@echo "INTEGER(KIND=C_INT), VALUE, INTENT(IN) :: status" >> $@
+	@echo "END SUBROUTINE" >> $@
+	@echo "END INTERFACE" >> $@
+	@echo "INTEGER :: status" >> $@
+	@echo "CALL init_fruit" >> $@
 	@for name in $(FRUIT_AVAILABLE_TESTS) ; do \
-	    echo "CALL fruit_test_$${name}" >> ${DRIVER} ; \
+	    echo "CALL fruit_test_$${name}" >> $@ ; \
 	done
-	@echo "CALL fruit_summary" >> ${DRIVER}
-	@echo "CALL fruit_finalize" >> ${DRIVER}
-	@echo "CALL get_failed_count(status)" >> ${DRIVER}
-	@echo "CALL c_exit(INT(status,KIND=C_INT))" >> ${DRIVER}
-	@echo "END PROGRAM fruit_driver" >> ${DRIVER}
+	@echo "CALL fruit_summary" >> $@
+	@echo "CALL fruit_finalize" >> $@
+	@echo "CALL get_failed_count(status)" >> $@
+	@echo "CALL c_exit(INT(status,KIND=C_INT))" >> $@
+	@echo "END PROGRAM fruit_driver" >> $@
 
 # Note: In both cases below the linking flags are included *twice*; this is
 # intentional, because some compilers strip away un-used symbols as they 
@@ -80,9 +79,19 @@ $(DRIVER): ${TEST_DYNAMIC} ${TEST_STATIC}
 # libraries (depending on the order of the flags); the second inclusion means
 # the compiler will have a chance to pick up any previously missed symbols
 
+# Static driver object file
+#--------------------------
+fruit_driver.o: fruit_driver.f90
+	${FC} ${FCFLAGS} -I${LIBDIR_OUT}/include \
+	${TEST_FLAGS_INCL} -c $<
+
+fruit_driver_PIC.o: fruit_driver.f90
+	${FC} ${FCFLAGS} ${FCFLAGS_PIC}	-I${LIBDIR_OUT}/include \
+	${TEST_FLAGS_INCL} -c $< -o $@
+
 # Static executable
 #------------------
-$(STATIC_EXEC): $(DRIVER)
+$(STATIC_EXEC): fruit_driver.o
 	${FC} ${FCFLAGS} ${FCFLAGS_STATIC} \
 	$< $(TEST_STATIC) ${TEST_FLAGS_INCL} \
 	-I${LIBDIR_OUT}/include -L${LIBDIR_OUT}/lib \
@@ -91,8 +100,8 @@ $(STATIC_EXEC): $(DRIVER)
 
 # Dynamic executable
 #-------------------
-$(DYNAMIC_EXEC): $(DRIVER)
-	${FC} ${FCFLAGS} ${FCFLAGS_DYNAMIC} \
+$(DYNAMIC_EXEC): fruit_driver_PIC.o
+	${FC} ${FCFLAGS} ${FCFLAGS_PIC} ${FCFLAGS_DYNAMIC} \
 	$< $(TEST_DYNAMIC) ${TEST_FLAGS_INCL} \
 	-I${LIBDIR_OUT}/include -L${LIBDIR_OUT}/lib \
 	${TEST_FLAGS_LINK} ${TEST_FLAGS_LINK} \
@@ -102,4 +111,4 @@ $(DYNAMIC_EXEC): $(DRIVER)
 #--------
 .PHONY: clean
 clean: 
-	rm -f ${DRIVER}
+	rm -f fruit_driver.f90 *.o *.mod

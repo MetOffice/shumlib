@@ -473,7 +473,8 @@ FUNCTION get_longitudes(self, longitudes) RESULT(status)
   TYPE(shum_ff_status_type) :: status ! Return status object
 
   IF (ALLOCATED(self%longitudes)) THEN
-    temp_longitudes = self%longitudes
+    ALLOCATE(temp_longitudes(SIZE(self%longitudes)))
+    temp_longitudes(:) = self%longitudes(:)
     CALL MOVE_ALLOC(temp_longitudes, longitudes)
     status%icode = SHUMLIB_SUCCESS
     status%message = ''
@@ -519,7 +520,8 @@ FUNCTION get_latitudes(self, latitudes) RESULT(status)
   TYPE(shum_ff_status_type) :: status ! Return status object
 
   IF (ALLOCATED(self%latitudes)) THEN
-    temp_latitudes = self%latitudes
+    ALLOCATE(temp_latitudes(SIZE(self%latitudes)))
+    temp_latitudes(:) = self%latitudes(:)
     CALL MOVE_ALLOC(temp_latitudes, latitudes)
     status%icode = SHUMLIB_SUCCESS
     status%message = ''

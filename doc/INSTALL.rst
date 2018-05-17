@@ -198,3 +198,15 @@ multiple libraries for and wish to install to a non-default location:
 
 This would produce the libraries twice, allowing including applications to link
 to the appropriate version depending on their own OpenMP status.
+
+Group/Site Make Scripts
+%%%%%%%%%%%%%%%%%%%%%%%
+
+You can also find bash scripts which handle (and provide tracability for) the
+entire set of builds for a given site, in the ``scripts`` directory. 
+ 
+Taking the Met Office script as an example, it consists of a series of 
+commands that build Shumlib using different combinations of compilers with
+appropriate setup commands to provide the correct environments, as well as 
+producing both OpenMP and non-OpenMP variants.  A script like this may well 
+be overkill for smaller installations.

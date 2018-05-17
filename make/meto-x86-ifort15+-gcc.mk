@@ -13,10 +13,10 @@ FC=ifort
 # Precision flags (passed to all compilation commands)
 FCFLAGS_PREC=-fp-model precise
 # Flag used to set OpenMP (passed to all compilation commands)
-FCFLAGS_OPENMP=-openmp
+FCFLAGS_OPENMP ?= -qopenmp
 # Flag used to unset OpenMP (passed to all compilation commands)
 FCFLAGS_NOOPENMP=
-# Any other flags (to be passed to all compliation commands)
+# Any other flags (to be passed to all compilation commands)
 FCFLAGS_EXTRA=-standard-semantics -assume nostd_mod_proc_name -std03
 # Flag used to set PIC (Position-independent-code; required by dynamic lib 
 # and so will only be passed to compile objects destined for the dynamic lib)
@@ -37,16 +37,18 @@ FCFLAGS_STATIC_TRAIL=
 # C
 #--
 # Compiler command
-CC=clang
+CC=gcc
 # Precision flags (passed to all compilation commands)
 CCFLAGS_PREC=
 # Flag used to set OpenMP (passed to all compilation commands)
-CCFLAGS_OPENMP=-Wno-source-uses-openmp
+CCFLAGS_OPENMP=-fopenmp
 # Flag used to unset OpenMP (passed to all compilation commands)
-CCFLAGS_NOOPENMP=-Wno-source-uses-openmp
+CCFLAGS_NOOPENMP=-Wno-unknown-pragmas
 # Any other flags (to be passed to all compilation commands)
-CCFLAGS_EXTRA=-std=c99 -Weverything -Werror -Wno-vla -Wno-padded  \
-              -Wno-missing-noreturn -pedantic -pedantic-errors    \
+CCFLAGS_EXTRA=-std=c99 -Wall -Wextra -Werror -Wformat=2 -Winit-self -Wfloat-equal   \
+              -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wcast-align          \
+              -Wconversion -Wlogical-op -Wstrict-prototypes -Wmissing-declarations  \
+              -Wredundant-decls -Wnested-externs -Woverlength-strings               \
               -fdiagnostics-show-option
 # Flag used to set PIC (Position-independent-code; required by dynamic lib 
 # and so will only be passed to compile objects destined for the dynamic lib)
@@ -59,7 +61,7 @@ AR=ar -rc
 
 # Set the name of this platform; this will be included as the name of the 
 # top-level directory in the build
-PLATFORM=meto-x86-ifort-clang
+PLATFORM=meto-x86-ifort-gcc
 
 # Proceed to include the rest of the common makefile
 include Makefile
