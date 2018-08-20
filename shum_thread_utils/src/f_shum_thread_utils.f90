@@ -184,6 +184,38 @@ END FUNCTION releaseLock
 
 !------------------------------------------------------------------------------!
 
+! LockQueue(l) will return the current pending queue legth of the lock "l" if: -
+!   * it exists (i.e locks is allocated and lock(l) is in use),
+!
+! If these conditions are not met it returns 0.
+
+FUNCTION LockQueue(l)                                                          &
+  BIND(c,NAME="f_shum_LockQueue")                                              &
+  RESULT(r)
+
+IMPLICIT NONE
+
+INTEGER(KIND=C_INT64_T), INTENT(IN) :: l
+INTEGER(KIND=C_INT64_T)             :: r
+
+r = 0
+
+IF ( ALLOCATED(locks) ) THEN
+
+  IF (l>0 .AND. l<=SIZE(locks)) THEN
+
+!$OMP ATOMIC READ
+    r = locks(l)%lockqueue
+!$OMP END ATOMIC
+
+  END IF
+
+END IF
+
+END FUNCTION LockQueue
+
+!------------------------------------------------------------------------------!
+
 ! Lock(l) will lock the lock "l" if: -
 !   * it exists (i.e locks is allocated and lock(l) is in use),
 !   * and is not already owned by the current thread
@@ -324,7 +356,7 @@ END FUNCTION TestLock
 ! If these conditions are met it returns successCode, else it returns failCode
 
 FUNCTION Unlock(l)                                                             &
-  BIND(c,NAME="f_shum_Unlock")                                                 &
+  BIND(c,NAME="f_shum_unLock")                                                 &
   RESULT(r)
 
 IMPLICIT NONE
