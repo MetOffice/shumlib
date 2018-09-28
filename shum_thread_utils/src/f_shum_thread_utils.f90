@@ -204,9 +204,9 @@ IF ( ALLOCATED(locks) ) THEN
 
   IF (l>0 .AND. l<=SIZE(locks)) THEN
 
-!$OMP ATOMIC READ
+!$OMP CRITICAL(SHUM_THREAD_UTILS_LOCKSTATE)
     r = locks(l)%lockqueue
-!$OMP END ATOMIC
+!$OMP END CRITICAL(SHUM_THREAD_UTILS_LOCKSTATE)
 
   END IF
 
@@ -240,7 +240,7 @@ r = failCode
 
 IF ( ALLOCATED(locks) ) THEN
 
-  IF (l<=SIZE(locks)) THEN
+  IF (l>0 .AND. l<=SIZE(locks)) THEN
 
     tid = threadID()
 
@@ -303,7 +303,7 @@ r = failCode
 
 IF ( ALLOCATED(locks) ) THEN
 
-  IF (l<=SIZE(locks)) THEN
+  IF (l>0 .AND. l<=SIZE(locks)) THEN
 
     tid = threadID()
 
@@ -368,7 +368,7 @@ r = failCode
 
 IF ( ALLOCATED(locks) ) THEN
 
-  IF (l<=SIZE(locks)) THEN
+  IF (l>0 .AND. l<=SIZE(locks)) THEN
 
 !$OMP FLUSH
     IF (locks(l)%inUse .AND. locks(l)%owner==threadID() ) THEN
