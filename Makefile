@@ -82,7 +82,7 @@ STR_CONV_PREREQ=
 # Byte-swapping
 #--------------
 BSWAP=shum_byteswap
-BSWAP_PREREQ=STR_CONV
+BSWAP_PREREQ=STR_CONV CONSTS
 
 # Data conv
 #----------
@@ -92,7 +92,7 @@ DATA_CONV_PREREQ=STR_CONV
 # WGDOS packing
 #--------------
 PACK=shum_wgdos_packing
-PACK_PREREQ=STR_CONV
+PACK_PREREQ=STR_CONV CONSTS
 
 # Horizontal Interpolation
 #--------------

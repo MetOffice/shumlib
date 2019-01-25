@@ -24,6 +24,7 @@ MODULE fruit_test_shum_byteswap_mod
 USE fruit
 USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         & 
   C_INT64_T, C_INT32_T, C_FLOAT, C_DOUBLE, C_BOOL
+USE f_shum_ztables_mod
 
 IMPLICIT NONE 
 
@@ -141,16 +142,16 @@ DO i = 1, len_data
   data_in_copy(i) = i
 END DO
 
-data_swapped_expected(1)  = INT(z"100000000000000", KIND=int64)
-data_swapped_expected(2)  = INT(z"200000000000000", KIND=int64)
-data_swapped_expected(3)  = INT(z"300000000000000", KIND=int64)
-data_swapped_expected(4)  = INT(z"400000000000000", KIND=int64)
-data_swapped_expected(5)  = INT(z"500000000000000", KIND=int64)
-data_swapped_expected(6)  = INT(z"600000000000000", KIND=int64)
-data_swapped_expected(7)  = INT(z"700000000000000", KIND=int64)
-data_swapped_expected(8)  = INT(z"800000000000000", KIND=int64)
-data_swapped_expected(9)  = INT(z"900000000000000", KIND=int64)
-data_swapped_expected(10) = INT(z"A00000000000000", KIND=int64)
+data_swapped_expected(1)  = z0100000000000000
+data_swapped_expected(2)  = z0200000000000000
+data_swapped_expected(3)  = z0300000000000000
+data_swapped_expected(4)  = z0400000000000000
+data_swapped_expected(5)  = z0500000000000000
+data_swapped_expected(6)  = z0600000000000000
+data_swapped_expected(7)  = z0700000000000000
+data_swapped_expected(8)  = z0800000000000000
+data_swapped_expected(9)  = z0900000000000000
+data_swapped_expected(10) = z0A00000000000000
 
 status = f_shum_byteswap(data_in,                                              &
                          INT(len_data, KIND=int64),                            &
@@ -204,16 +205,16 @@ DO i = 1, len2
   END DO
 END DO
 
-data_swapped_expected(1, 1) = INT(z"100000000000000", KIND=int64)
-data_swapped_expected(2, 1) = INT(z"200000000000000", KIND=int64)
-data_swapped_expected(3, 1) = INT(z"300000000000000", KIND=int64)
-data_swapped_expected(4, 1) = INT(z"400000000000000", KIND=int64)
-data_swapped_expected(5, 1) = INT(z"500000000000000", KIND=int64)
-data_swapped_expected(1, 2) = INT(z"600000000000000", KIND=int64)
-data_swapped_expected(2, 2) = INT(z"700000000000000", KIND=int64)
-data_swapped_expected(3, 2) = INT(z"800000000000000", KIND=int64)
-data_swapped_expected(4, 2) = INT(z"900000000000000", KIND=int64)
-data_swapped_expected(5, 2) = INT(z"A00000000000000", KIND=int64)
+data_swapped_expected(1, 1) = z0100000000000000
+data_swapped_expected(2, 1) = z0200000000000000
+data_swapped_expected(3, 1) = z0300000000000000
+data_swapped_expected(4, 1) = z0400000000000000
+data_swapped_expected(5, 1) = z0500000000000000
+data_swapped_expected(1, 2) = z0600000000000000
+data_swapped_expected(2, 2) = z0700000000000000
+data_swapped_expected(3, 2) = z0800000000000000
+data_swapped_expected(4, 2) = z0900000000000000
+data_swapped_expected(5, 2) = z0A00000000000000
 
 status = f_shum_byteswap(data_in,                                              &
                          INT(len1*len2, KIND=int64),                           &
@@ -260,16 +261,16 @@ DO i = 1, len_data
   data_in_copy(i) = i
 END DO
 
-data_swapped_expected(1)  = INT(z"00000001000000", KIND=int64)
-data_swapped_expected(2)  = INT(z"00000002000000", KIND=int64)
-data_swapped_expected(3)  = INT(z"00000003000000", KIND=int64)
-data_swapped_expected(4)  = INT(z"00000004000000", KIND=int64)
-data_swapped_expected(5)  = INT(z"00000005000000", KIND=int64)
-data_swapped_expected(6)  = INT(z"00000006000000", KIND=int64)
-data_swapped_expected(7)  = INT(z"00000007000000", KIND=int64)
-data_swapped_expected(8)  = INT(z"00000008000000", KIND=int64)
-data_swapped_expected(9)  = INT(z"00000009000000", KIND=int64)
-data_swapped_expected(10) = INT(z"0000000A000000", KIND=int64)
+data_swapped_expected(1)  = z0000000001000000
+data_swapped_expected(2)  = z0000000002000000
+data_swapped_expected(3)  = z0000000003000000
+data_swapped_expected(4)  = z0000000004000000
+data_swapped_expected(5)  = z0000000005000000
+data_swapped_expected(6)  = z0000000006000000
+data_swapped_expected(7)  = z0000000007000000
+data_swapped_expected(8)  = z0000000008000000
+data_swapped_expected(9)  = z0000000009000000
+data_swapped_expected(10) = z000000000A000000
 
 status = f_shum_byteswap(data_in,                                              &
                          INT(len_data*2, KIND=int64),                          &
@@ -323,16 +324,16 @@ DO i = 1, len2
   END DO
 END DO
 
-data_swapped_expected(1, 1) = INT(z"00000001000000", KIND=int64)
-data_swapped_expected(2, 1) = INT(z"00000002000000", KIND=int64)
-data_swapped_expected(3, 1) = INT(z"00000003000000", KIND=int64)
-data_swapped_expected(4, 1) = INT(z"00000004000000", KIND=int64)
-data_swapped_expected(5, 1) = INT(z"00000005000000", KIND=int64)
-data_swapped_expected(1, 2) = INT(z"00000006000000", KIND=int64)
-data_swapped_expected(2, 2) = INT(z"00000007000000", KIND=int64)
-data_swapped_expected(3, 2) = INT(z"00000008000000", KIND=int64)
-data_swapped_expected(4, 2) = INT(z"00000009000000", KIND=int64)
-data_swapped_expected(5, 2) = INT(z"0000000A000000", KIND=int64)
+data_swapped_expected(1, 1) = z0000000001000000
+data_swapped_expected(2, 1) = z0000000002000000
+data_swapped_expected(3, 1) = z0000000003000000
+data_swapped_expected(4, 1) = z0000000004000000
+data_swapped_expected(5, 1) = z0000000005000000
+data_swapped_expected(1, 2) = z0000000006000000
+data_swapped_expected(2, 2) = z0000000007000000
+data_swapped_expected(3, 2) = z0000000008000000
+data_swapped_expected(4, 2) = z0000000009000000
+data_swapped_expected(5, 2) = z000000000A000000
 
 status = f_shum_byteswap(data_in,                                              &
                          INT(len1*len2*2, KIND=int64),                         &
@@ -379,16 +380,16 @@ DO i = 1, len_data
   data_in_copy(i) = i
 END DO
 
-data_swapped_expected(1)  = INT(z"2000000", KIND=int32)
-data_swapped_expected(2)  = INT(z"1000000", KIND=int32)
-data_swapped_expected(3)  = INT(z"4000000", KIND=int32)
-data_swapped_expected(4)  = INT(z"3000000", KIND=int32)
-data_swapped_expected(5)  = INT(z"6000000", KIND=int32)
-data_swapped_expected(6)  = INT(z"5000000", KIND=int32)
-data_swapped_expected(7)  = INT(z"8000000", KIND=int32)
-data_swapped_expected(8)  = INT(z"7000000", KIND=int32)
-data_swapped_expected(9)  = INT(z"A000000", KIND=int32)
-data_swapped_expected(10) = INT(z"9000000", KIND=int32)
+data_swapped_expected(1)  = z02000000
+data_swapped_expected(2)  = z01000000
+data_swapped_expected(3)  = z04000000
+data_swapped_expected(4)  = z03000000
+data_swapped_expected(5)  = z06000000
+data_swapped_expected(6)  = z05000000
+data_swapped_expected(7)  = z08000000
+data_swapped_expected(8)  = z07000000
+data_swapped_expected(9)  = z0A000000
+data_swapped_expected(10) = z09000000
 
 status = f_shum_byteswap(data_in, len_data/2, word_size, message)
 CALL assert_equals(0, status,                                                  &
@@ -438,16 +439,16 @@ DO i = 1, len2
   END DO
 END DO
 
-data_swapped_expected(1, 1) = INT(z"2000000", KIND=int32)
-data_swapped_expected(2, 1) = INT(z"1000000", KIND=int32)
-data_swapped_expected(3, 1) = INT(z"4000000", KIND=int32)
-data_swapped_expected(4, 1) = INT(z"3000000", KIND=int32)
-data_swapped_expected(5, 1) = INT(z"6000000", KIND=int32)
-data_swapped_expected(1, 2) = INT(z"5000000", KIND=int32)
-data_swapped_expected(2, 2) = INT(z"8000000", KIND=int32)
-data_swapped_expected(3, 2) = INT(z"7000000", KIND=int32)
-data_swapped_expected(4, 2) = INT(z"A000000", KIND=int32)
-data_swapped_expected(5, 2) = INT(z"9000000", KIND=int32)
+data_swapped_expected(1, 1) = z02000000
+data_swapped_expected(2, 1) = z01000000
+data_swapped_expected(3, 1) = z04000000
+data_swapped_expected(4, 1) = z03000000
+data_swapped_expected(5, 1) = z06000000
+data_swapped_expected(1, 2) = z05000000
+data_swapped_expected(2, 2) = z08000000
+data_swapped_expected(3, 2) = z07000000
+data_swapped_expected(4, 2) = z0A000000
+data_swapped_expected(5, 2) = z09000000
 
 status = f_shum_byteswap(data_in, len1*len2/2, word_size, message)
 CALL assert_equals(0, status,                                                  &
@@ -490,16 +491,16 @@ DO i = 1, len_data
   data_in_copy(i) = i
 END DO
 
-data_swapped_expected(1)  = INT(z"1000000", KIND=int32)
-data_swapped_expected(2)  = INT(z"2000000", KIND=int32)
-data_swapped_expected(3)  = INT(z"3000000", KIND=int32)
-data_swapped_expected(4)  = INT(z"4000000", KIND=int32)
-data_swapped_expected(5)  = INT(z"5000000", KIND=int32)
-data_swapped_expected(6)  = INT(z"6000000", KIND=int32)
-data_swapped_expected(7)  = INT(z"7000000", KIND=int32)
-data_swapped_expected(8)  = INT(z"8000000", KIND=int32)
-data_swapped_expected(9)  = INT(z"9000000", KIND=int32)
-data_swapped_expected(10) = INT(z"A000000", KIND=int32)
+data_swapped_expected(1)  = z01000000
+data_swapped_expected(2)  = z02000000
+data_swapped_expected(3)  = z03000000
+data_swapped_expected(4)  = z04000000
+data_swapped_expected(5)  = z05000000
+data_swapped_expected(6)  = z06000000
+data_swapped_expected(7)  = z07000000
+data_swapped_expected(8)  = z08000000
+data_swapped_expected(9)  = z09000000
+data_swapped_expected(10) = z0A000000
 
 status = f_shum_byteswap(data_in, len_data, word_size, message)
 CALL assert_equals(0, status,                                                  &
@@ -549,16 +550,16 @@ DO i = 1, len2
   END DO
 END DO
 
-data_swapped_expected(1, 1) = INT(z"1000000", KIND=int32)
-data_swapped_expected(2, 1) = INT(z"2000000", KIND=int32)
-data_swapped_expected(3, 1) = INT(z"3000000", KIND=int32)
-data_swapped_expected(4, 1) = INT(z"4000000", KIND=int32)
-data_swapped_expected(5, 1) = INT(z"5000000", KIND=int32)
-data_swapped_expected(1, 2) = INT(z"6000000", KIND=int32)
-data_swapped_expected(2, 2) = INT(z"7000000", KIND=int32)
-data_swapped_expected(3, 2) = INT(z"8000000", KIND=int32)
-data_swapped_expected(4, 2) = INT(z"9000000", KIND=int32)
-data_swapped_expected(5, 2) = INT(z"A000000", KIND=int32)
+data_swapped_expected(1, 1) = z01000000
+data_swapped_expected(2, 1) = z02000000
+data_swapped_expected(3, 1) = z03000000
+data_swapped_expected(4, 1) = z04000000
+data_swapped_expected(5, 1) = z05000000
+data_swapped_expected(1, 2) = z06000000
+data_swapped_expected(2, 2) = z07000000
+data_swapped_expected(3, 2) = z08000000
+data_swapped_expected(4, 2) = z09000000
+data_swapped_expected(5, 2) = z0A000000
 
 status = f_shum_byteswap(data_in, len1*len2, word_size, message)
 CALL assert_equals(0, status,                                                  &
@@ -602,16 +603,16 @@ DO i = 1, len_data
   data_in_copy(i) = REAL(i, KIND=real64)
 END DO
 
-data_swapped_expected(1)  = TRANSFER(INT(z"00000000000F03F", KIND=int64), o64)
-data_swapped_expected(2)  = TRANSFER(INT(z"000000000000040", KIND=int64), o64)
-data_swapped_expected(3)  = TRANSFER(INT(z"000000000000840", KIND=int64), o64)
-data_swapped_expected(4)  = TRANSFER(INT(z"000000000001040", KIND=int64), o64)
-data_swapped_expected(5)  = TRANSFER(INT(z"000000000001440", KIND=int64), o64)
-data_swapped_expected(6)  = TRANSFER(INT(z"000000000001840", KIND=int64), o64)
-data_swapped_expected(7)  = TRANSFER(INT(z"000000000001C40", KIND=int64), o64)
-data_swapped_expected(8)  = TRANSFER(INT(z"000000000002040", KIND=int64), o64)
-data_swapped_expected(9)  = TRANSFER(INT(z"000000000002240", KIND=int64), o64)
-data_swapped_expected(10) = TRANSFER(INT(z"000000000002440", KIND=int64), o64)
+data_swapped_expected(1)  = TRANSFER(z000000000000F03F, o64)
+data_swapped_expected(2)  = TRANSFER(z0000000000000040, o64)
+data_swapped_expected(3)  = TRANSFER(z0000000000000840, o64)
+data_swapped_expected(4)  = TRANSFER(z0000000000001040, o64)
+data_swapped_expected(5)  = TRANSFER(z0000000000001440, o64)
+data_swapped_expected(6)  = TRANSFER(z0000000000001840, o64)
+data_swapped_expected(7)  = TRANSFER(z0000000000001C40, o64)
+data_swapped_expected(8)  = TRANSFER(z0000000000002040, o64)
+data_swapped_expected(9)  = TRANSFER(z0000000000002240, o64)
+data_swapped_expected(10) = TRANSFER(z0000000000002440, o64)
 
 status = f_shum_byteswap(data_in, len_data, word_size, message)
 CALL assert_equals(0, status,                                                  &
@@ -662,16 +663,16 @@ DO i = 1, len2
   END DO
 END DO
 
-data_swapped_expected(1, 1) = TRANSFER(INT(z"00000000000F03F", KIND=int64), o64)
-data_swapped_expected(2, 1) = TRANSFER(INT(z"000000000000040", KIND=int64), o64)
-data_swapped_expected(3, 1) = TRANSFER(INT(z"000000000000840", KIND=int64), o64)
-data_swapped_expected(4, 1) = TRANSFER(INT(z"000000000001040", KIND=int64), o64)
-data_swapped_expected(5, 1) = TRANSFER(INT(z"000000000001440", KIND=int64), o64)
-data_swapped_expected(1, 2) = TRANSFER(INT(z"000000000001840", KIND=int64), o64)
-data_swapped_expected(2, 2) = TRANSFER(INT(z"000000000001C40", KIND=int64), o64)
-data_swapped_expected(3, 2) = TRANSFER(INT(z"000000000002040", KIND=int64), o64)
-data_swapped_expected(4, 2) = TRANSFER(INT(z"000000000002240", KIND=int64), o64)
-data_swapped_expected(5, 2) = TRANSFER(INT(z"000000000002440", KIND=int64), o64)
+data_swapped_expected(1, 1) = TRANSFER(z000000000000F03F, o64)
+data_swapped_expected(2, 1) = TRANSFER(z0000000000000040, o64)
+data_swapped_expected(3, 1) = TRANSFER(z0000000000000840, o64)
+data_swapped_expected(4, 1) = TRANSFER(z0000000000001040, o64)
+data_swapped_expected(5, 1) = TRANSFER(z0000000000001440, o64)
+data_swapped_expected(1, 2) = TRANSFER(z0000000000001840, o64)
+data_swapped_expected(2, 2) = TRANSFER(z0000000000001C40, o64)
+data_swapped_expected(3, 2) = TRANSFER(z0000000000002040, o64)
+data_swapped_expected(4, 2) = TRANSFER(z0000000000002240, o64)
+data_swapped_expected(5, 2) = TRANSFER(z0000000000002440, o64)
 
 status = f_shum_byteswap(data_in, len1*len2, word_size, message)
 CALL assert_equals(0, status,                                                  &
@@ -715,16 +716,16 @@ DO i = 1, len_data
   data_in_copy(i) = REAL(i, KIND=real64)
 END DO
 
-data_swapped_expected(1)  = TRANSFER(INT(z"F03F00000000", KIND=int64), o64)
-data_swapped_expected(2)  = TRANSFER(INT(z"004000000000", KIND=int64), o64)
-data_swapped_expected(3)  = TRANSFER(INT(z"084000000000", KIND=int64), o64)
-data_swapped_expected(4)  = TRANSFER(INT(z"104000000000", KIND=int64), o64)
-data_swapped_expected(5)  = TRANSFER(INT(z"144000000000", KIND=int64), o64)
-data_swapped_expected(6)  = TRANSFER(INT(z"184000000000", KIND=int64), o64)
-data_swapped_expected(7)  = TRANSFER(INT(z"1C4000000000", KIND=int64), o64)
-data_swapped_expected(8)  = TRANSFER(INT(z"204000000000", KIND=int64), o64)
-data_swapped_expected(9)  = TRANSFER(INT(z"224000000000", KIND=int64), o64)
-data_swapped_expected(10) = TRANSFER(INT(z"244000000000", KIND=int64), o64)
+data_swapped_expected(1)  = TRANSFER(z0000F03F00000000, o64)
+data_swapped_expected(2)  = TRANSFER(z0000004000000000, o64)
+data_swapped_expected(3)  = TRANSFER(z0000084000000000, o64)
+data_swapped_expected(4)  = TRANSFER(z0000104000000000, o64)
+data_swapped_expected(5)  = TRANSFER(z0000144000000000, o64)
+data_swapped_expected(6)  = TRANSFER(z0000184000000000, o64)
+data_swapped_expected(7)  = TRANSFER(z00001C4000000000, o64)
+data_swapped_expected(8)  = TRANSFER(z0000204000000000, o64)
+data_swapped_expected(9)  = TRANSFER(z0000224000000000, o64)
+data_swapped_expected(10) = TRANSFER(z0000244000000000, o64)
 
 status = f_shum_byteswap(data_in, len_data*2, word_size, message)
 CALL assert_equals(0, status,                                                  &
@@ -775,16 +776,16 @@ DO i = 1, len2
   END DO
 END DO
 
-data_swapped_expected(1, 1) = TRANSFER(INT(z"F03F00000000", KIND=int64), o64)
-data_swapped_expected(2, 1) = TRANSFER(INT(z"004000000000", KIND=int64), o64)
-data_swapped_expected(3, 1) = TRANSFER(INT(z"084000000000", KIND=int64), o64)
-data_swapped_expected(4, 1) = TRANSFER(INT(z"104000000000", KIND=int64), o64)
-data_swapped_expected(5, 1) = TRANSFER(INT(z"144000000000", KIND=int64), o64)
-data_swapped_expected(1, 2) = TRANSFER(INT(z"184000000000", KIND=int64), o64)
-data_swapped_expected(2, 2) = TRANSFER(INT(z"1C4000000000", KIND=int64), o64)
-data_swapped_expected(3, 2) = TRANSFER(INT(z"204000000000", KIND=int64), o64)
-data_swapped_expected(4, 2) = TRANSFER(INT(z"224000000000", KIND=int64), o64)
-data_swapped_expected(5, 2) = TRANSFER(INT(z"244000000000", KIND=int64), o64)
+data_swapped_expected(1, 1) = TRANSFER(z0000F03F00000000, o64)
+data_swapped_expected(2, 1) = TRANSFER(z0000004000000000, o64)
+data_swapped_expected(3, 1) = TRANSFER(z0000084000000000, o64)
+data_swapped_expected(4, 1) = TRANSFER(z0000104000000000, o64)
+data_swapped_expected(5, 1) = TRANSFER(z0000144000000000, o64)
+data_swapped_expected(1, 2) = TRANSFER(z0000184000000000, o64)
+data_swapped_expected(2, 2) = TRANSFER(z00001C4000000000, o64)
+data_swapped_expected(3, 2) = TRANSFER(z0000204000000000, o64)
+data_swapped_expected(4, 2) = TRANSFER(z0000224000000000, o64)
+data_swapped_expected(5, 2) = TRANSFER(z0000244000000000, o64)
 
 status = f_shum_byteswap(data_in, len1*len2*2, word_size, message)
 CALL assert_equals(0, status,                                                  &
@@ -828,16 +829,16 @@ DO i = 1, len_data
   data_in_copy(i) = REAL(i, KIND=real32)
 END DO
 
-data_swapped_expected(1)  = TRANSFER(INT(z"00000040", KIND=int32), o32)
-data_swapped_expected(2)  = TRANSFER(INT(z"0000803F", KIND=int32), o32)
-data_swapped_expected(3)  = TRANSFER(INT(z"00008040", KIND=int32), o32)
-data_swapped_expected(4)  = TRANSFER(INT(z"00004040", KIND=int32), o32)
-data_swapped_expected(5)  = TRANSFER(INT(z"0000C040", KIND=int32), o32)
-data_swapped_expected(6)  = TRANSFER(INT(z"0000A040", KIND=int32), o32)
-data_swapped_expected(7)  = TRANSFER(INT(z"00000041", KIND=int32), o32)
-data_swapped_expected(8)  = TRANSFER(INT(z"0000E040", KIND=int32), o32)
-data_swapped_expected(9)  = TRANSFER(INT(z"00002041", KIND=int32), o32)
-data_swapped_expected(10) = TRANSFER(INT(z"00001041", KIND=int32), o32)
+data_swapped_expected(1)  = TRANSFER(z00000040, o32)
+data_swapped_expected(2)  = TRANSFER(z0000803F, o32)
+data_swapped_expected(3)  = TRANSFER(z00008040, o32)
+data_swapped_expected(4)  = TRANSFER(z00004040, o32)
+data_swapped_expected(5)  = TRANSFER(z0000C040, o32)
+data_swapped_expected(6)  = TRANSFER(z0000A040, o32)
+data_swapped_expected(7)  = TRANSFER(z00000041, o32)
+data_swapped_expected(8)  = TRANSFER(z0000E040, o32)
+data_swapped_expected(9)  = TRANSFER(z00002041, o32)
+data_swapped_expected(10) = TRANSFER(z00001041, o32)
 
 status = f_shum_byteswap(data_in, len_data/2, word_size, message)
 CALL assert_equals(0, status,                                                  &
@@ -888,16 +889,16 @@ DO i = 1, len2
   END DO
 END DO
 
-data_swapped_expected(1, 1) = TRANSFER(INT(z"00000040", KIND=int32), o32)
-data_swapped_expected(2, 1) = TRANSFER(INT(z"0000803F", KIND=int32), o32)
-data_swapped_expected(3, 1) = TRANSFER(INT(z"00008040", KIND=int32), o32)
-data_swapped_expected(4, 1) = TRANSFER(INT(z"00004040", KIND=int32), o32)
-data_swapped_expected(5, 1) = TRANSFER(INT(z"0000C040", KIND=int32), o32)
-data_swapped_expected(1, 2) = TRANSFER(INT(z"0000A040", KIND=int32), o32)
-data_swapped_expected(2, 2) = TRANSFER(INT(z"00000041", KIND=int32), o32)
-data_swapped_expected(3, 2) = TRANSFER(INT(z"0000E040", KIND=int32), o32)
-data_swapped_expected(4, 2) = TRANSFER(INT(z"00002041", KIND=int32), o32)
-data_swapped_expected(5, 2) = TRANSFER(INT(z"00001041", KIND=int32), o32)
+data_swapped_expected(1, 1) = TRANSFER(z00000040, o32)
+data_swapped_expected(2, 1) = TRANSFER(z0000803F, o32)
+data_swapped_expected(3, 1) = TRANSFER(z00008040, o32)
+data_swapped_expected(4, 1) = TRANSFER(z00004040, o32)
+data_swapped_expected(5, 1) = TRANSFER(z0000C040, o32)
+data_swapped_expected(1, 2) = TRANSFER(z0000A040, o32)
+data_swapped_expected(2, 2) = TRANSFER(z00000041, o32)
+data_swapped_expected(3, 2) = TRANSFER(z0000E040, o32)
+data_swapped_expected(4, 2) = TRANSFER(z00002041, o32)
+data_swapped_expected(5, 2) = TRANSFER(z00001041, o32)
 
 status = f_shum_byteswap(data_in, len1*len2/2, word_size, message)
 CALL assert_equals(0, status,                                                  &
@@ -941,16 +942,16 @@ DO i = 1, len_data
   data_in_copy(i) = REAL(i, KIND=real32)
 END DO
 
-data_swapped_expected(1)  = TRANSFER(INT(z"0000803F", KIND=int32), o32)
-data_swapped_expected(2)  = TRANSFER(INT(z"00000040", KIND=int32), o32)
-data_swapped_expected(3)  = TRANSFER(INT(z"00004040", KIND=int32), o32)
-data_swapped_expected(4)  = TRANSFER(INT(z"00008040", KIND=int32), o32)
-data_swapped_expected(5)  = TRANSFER(INT(z"0000A040", KIND=int32), o32)
-data_swapped_expected(6)  = TRANSFER(INT(z"0000C040", KIND=int32), o32)
-data_swapped_expected(7)  = TRANSFER(INT(z"0000E040", KIND=int32), o32)
-data_swapped_expected(8)  = TRANSFER(INT(z"00000041", KIND=int32), o32)
-data_swapped_expected(9)  = TRANSFER(INT(z"00001041", KIND=int32), o32)
-data_swapped_expected(10) = TRANSFER(INT(z"00002041", KIND=int32), o32)
+data_swapped_expected(1)  = TRANSFER(z0000803F, o32)
+data_swapped_expected(2)  = TRANSFER(z00000040, o32)
+data_swapped_expected(3)  = TRANSFER(z00004040, o32)
+data_swapped_expected(4)  = TRANSFER(z00008040, o32)
+data_swapped_expected(5)  = TRANSFER(z0000A040, o32)
+data_swapped_expected(6)  = TRANSFER(z0000C040, o32)
+data_swapped_expected(7)  = TRANSFER(z0000E040, o32)
+data_swapped_expected(8)  = TRANSFER(z00000041, o32)
+data_swapped_expected(9)  = TRANSFER(z00001041, o32)
+data_swapped_expected(10) = TRANSFER(z00002041, o32)
 
 status = f_shum_byteswap(data_in, len_data, word_size, message)
 CALL assert_equals(status, 0,                                                  &
@@ -1000,16 +1001,16 @@ DO i = 1, len2
   END DO
 END DO
 
-data_swapped_expected(1, 1) = TRANSFER(INT(z"0000803F", KIND=int32), o32)
-data_swapped_expected(2, 1) = TRANSFER(INT(z"00000040", KIND=int32), o32)
-data_swapped_expected(3, 1) = TRANSFER(INT(z"00004040", KIND=int32), o32)
-data_swapped_expected(4, 1) = TRANSFER(INT(z"00008040", KIND=int32), o32)
-data_swapped_expected(5, 1) = TRANSFER(INT(z"0000A040", KIND=int32), o32)
-data_swapped_expected(1, 2) = TRANSFER(INT(z"0000C040", KIND=int32), o32)
-data_swapped_expected(2, 2) = TRANSFER(INT(z"0000E040", KIND=int32), o32)
-data_swapped_expected(3, 2) = TRANSFER(INT(z"00000041", KIND=int32), o32)
-data_swapped_expected(4, 2) = TRANSFER(INT(z"00001041", KIND=int32), o32)
-data_swapped_expected(5, 2) = TRANSFER(INT(z"00002041", KIND=int32), o32)
+data_swapped_expected(1, 1) = TRANSFER(z0000803F, o32)
+data_swapped_expected(2, 1) = TRANSFER(z00000040, o32)
+data_swapped_expected(3, 1) = TRANSFER(z00004040, o32)
+data_swapped_expected(4, 1) = TRANSFER(z00008040, o32)
+data_swapped_expected(5, 1) = TRANSFER(z0000A040, o32)
+data_swapped_expected(1, 2) = TRANSFER(z0000C040, o32)
+data_swapped_expected(2, 2) = TRANSFER(z0000E040, o32)
+data_swapped_expected(3, 2) = TRANSFER(z00000041, o32)
+data_swapped_expected(4, 2) = TRANSFER(z00001041, o32)
+data_swapped_expected(5, 2) = TRANSFER(z00002041, o32)
 
 status = f_shum_byteswap(data_in, len1*len2, word_size, message)
 CALL assert_equals(status, 0,                                                  &

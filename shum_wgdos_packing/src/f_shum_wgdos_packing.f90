@@ -26,7 +26,15 @@ MODULE f_shum_wgdos_packing_mod
 USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         &
   C_INT64_T, C_INT32_T, C_INT16_T, C_FLOAT, C_DOUBLE
 
-IMPLICIT NONE 
+! Define various masks used to manipulate values later
+USE f_shum_ztables_mod, ONLY:                                                  &
+  mask16        => z0000FFFF,                                                  &
+  mask32        => z00000000FFFFFFFF,                                          &
+  mask_mant_ibm => z0000000000FFFFFF,                                          &
+  mask_expt_ibm => z000000007F000000,                                          &
+  mask_sign_ibm => z0000000080000000
+
+IMPLICIT NONE
 
 PRIVATE
 
@@ -46,18 +54,6 @@ PUBLIC :: f_shum_read_wgdos_header, f_shum_wgdos_pack, f_shum_wgdos_unpack
   INTEGER, PARAMETER :: real64 = C_DOUBLE
   INTEGER, PARAMETER :: real32 = C_FLOAT                                       
 !------------------------------------------------------------------------------!
-
-! Define various masks used to manipulate values later
-INTEGER(KIND=int32), PARAMETER ::                                              &
-                     mask16  = INT(HUGE(0_int16), KIND=int32)*2 + 1
-INTEGER(KIND=int64), PARAMETER ::                                              &
-                     mask32  = INT(HUGE(0_int32), KIND=int64)*2 + 1
-INTEGER(KIND=int64), PARAMETER ::                                              &
-                     mask_mant_ibm = INT(z'00FFFFFF', KIND=int64)
-INTEGER(KIND=int64), PARAMETER ::                                              &
-                     mask_expt_ibm = INT(z'7F000000', KIND=int64)
-INTEGER(KIND=int64), PARAMETER ::                                              &
-                     mask_sign_ibm = INT(z'80000000', KIND=int64)
 
 INTERFACE f_shum_read_wgdos_header
   MODULE PROCEDURE                                                             &

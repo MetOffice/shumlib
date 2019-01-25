@@ -25,6 +25,10 @@ USE fruit
 USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         & 
   C_INT64_T, C_INT32_T, C_FLOAT, C_DOUBLE, C_LOC, C_F_POINTER
 
+! Define a mask used to manipulate values later
+USE f_shum_ztables_mod, ONLY:                                                  &
+  mask16 => z0000FFFF
+
 IMPLICIT NONE 
 
 PRIVATE
@@ -1381,9 +1385,6 @@ CHARACTER(LEN=500)  :: message
 ! packed value which will force failure of the consistency check
 INTEGER(KIND=int32) :: bad_word_p1
 INTEGER(KIND=int32) :: bad_word_p2
-INTEGER, PARAMETER  :: int16  = C_INT16_T
-INTEGER(KIND=int32), PARAMETER ::                                              &
-                     mask16  = INT(HUGE(0_int16), KIND=int64)*2 + 1
 
 CALL sample_packed_data(packed_data)
 
