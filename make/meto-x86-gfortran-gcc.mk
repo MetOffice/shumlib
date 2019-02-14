@@ -27,7 +27,7 @@ FCFLAGS_PIC=-fPIC
 # Flags used to toggle the building of a dynamic (shared) library
 FCFLAGS_SHARED=-shared
 # Flags used for compiling a dynamically linked test executable; in some cases
-# control of this is argument order dependent - for these cases the first 
+# control of this is argument order dependent - for these cases the first
 # variable will be inserted before the link commands and the second will be
 # inserted afterwards
 FCFLAGS_DYNAMIC=
@@ -44,9 +44,19 @@ CC=gcc
 # Precision flags (passed to all compilation commands)
 CCFLAGS_PREC=
 # Flag used to set OpenMP (passed to all compilation commands)
+SHUM_USE_C_OPENMP_VIA_THREAD_UTILS ?= false
+ifeq (${SHUM_USE_C_OPENMP_VIA_THREAD_UTILS}, true)
+CCFLAGS_OPENMP=-fopenmp -DSHUM_USE_C_OPENMP_VIA_THREAD_UTILS=shum_use_c_openmp_via_thread_utils
+else ifeq (${SHUM_USE_C_OPENMP_VIA_THREAD_UTILS}, false)
 CCFLAGS_OPENMP=-fopenmp
+endif
 # Flag used to unset OpenMP (passed to all compilation commands)
+ifeq (${SHUM_USE_C_OPENMP_VIA_THREAD_UTILS}, true)
+CCFLAGS_NOOPENMP=-Wno-unknown-pragmas -DSHUM_USE_C_OPENMP_VIA_THREAD_UTILS=shum_use_c_openmp_via_thread_utils -D_OPENMP
+else ifeq (${SHUM_USE_C_OPENMP_VIA_THREAD_UTILS}, false)
 CCFLAGS_NOOPENMP=-Wno-unknown-pragmas
+endif
+
 # Any other flags (to be passed to all compilation commands)
 CCFLAGS_EXTRA=-std=c99 -Wall -Wextra -Werror -Wformat=2 -Winit-self -Wfloat-equal   \
               -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wcast-align          \

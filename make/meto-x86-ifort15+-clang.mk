@@ -41,9 +41,19 @@ CC=clang
 # Precision flags (passed to all compilation commands)
 CCFLAGS_PREC=
 # Flag used to set OpenMP (passed to all compilation commands)
+SHUM_USE_C_OPENMP_VIA_THREAD_UTILS ?= false
+ifeq (${SHUM_USE_C_OPENMP_VIA_THREAD_UTILS}, true)
+CCFLAGS_OPENMP=-Wno-source-uses-openmp -DSHUM_USE_C_OPENMP_VIA_THREAD_UTILS=shum_use_c_openmp_via_thread_utils -D_OPENMP
+else ifeq (${SHUM_USE_C_OPENMP_VIA_THREAD_UTILS}, false)
 CCFLAGS_OPENMP=-Wno-source-uses-openmp
+endif
 # Flag used to unset OpenMP (passed to all compilation commands)
+ifeq (${SHUM_USE_C_OPENMP_VIA_THREAD_UTILS}, true)
+CCFLAGS_NOOPENMP=-Wno-source-uses-openmp -DSHUM_USE_C_OPENMP_VIA_THREAD_UTILS=shum_use_c_openmp_via_thread_utils -D_OPENMP
+else ifeq (${SHUM_USE_C_OPENMP_VIA_THREAD_UTILS}, false)
 CCFLAGS_NOOPENMP=-Wno-source-uses-openmp
+endif
+
 # Any other flags (to be passed to all compilation commands)
 CCFLAGS_EXTRA=-std=c99 -Weverything -Werror -Wno-vla -Wno-padded  \
               -Wno-missing-noreturn -pedantic -pedantic-errors    \

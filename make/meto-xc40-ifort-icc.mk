@@ -13,9 +13,19 @@ FC=ftn
 # Precision flags (passed to all compilation commands)
 FCFLAGS_PREC=-fp-model precise
 # Flag used to set OpenMP (passed to all compilation commands)
+SHUM_USE_C_OPENMP_VIA_THREAD_UTILS ?= false
+ifeq (${SHUM_USE_C_OPENMP_VIA_THREAD_UTILS}, true)
+FCFLAGS_OPENMP=-qopenmp -DSHUM_USE_C_OPENMP_VIA_THREAD_UTILS=shum_use_c_openmp_via_thread_utils
+else ifeq (${SHUM_USE_C_OPENMP_VIA_THREAD_UTILS}, false)
 FCFLAGS_OPENMP=-qopenmp
+endif
 # Flag used to unset OpenMP (passed to all compilation commands)
+ifeq (${SHUM_USE_C_OPENMP_VIA_THREAD_UTILS}, true)
+FCFLAGS_NOOPENMP=-DSHUM_USE_C_OPENMP_VIA_THREAD_UTILS=shum_use_c_openmp_via_thread_utils -D_OPENMP
+else ifeq (${SHUM_USE_C_OPENMP_VIA_THREAD_UTILS}, false)
 FCFLAGS_NOOPENMP=
+endif
+
 # Any other flags (to be passed to all compilation commands)
 FCFLAGS_EXTRA=-standard-semantics -assume nostd_mod_proc_name -std03
 # Flag used to set PIC (Position-independent-code; required by dynamic lib 

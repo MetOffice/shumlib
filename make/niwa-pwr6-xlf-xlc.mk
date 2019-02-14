@@ -41,6 +41,7 @@ CC=xlc_r
 # Precision flags (passed to all compilation commands)
 CCFLAGS_PREC=
 # Flag used to set OpenMP (passed to all compilation commands)
+SHUM_USE_C_OPENMP_VIA_THREAD_UTILS ?= false
 CCFLAGS_OPENMP=-qsmp=omp
 # Flag used to unset OpenMP (passed to all compilation commands)
 CCFLAGS_NOOPENMP=

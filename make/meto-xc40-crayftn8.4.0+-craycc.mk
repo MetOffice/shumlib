@@ -46,12 +46,22 @@ CC=cc
 # Precision flags (passed to all compilation commands)
 CCFLAGS_PREC=
 # Flag used to set OpenMP (passed to all compilation commands)
-CCFLAGS_OPENMP=-h omp
+SHUM_USE_C_OPENMP_VIA_THREAD_UTILS ?= false
+ifeq (${SHUM_USE_C_OPENMP_VIA_THREAD_UTILS}, true)
+CCFLAGS_OPENMP=-homp -DSHUM_USE_C_OPENMP_VIA_THREAD_UTILS=shum_use_c_openmp_via_thread_utils
+else ifeq (${SHUM_USE_C_OPENMP_VIA_THREAD_UTILS}, false)
+CCFLAGS_OPENMP=-homp
+endif
 # Flag used to unset OpenMP (passed to all compilation commands)
+ifeq (${SHUM_USE_C_OPENMP_VIA_THREAD_UTILS}, true)
+CCFLAGS_NOOPENMP=-h noomp -DSHUM_USE_C_OPENMP_VIA_THREAD_UTILS=shum_use_c_openmp_via_thread_utils -D_OPENMP
+else ifeq (${SHUM_USE_C_OPENMP_VIA_THREAD_UTILS}, false)
 CCFLAGS_NOOPENMP=-h noomp
+endif
+
 # Any other flags (to be passed to all compilation commands)
 CCFLAGS_EXTRA=-O3 -h c99 -hconform -hstdc -hnotolerant -hnognu -hnopgas_runtime -herror_on_warning
-# Flag used to set PIC (Position-independent-code; required by dynamic lib 
+# Flag used to set PIC (Position-independent-code; required by dynamic lib
 # and so will only be passed to compile objects destined for the dynamic lib)
 CCFLAGS_PIC=-h pic
 

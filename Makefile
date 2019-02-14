@@ -36,6 +36,15 @@ $(error If specified in the environment SHUM_OPENMP environment variable must \
 be set to either "true" or "false")
 endif
 
+ifeq (${SHUM_USE_C_OPENMP_VIA_THREAD_UTILS}, true)
+# This is handled in the Machine specific makefile
+else ifeq (${SHUM_USE_C_OPENMP_VIA_THREAD_UTILS}, false)
+# This is handled in the Machine specific makefile
+else
+$(error If specified in the environment SHUM_USE_C_OPENMP_VIA_THREAD_UTILS \
+environment variable must be set to either "true" or "false")
+endif
+
 # Default target - build all available libraries
 #--------------------------------------------------------------------------------
 .PHONY: default
@@ -82,7 +91,12 @@ STR_CONV_PREREQ=
 # Byte-swapping
 #--------------
 BSWAP=shum_byteswap
+ifeq (${SHUM_USE_C_OPENMP_VIA_THREAD_UTILS}, true)
+BSWAP_PREREQ=STR_CONV CONSTS THREAD_UTILS
+else
 BSWAP_PREREQ=STR_CONV CONSTS
+endif
+
 
 # Data conv
 #----------
