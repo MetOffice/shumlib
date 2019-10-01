@@ -17,7 +17,8 @@ FCFLAGS_OPENMP=-h omp
 # Flag used to unset OpenMP (passed to all compilation commands)
 FCFLAGS_NOOPENMP=-h noomp
 # Any other flags (to be passed to all compilation commands)
-FCFLAGS_EXTRA ?= -O2 -Ovector1 -hfp0 -hflex_mp=strict -hipa1 -hnopgas_runtime -hnocaf -herror_on_warning
+FCFLAGS_EXTRA ?= -O2 -Ovector1 -hfp0 -hflex_mp=strict -hipa1 -hnopgas_runtime  \
+                 -hnocaf -herror_on_warning -M E287,E5001
 # Flag used to set PIC (Position-independent-code; required by dynamic lib
 # and so will only be passed to compile objects destined for the dynamic lib)
 FCFLAGS_PIC=-h pic
@@ -70,7 +71,7 @@ CCFLAGS_PIC=-h pic
 # Archiver command
 AR=ar -rc
 
-# Set the name of this platform; this will be included as the name of the 
+# Set the name of this platform; this will be included as the name of the
 # top-level directory in the build
 PLATFORM=meto-xc40-crayftn-craycc
 

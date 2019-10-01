@@ -18,7 +18,7 @@ FCFLAGS_OPENMP=-fopenmp
 FCFLAGS_NOOPENMP=
 # Any other flags (to be passed to all compilation commands)
 FCFLAGS_EXTRA=-std=f2008ts -pedantic -pedantic-errors -fno-range-check         \
-              -Wall -Wextra -Werror -Wno-compare-reals                         \
+              -Wall -Wextra -Werror -Wno-compare-reals -Wno-conversion         \
               -Wno-unused-dummy-argument -Wno-c-binding-type                   \
               -fdiagnostics-show-option
 # Flag used to set PIC (Position-independent-code; required by dynamic lib
@@ -61,9 +61,9 @@ endif
 CCFLAGS_EXTRA=-std=c99 -Wall -Wextra -Werror -Wformat=2 -Winit-self -Wfloat-equal   \
               -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wcast-align          \
               -Wconversion -Wlogical-op -Wstrict-prototypes -Wmissing-declarations  \
-              -Wredundant-decls -Wnested-externs -Woverlength-strings               \
+              -Wredundant-decls -Wnested-externs -Woverlength-strings -Wshadow      \
               -fdiagnostics-show-option
-# Flag used to set PIC (Position-independent-code; required by dynamic lib 
+# Flag used to set PIC (Position-independent-code; required by dynamic lib
 # and so will only be passed to compile objects destined for the dynamic lib)
 CCFLAGS_PIC=-fPIC
 
@@ -72,7 +72,7 @@ CCFLAGS_PIC=-fPIC
 # Archiver command
 AR=ar -rc
 
-# Set the name of this platform; this will be included as the name of the 
+# Set the name of this platform; this will be included as the name of the
 # top-level directory in the build
 PLATFORM=meto-x86-gfortran-gcc
 
