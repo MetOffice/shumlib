@@ -28,6 +28,8 @@
 
 extern int64_t f_shum_threadFlush         (void);
 
+extern int64_t f_shum_taskYield           (void);
+
 extern int64_t f_shum_newLock             (void);
 
 extern int64_t f_shum_releaseLock         (int64_t *);

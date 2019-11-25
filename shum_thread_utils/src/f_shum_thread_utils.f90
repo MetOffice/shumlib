@@ -409,6 +409,24 @@ END FUNCTION threadFlush
 
 !------------------------------------------------------------------------------!
 
+! taskYield() instructs the compiler to suspend the current task in
+! favor of running a different task.
+
+FUNCTION taskYield()                                                          &
+  BIND(c,NAME="f_shum_taskYield")                                             &
+  RESULT(r)
+
+IMPLICIT NONE
+
+INTEGER(KIND=c_int64_t) :: r
+
+!$OMP TASKYIELD
+r = successCode
+
+END FUNCTION taskYield
+
+!------------------------------------------------------------------------------!
+
 ! threadID() returns the OpenMP thread number
 
 FUNCTION threadID()                                                            &
