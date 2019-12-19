@@ -30,11 +30,6 @@
 # This script was used to install shumlib version 2019.10.1
 # and was intended for use with the UM at UM 11.5
 #
-#PBS -q shared
-#PBS -S /bin/bash
-#PBS -l ncpus=4
-#PBS -l mem=2048MB
-#PBS -l walltime=00:30:00
 
 set -eu
 
@@ -44,9 +39,11 @@ cd $(readlink -f $(dirname $0)/..)
 # Take the platform name as an argument
 # (purely so we can maintain one script rather than 2)
 PLATFORM=${1:-}
+
 if [ -z "${PLATFORM}" ] ; then
-    echo "Please provide platform as first (and only) argument"
-    echo "Either x86 or xc40"
+    echo "Please provide platform or specific build as argument"
+    echo "e.g. x86, xc40 or grep this file for THIS to see the "
+    echo "other options for specific builds"
     exit 1
 fi
 
@@ -212,7 +209,9 @@ if [ $PLATFORM == "xc40" ] || [ $PLATFORM == $THIS ] ; then
     (
     module purge
     module load PrgEnv-cray/5.2.82
-    module swap cce cce/8.3.4
+    module load cdt/17.03
+    module load cray-mpich/7.0.4
+    module swap cce/8.3.4
     module load craype-haswell
     module load metoffice/tempdir
     module load metoffice/userenv
@@ -237,7 +236,9 @@ if [ $PLATFORM == "xc40" ] || [ $PLATFORM == $THIS ] ; then
     (
     module purge
     module load PrgEnv-cray/5.2.82
-    module swap cce cce/8.3.4
+    module load cdt/17.03
+    module load cray-mpich/7.0.4
+    module swap cce/8.3.4
     module load craype-ivybridge
     module load metoffice/tempdir
     module load metoffice/userenv
@@ -261,7 +262,9 @@ if [ $PLATFORM == "xc40" ] || [ $PLATFORM == $THIS ] ; then
     (
     module purge
     module load PrgEnv-cray/5.2.82
-    module swap cce cce/8.4.3
+    module load cdt/17.03
+    module load cray-mpich/7.0.4
+    module swap cce/8.4.3
     module load craype-ivybridge
     module load metoffice/tempdir
     module load metoffice/userenv
@@ -284,9 +287,10 @@ if [ $PLATFORM == "xc40" ] || [ $PLATFORM == $THIS ] ; then
     (
     module purge
     module load PrgEnv-cray/5.2.82
-    module swap cce cce/8.5.8
-    module load craype-haswell
     module load cdt/17.03
+    module load cray-mpich/7.0.4
+    module swap cce/8.5.8
+    module load craype-haswell
     module load metoffice/tempdir
     module load metoffice/userenv
     module load craype-network-aries
@@ -308,9 +312,10 @@ if [ $PLATFORM == "xc40" ] || [ $PLATFORM == $THIS ] ; then
     (
     module purge
     module load PrgEnv-cray/5.2.82
-    module swap cce cce/8.5.8
-    module load craype-ivybridge
     module load cdt/17.03
+    module load cray-mpich/7.0.4
+    module swap cce/8.5.8
+    module load craype-ivybridge
     module load metoffice/tempdir
     module load metoffice/userenv
     module load craype-network-aries
@@ -332,7 +337,9 @@ if [ $PLATFORM == "xc40" ] || [ $PLATFORM == $THIS ] ; then
     (
     module purge
     module load PrgEnv-intel/5.2.82
-    module swap intel intel/15.0.0.090
+    module load cdt/17.03
+    module load cray-mpich/7.0.4
+    module swap intel/15.0.0.090
     module load craype-haswell
     module load metoffice/tempdir
     module load metoffice/userenv
@@ -353,7 +360,9 @@ if [ $PLATFORM == "xc40" ] || [ $PLATFORM == $THIS ] ; then
     (
     module purge
     module load PrgEnv-intel/5.2.82
-    module swap intel intel/15.0.0.090
+    module load cdt/17.03
+    module load cray-mpich/7.0.4
+    module swap intel/15.0.0.090
     module load craype-ivybridge
     module load metoffice/tempdir
     module load metoffice/userenv
@@ -374,9 +383,10 @@ if [ $PLATFORM == "xc40" ] || [ $PLATFORM == $THIS ] ; then
     (
     module purge
     module load PrgEnv-intel/5.2.82
-    module swap intel intel/17.0.0.098
-    module load craype-haswell
     module load cdt/17.03
+    module load cray-mpich/7.0.4
+    module swap intel/17.0.0.098
+    module load craype-haswell
     module load metoffice/tempdir
     module load metoffice/userenv
     module load craype-network-aries
@@ -396,9 +406,10 @@ if [ $PLATFORM == "xc40" ] || [ $PLATFORM == $THIS ] ; then
     (
     module purge
     module load PrgEnv-intel/5.2.82
-    module swap intel intel/17.0.0.098
-    module load craype-ivybridge
     module load cdt/17.03
+    module load cray-mpich/7.0.4
+    module swap intel/17.0.0.098
+    module load craype-ivybridge
     module load metoffice/tempdir
     module load metoffice/userenv
     module load craype-network-aries
@@ -418,7 +429,9 @@ if [ $PLATFORM == "xc40" ] || [ $PLATFORM == $THIS ] ; then
     (
     module purge
     module load PrgEnv-gnu/5.2.82
-    module swap gcc gcc/4.9.1
+    module load cdt/17.03
+    module load cray-mpich/7.5.3
+    module swap gcc/4.9.1
     module load craype-haswell
     module load metoffice/tempdir
     module load metoffice/userenv
@@ -439,7 +452,9 @@ if [ $PLATFORM == "xc40" ] || [ $PLATFORM == $THIS ] ; then
     (
     module purge
     module load PrgEnv-gnu/5.2.82
-    module swap gcc gcc/4.9.1
+    module load cdt/17.03
+    module load cray-mpich/7.5.3
+    module swap gcc/4.9.1
     module load craype-ivybridge
     module load metoffice/tempdir
     module load metoffice/userenv
@@ -460,9 +475,10 @@ if [ $PLATFORM == "xc40" ] || [ $PLATFORM == $THIS ] ; then
     (
     module purge
     module load PrgEnv-gnu/5.2.82
-    module swap gcc gcc/6.3.0
-    module load craype-haswell
     module load cdt/17.03
+    module load cray-mpich/7.5.3
+    module swap gcc/6.3.0
+    module load craype-haswell
     module load metoffice/tempdir
     module load metoffice/userenv
     module load craype-network-aries
@@ -482,9 +498,10 @@ if [ $PLATFORM == "xc40" ] || [ $PLATFORM == $THIS ] ; then
     (
     module purge
     module load PrgEnv-gnu/5.2.82
-    module swap gcc gcc/6.3.0
-    module load craype-ivybridge
     module load cdt/17.03
+    module load cray-mpich/7.5.3
+    module swap gcc/6.3.0
+    module load craype-ivybridge
     module load metoffice/tempdir
     module load metoffice/userenv
     module load craype-network-aries
