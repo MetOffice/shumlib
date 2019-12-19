@@ -3601,6 +3601,9 @@ END IF
 ! 64-bit words (as that is the record size of the files) do this by adding
 ! an extra zero
 IF (MOD(SIZE(field_data), 2) /= 0) THEN
+  ! Update the start position to the end of the field that was just written
+  start = start + SIZE(field_data)*4_int64
+
   WRITE(ff_id, pos=(start)*8+1, IOSTAT=STATUS, IOMSG=message) 0.0_real32
   IF (STATUS /= 0) THEN
     WRITE(message, "(A,I0,A)") "Failed to write extra zero for field ", INDEX, &
@@ -3744,6 +3747,9 @@ END IF
 ! 64-bit words (as that is the record size of the files) do this by adding
 ! an extra zero
 IF (MOD(SIZE(field_data), 2) /= 0) THEN
+  ! Update the start position to the end of the field that was just written
+  start = start + SIZE(field_data)*4_int64
+
   WRITE(ff_id, pos=(start)*8+1, IOSTAT=STATUS, IOMSG=message) 0_int32
   IF (STATUS /= 0) THEN
     WRITE(message, "(A,I0,A)") "Failed to write extra zero for field ", INDEX, &
@@ -4182,6 +4188,9 @@ END IF
 ! 64-bit words (as that is the record size of the files) do this by adding
 ! an extra zero
 IF (MOD(SIZE(field_data), 2) /= 0) THEN
+  ! Update the start position to the end of the field that was just written
+  start = start + SIZE(field_data)*4_int64
+
   WRITE(ff_id, pos=(start)*8+1, IOSTAT=STATUS, IOMSG=message) 0.0_real32
   IF (STATUS /= 0) THEN
     WRITE(message, "(A,I0,A)") "Failed to write extra zero for field ", INDEX, &
@@ -4337,6 +4346,9 @@ END IF
 ! 64-bit words (as that is the record size of the files) do this by adding
 ! an extra zero
 IF (MOD(SIZE(field_data), 2) /= 0) THEN
+  ! Update the start position to the end of the field that was just written
+  start = start + SIZE(field_data)*4_int64
+
   WRITE(ff_id, pos=(start)*8+1, IOSTAT=STATUS, IOMSG=message) 0_int32
   IF (STATUS /= 0) THEN
     WRITE(message, "(A,I0,A)") "Failed to write extra zero for field ", INDEX, &
