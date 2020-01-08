@@ -8,6 +8,33 @@ MAKE=make
 
 # Fortran
 #--------
+# Preprocessor command
+FPP=cpp
+# Any flags required to make the preprocessor function correctly
+FPPFLAGS_BASE=-C -P -undef -nostdinc
+# Any other flags (to be passed to all preprocessing commands)
+FPPFLAGS_EXTRA=-Wall -Wtraditional -Werror -fdiagnostics-show-option
+# IEEE Arithmetic
+SHUM_HAS_IEEE_ARITHMETIC ?= false
+ifeq (${SHUM_HAS_IEEE_ARITHMETIC}, true)
+FPPFLAGS_IEEE=-DHAS_IEEE_ARITHMETIC
+else ifeq (${SHUM_HAS_IEEE_ARITHMETIC}, false)
+FPPFLAGS_IEEE=
+endif
+SHUM_EVAL_NAN_BY_BITS ?= true
+ifeq (${SHUM_EVAL_NAN_BY_BITS}, true)
+FPPFLAGS_ENBB=-DEVAL_NAN_BY_BITS
+else ifeq (${SHUM_EVAL_NAN_BY_BITS}, false)
+FPPFLAGS_ENBB=
+endif
+SHUM_EVAL_DENORMAL_BY_BITS ?= true
+ifeq (${SHUM_EVAL_DENORMAL_BY_BITS}, true)
+FPPFLAGS_EDBB=-DEVAL_DENORMAL_BY_BITS
+else ifeq (${SHUM_EVAL_DENORMAL_BY_BITS}, false)
+FPPFLAGS_EDBB=
+endif
+# Combine the preprocessor flags
+FPPFLAGS=${FPPFLAGS_BASE} ${FPPFLAGS_IEEE} ${FPPFLAGS_ENBB} ${FPPFLAGS_EDBB} ${FPPFLAGS_EXTRA}
 # Compiler command
 FC=ftn
 # Precision flags (passed to all compilation commands)
@@ -52,7 +79,7 @@ CCFLAGS_OPENMP=-h omp
 CCFLAGS_NOOPENMP=-h noomp
 # Any other flags (to be passed to all compilation commands)
 CCFLAGS_EXTRA=-O3 -h c99 -hconform -hstdc -hnotolerant -hnognu -hnopgas_runtime -herror_on_warning
-# Flag used to set PIC (Position-independent-code; required by dynamic lib 
+# Flag used to set PIC (Position-independent-code; required by dynamic lib
 # and so will only be passed to compile objects destined for the dynamic lib)
 CCFLAGS_PIC=-h pic
 
@@ -61,7 +88,7 @@ CCFLAGS_PIC=-h pic
 # Archiver command
 AR=ar -rc
 
-# Set the name of this platform; this will be included as the name of the 
+# Set the name of this platform; this will be included as the name of the
 # top-level directory in the build
 PLATFORM=afw-xc40-crayftn-craycc
 

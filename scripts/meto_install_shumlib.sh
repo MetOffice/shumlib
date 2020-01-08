@@ -33,6 +33,9 @@
 
 set -eu
 
+# set up no IEEE list
+NO_IEEE_LIST=${NO_IEEE_LIST:-"xc40_haswell_gnu_4.9.1 xc40_ivybridge_gnu_4.9.1"}
+
 # Ensure directory is correct
 cd $(readlink -f $(dirname $0)/..)
 
@@ -80,6 +83,11 @@ function contains {
 function build_test_clean {
     local config=$1
     shift
+    if [[ " $NO_IEEE_LIST " =~ " $THIS " ]] ; then
+      export SHUM_HAS_IEEE_ARITHMETIC="false"
+    else
+      unset SHUM_HAS_IEEE_ARITHMETIC
+    fi
     echo make -f make/$config.mk clean-temp
     make -f make/$config.mk clean-temp
     echo make -f make/$config.mk $*
@@ -558,4 +566,3 @@ if [ $PLATFORM == "xc40" ] || [ $PLATFORM == $THIS ] ; then
         exit 1
     fi
 fi
-
