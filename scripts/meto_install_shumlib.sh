@@ -182,13 +182,18 @@ fi
 
 THIS="x86_ifort_16.0_clang"
 if [ $PLATFORM == "x86" ] || [ $PLATFORM == $THIS ] ; then
-    # Intel/Clang  (ifort 16)
+    # Intel/Clang  (ifort 16 / clang 12.0.0)
     (
     source /etc/profile.d/metoffice.d/modules.sh || :
     module purge
+    module use /project/extrasoftware/modulefiles.rhel7
     module load ifort/16.0_64  # From METO_LINUX family in rose-stem
+    module unload libraries/gcc
+    module load gcc/8.1.0
+    module load llvm/12.0.0
+
     CONFIG=meto-x86-ifort15+-clang
-    LIBDIR=$BUILD_DESTINATION/meto-x86-ifort-16.0.1-clang-3.4.2
+    LIBDIR=$BUILD_DESTINATION/meto-x86-ifort-16.0.1-clang-12.0.0
     build_openmp_onoff $CONFIG $LIBDIR all_libs
     )
     if [ $? -ne 0 ] ; then
