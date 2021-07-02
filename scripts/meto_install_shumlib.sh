@@ -27,8 +27,8 @@
 # USAGE:  (Note - must be run from the toplevel Shumlib directory!)
 #   scripts/meto_install_shumlib.sh [xc40|x86]
 #
-# This script was used to install shumlib version 2020.01.1
-# and was intended for use with the UM at UM 11.5
+# This script was used to install shumlib version 2021.07.1
+# and was intended for use with the UM at UM 12.0
 #
 
 set -eu
@@ -98,7 +98,7 @@ function build_test_clean {
     make -f make/$config.mk clean-temp
 }
 
-# Function which executes the above function several times - once for each of 
+# Function which executes the above function several times - once for each of
 # the possible OpenMP state and Thread_Utils state combinations. Note that
 # the build will only be copied to the destination install directory if the
 # variable LIBDIR_OUT is set - this is done selectively depending on which
