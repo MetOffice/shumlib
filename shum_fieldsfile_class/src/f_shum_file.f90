@@ -225,6 +225,10 @@ INTEGER(KIND=INT64), PARAMETER :: grid_stagger_endgame = 6
 INTEGER(KIND=INT64), PARAMETER :: grid_stagger_arakawa_a = 1
 INTEGER(KIND=INT64), PARAMETER :: pressure_vert_coord=3
 
+INTEGER(KIND=INT64), PARAMETER :: dump_type = 1
+INTEGER(KIND=INT64), PARAMETER :: fieldsfile_type = 3
+INTEGER(KIND=INT64), PARAMETER :: ancil_type = 4
+
 LOGICAL :: is_variable_resolution = .FALSE.
 LOGICAL :: grid_supported
 
@@ -258,13 +262,14 @@ IF (.NOT. grid_supported) THEN
   RETURN
 END IF
 
-
-! Check this is a instantaneous dump or a fieldsfile - if it's an ancil, obs
+! Check this is a instantaneous dump, fieldsfile or ancil - if it's an obs
 ! mean dump or LBC file, abort
-IF (self%fixed_length_header(dataset_type) /= 1_int64 .AND.                    &
-    self%fixed_length_header(dataset_type) /= 3_int64) THEN
+IF (self%fixed_length_header(dataset_type) /= dump_type .AND.                  &
+    self%fixed_length_header(dataset_type) /= fieldsfile_type .AND.            &
+    self%fixed_length_header(dataset_type) /= ancil_type) THEN
   STATUS%icode = 1_int64
-  STATUS%message = 'File is not a fieldsfile or instantaneous dump'
+  STATUS%message = 'File is not a fieldsfile, instantaneous dump or ancil'
+  RETURN
 END IF
 
 STATUS%icode = f_shum_read_integer_constants(                                  &
@@ -283,12 +288,14 @@ IF (STATUS%icode /= shumlib_success) THEN
   RETURN
 END IF
 
-STATUS%icode = f_shum_read_level_dependent_constants(                          &
-                                   self%file_identifier,                       &
-                                   self%level_dependent_constants,             &
-                                   STATUS%message)
-IF (STATUS%icode /= shumlib_success) THEN
-  RETURN
+! Ancillary files do not include level dependent constants so they are not read here
+! See section 3.4 from UMDP F03
+IF (self%fixed_length_header(dataset_type) /= ancil_type ) THEN
+  STATUS%icode = f_shum_read_level_dependent_constants(                        &
+                                     self%file_identifier,                     &
+                                     self%level_dependent_constants,           &
+                                     STATUS%message)
+  IF (STATUS%icode /= shumlib_success) RETURN
 END IF
 
 ! Read in the optional headers we care about (for variable resolution)
