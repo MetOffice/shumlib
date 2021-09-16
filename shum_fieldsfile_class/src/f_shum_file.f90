@@ -285,6 +285,9 @@ IF (STATUS%icode > shumlib_success) THEN
   RETURN
 ELSE IF (STATUS%icode == shumlib_success) THEN
   is_variable_resolution = .TRUE.
+ELSE
+  ! No constants found, therefore not variable resolution
+  is_variable_resolution = .FALSE.
 END IF
 
 STATUS%icode = f_shum_read_column_dependent_constants(                         &
