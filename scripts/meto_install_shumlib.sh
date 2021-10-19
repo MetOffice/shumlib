@@ -25,7 +25,7 @@
 # combinations available at the Met Office...
 #
 # USAGE:  (Note - must be run from the toplevel Shumlib directory!)
-#   scripts/meto_install_shumlib.sh [xc40|x86]
+#   scripts/meto_install_shumlib.sh [xc40|x86|ex1a]
 #
 # This script was used to install shumlib version 2021.07.1
 # and was intended for use with the UM at UM 12.0
@@ -34,7 +34,7 @@
 set -eu
 
 # set up no IEEE list
-NO_IEEE_LIST=${NO_IEEE_LIST:-"xc40_haswell_gnu_4.9.1 xc40_ivybridge_gnu_4.9.1"}
+NO_IEEE_LIST=${NO_IEEE_LIST:-"xc40_haswell_gnu_4.9.1 xc40_ivybridge_gnu_4.9.1 ex1a_gnu_10.3.0"}
 
 # Ensure directory is correct
 cd $(readlink -f $(dirname $0)/..)
@@ -45,7 +45,7 @@ PLATFORM=${1:-}
 
 if [ -z "${PLATFORM}" ] ; then
     echo "Please provide platform or specific build as argument"
-    echo "e.g. x86, xc40 or grep this file for THIS to see the "
+    echo "e.g. x86, xc40, ex1a or grep this file for THIS to see the "
     echo "other options for specific builds"
     exit 1
 fi
@@ -581,6 +581,57 @@ if [ $PLATFORM == "xc40" ] || [ $PLATFORM == $THIS ] ; then
     module load craype-network-aries
     CONFIG=meto-xc40-gfortran-gcc
     LIBDIR=$BUILD_DESTINATION/meto-xc40-ivybridge-gfortran-6.3.0-gcc-6.3.0
+    build_openmp_onoff $CONFIG $LIBDIR all_libs
+    )
+    if [ $? -ne 0 ] ; then
+        >&2 echo "Error compiling for $THIS"
+        exit 1
+    fi
+fi
+
+# Crayftn/CrayCC 12.0.1
+THIS="ex1a_cray_12.0.1"
+if [ $PLATFORM == "ex1a" ] || [ $PLATFORM == $THIS ] ; then
+
+    (
+    module purge
+    module load PrgEnv-cray/8.1.0
+    module switch cce cce/12.0.1
+    module switch cray-mpich cray-mpich/8.1.7
+    module switch craype craype/2.7.8
+    module load craype-x86-milan
+    module load perftools-base
+    module load xpmem
+    module load craype-network-ofi
+    module load craype-hugepages4M
+    CONFIG=meto-ex1a-crayftn12.0.1+-craycc
+    LIBDIR=$BUILD_DESTINATION/meto-ex1a-crayftn-12.0.1-craycc-12.0.1
+    build_openmp_onoff $CONFIG $LIBDIR $(sed -e "s/\bshum_fieldsfile_class\b//g" \
+                                             -e "s/\bshum_fieldsfile\b//g" \
+                                             <<< $LIB_DIRS)
+    )
+    if [ $? -ne 0 ] ; then
+        >&2 echo "Error compiling for $THIS"
+        exit 1
+    fi
+fi
+
+# Gfortran 10.3.0
+THIS="ex1a_gnu_10.3.0"
+if [ $PLATFORM == "ex1a" ] || [ $PLATFORM == $THIS ] ; then
+
+    (
+    module purge
+    module load PrgEnv-gnu/8.1.0
+    module switch gcc gcc/10.3.0
+    module load craype-x86-milan
+    module switch cray-mpich/8.1.7
+    module switch craype/2.7.8
+    module load perftools-base
+    module load xpmem
+    module load craype-network-ofi
+    CONFIG=meto-ex1a-gfortran-gcc
+    LIBDIR=$BUILD_DESTINATION/meto-ex1a-gfortran-10.3.0-gcc-10.3.0
     build_openmp_onoff $CONFIG $LIBDIR all_libs
     )
     if [ $? -ne 0 ] ; then
