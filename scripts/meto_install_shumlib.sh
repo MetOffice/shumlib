@@ -256,6 +256,42 @@ if [ $PLATFORM == "x86" ] || [ $PLATFORM == $THIS ] ; then
     fi
 fi
 
+# Gfortran/GCC 9.2.0
+# Using jopa module
+THIS="x86_gnu_9.2.0"
+if [ $PLATFORM == "x86" ] || [ $PLATFORM == $THIS ] ; then
+    (
+    module use /home/h03/jopa/modulefiles
+    module purge
+    module load jedi/gcc/9.2.0
+    CONFIG=meto-x86-gfortran-gcc
+    LIBDIR=$BUILD_DESTINATION/meto-x86-gfortran-9.2.0-gcc-9.2.0
+    build_openmp_onoff $CONFIG $LIBDIR all_libs
+    )
+    if [ $? -ne 0 ] ; then
+        >&2 echo "Error compiling for $THIS"
+        exit 1
+    fi
+fi
+
+# Gfortran/GCC 9.3.0
+# Using jopa module
+THIS="x86_gnu_9.3.0"
+if [ $PLATFORM == "x86" ] || [ $PLATFORM == $THIS ] ; then
+    (
+    module use /home/h03/jopa/modulefiles
+    module purge
+    module load gnu-toolchain/gcc/9.3.0
+    CONFIG=meto-x86-gfortran-gcc
+    LIBDIR=$BUILD_DESTINATION/meto-x86-gfortran-9.3.0-gcc-9.3.0
+    build_openmp_onoff $CONFIG $LIBDIR all_libs
+    )
+    if [ $? -ne 0 ] ; then
+        >&2 echo "Error compiling for $THIS"
+        exit 1
+    fi
+fi
+
 # Gfortran/GCC 10.2.0
 # Using LFRic module
 THIS="x86_gnu_10.2.0"
@@ -273,6 +309,21 @@ if [ $PLATFORM == "x86" ] || [ $PLATFORM == $THIS ] ; then
         exit 1
     fi
 fi
+
+# GNU generic gfortran/gcc
+THIS="x86_gnu_generic"
+if [[ $PLATFORM == "x86" ]] || [[ $PLATFORM == $THIS ]] ; then
+    (
+    CONFIG=meto-x86-gfortran-gcc
+    LIBDIR=$BUILD_DESTINATION/x86-gfortran-$(gfortran -dumpversion)-gcc-$(gcc -dumpversion)
+    build_openmp_onoff $CONFIG $LIBDIR all_libs
+    )
+    if [ $? -ne 0 ] ; then
+        >&2 echo "Error compiling for $THIS"
+        exit 1
+    fi
+fi
+
 
 # Crayftn/CrayCC Haswell 8.3.4 (Current system default)
 # - note that these earlier versions of CCE don't work correctly with the
