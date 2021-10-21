@@ -640,23 +640,23 @@ if [ $PLATFORM == "xc40" ] || [ $PLATFORM == $THIS ] ; then
     fi
 fi
 
-# Crayftn/CrayCC 12.0.1
-THIS="ex1a_cray_12.0.1"
+# Crayftn/CrayCC 12.0.3
+THIS="ex1a_cray_12.0.3"
 if [ $PLATFORM == "ex1a" ] || [ $PLATFORM == $THIS ] ; then
 
     (
     module purge
-    module load PrgEnv-cray/8.1.0
-    module switch cce cce/12.0.1
-    module switch cray-mpich cray-mpich/8.1.7
-    module switch craype craype/2.7.8
+    module load PrgEnv-cray/8.2.0
+    module switch cce cce/12.0.3
+    module switch cray-mpich cray-mpich/8.1.10
+    module switch craype craype/2.7.11
     module load craype-x86-milan
     module load perftools-base
     module load xpmem
     module load craype-network-ofi
     module load craype-hugepages4M
     CONFIG=meto-ex1a-crayftn12.0.1+-craycc
-    LIBDIR=$BUILD_DESTINATION/meto-ex1a-crayftn-12.0.1-craycc-12.0.1
+    LIBDIR=$BUILD_DESTINATION/meto-ex1a-crayftn-12.0.3-craycc-12.0.3
     build_openmp_onoff $CONFIG $LIBDIR $(sed -e "s/\bshum_fieldsfile_class\b//g" \
                                              -e "s/\bshum_fieldsfile\b//g" \
                                              <<< $LIB_DIRS)
@@ -673,11 +673,11 @@ if [ $PLATFORM == "ex1a" ] || [ $PLATFORM == $THIS ] ; then
 
     (
     module purge
-    module load PrgEnv-gnu/8.1.0
+    module load PrgEnv-gnu/8.2.0
     module switch gcc gcc/10.3.0
     module load craype-x86-milan
-    module switch cray-mpich/8.1.7
-    module switch craype/2.7.8
+    module switch cray-mpich/8.1.10
+    module switch craype/2.7.11
     module load perftools-base
     module load xpmem
     module load craype-network-ofi
