@@ -27,8 +27,8 @@
 # USAGE:  (Note - must be run from the toplevel Shumlib directory!)
 #   scripts/meto_install_shumlib.sh [xc40|x86|ex1a]
 #
-# This script was used to install shumlib version 2021.10.1
-# and was intended for use with the UM at UM 12.1
+# This script was used to install shumlib version 2022.02.1
+# and was intended for use with the UM at UM 12.2
 #
 
 set -eu
