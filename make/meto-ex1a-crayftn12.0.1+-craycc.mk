@@ -9,6 +9,10 @@ MAKE=make
 # Note that on the EX1A only Dynamic linking is supported
 SHUM_BUILD_STATIC=false
 
+# To prevent spiral search being compiled with a multithreaded
+# library it can't use, set openmp off for Cray EX1A builds
+SHUM_OPENMP=false
+
 # Fortran
 #--------
 FPP=cpp
@@ -48,9 +52,11 @@ FCFLAGS_NOOPENMP=-h noomp
 # Any other flags (to be passed to all compilation commands)
 FCFLAGS_EXTRA ?= -O2 -Ovector1 -hfp0 -hflex_mp=strict -hipa1 -hnopgas_runtime  \
                  -hnocaf -herror_on_warning -M E287,E5001
+# Flags to set paths for the dynamic library builds
+LDFLAGS= -Wl,-rpath,/opt/cray/pe/gcc-libs
 # Flag used to set PIC (Position-independent-code; required by dynamic lib
 # and so will only be passed to compile objects destined for the dynamic lib)
-FCFLAGS_PIC=-h pic
+FCFLAGS_PIC=-h pic ${LDFLAGS}
 # Flags used to toggle the building of a dynamic (shared) library
 FCFLAGS_SHARED=-shared -L${CRAYLIBS_X86_64} -lmodules
 
