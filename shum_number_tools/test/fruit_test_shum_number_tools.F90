@@ -618,7 +618,7 @@ equality_test = f_shum_is_denormal(c_test_generate_fnan())
 CALL assert_false(equality_test,                                               &
                   "32-bit f_shum_is_denormal confused denormal and NaN")
 
-equality_test = f_shum_is_denormal(c_test_generate_fnan())
+equality_test = f_shum_is_denormal(c_test_generate_finf())
 
 CALL assert_false(equality_test,                                               &
                   "32-bit f_shum_is_denormal confused denormal and Inf")

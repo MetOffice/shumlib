@@ -53,7 +53,7 @@ FCFLAGS_NOOPENMP=-h noomp
 FCFLAGS_EXTRA ?= -O2 -Ovector1 -hfp0 -hflex_mp=strict -hipa1 -hnopgas_runtime  \
                  -hnocaf -herror_on_warning -M E287,E5001
 # Flags to set paths for the dynamic library builds
-LDFLAGS= -Wl,-rpath,/opt/cray/pe/gcc-libs
+LDFLAGS= -Wl,-rpath,/opt/cray/pe/gcc-libs -Wl,--as-needed
 # Flag used to set PIC (Position-independent-code; required by dynamic lib
 # and so will only be passed to compile objects destined for the dynamic lib)
 FCFLAGS_PIC=-h pic ${LDFLAGS}
@@ -93,8 +93,9 @@ endif
 
 # Any other flags (to be passed to all compilation commands)
 CCFLAGS_EXTRA=-std=c99 -Weverything -Wno-vla -Wno-padded  \
-              -Wno-missing-noreturn -pedantic  \
-              -fdiagnostics-show-option
+              -Wno-missing-noreturn -Wno-declaration-after-statement \
+              -Werror -pedantic -pedantic-errors \
+              -fdiagnostics-show-option -DSHUM_X86_INTRINSIC
 
 # Flag used to set PIC (Position-independent-code; required by dynamic lib
 # and so will only be passed to compile objects destined for the dynamic lib)
