@@ -39,28 +39,28 @@
 /* tests                                                                      */
 /******************************************************************************/
 
-float c_test_generate_finf()
+float c_test_generate_finf(void)
 {
   return strtof("INF", NULL);
 }
 
 /******************************************************************************/
 
-double c_test_generate_dinf()
+double c_test_generate_dinf(void)
 {
   return strtod("INF", NULL);
 }
 
 /******************************************************************************/
 
-float c_test_generate_fnan()
+float c_test_generate_fnan(void)
 {
   return nanf("");
 }
 
 /******************************************************************************/
 
-double c_test_generate_dnan()
+double c_test_generate_dnan(void)
 {
   return nan("");
 }
