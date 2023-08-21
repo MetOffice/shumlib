@@ -716,8 +716,10 @@ if [ "$PLATFORM" == "ex1a" ] || [ "$PLATFORM" == $THIS ] ; then
     fi
 
     (
-    module switch PrgEnv-cray PrgEnv-cray/8.3.3
-    module load cpe/22.11
+    module switch PrgEnv-cray PrgEnv-cray/8.4.0
+    module load cpe/23.05
+    module swap cce cce/15.0.0 
+    module load craype-x86-milan
 
     CONFIG=meto-ex1a-crayftn12.0.1+-craycc
     LIBDIR=$BUILD_DESTINATION/meto-ex1a-crayftn-15.0.0-craycc-15.0.0
@@ -733,8 +735,8 @@ if [ "$PLATFORM" == "ex1a" ] || [ "$PLATFORM" == $THIS ] ; then
     RUN_SUCCESS=1
 fi
 
-# Gfortran 12.1.0
-THIS="ex1a_gnu_12.1.0"
+# Gfortran 12.2.0
+THIS="ex1a_gnu_12.2.0"
 if [ "$PLATFORM" == "ex1a" ] || [ "$PLATFORM" == $THIS ] ; then
 
     unset SHUM_TMPDIR
@@ -745,11 +747,13 @@ if [ "$PLATFORM" == "ex1a" ] || [ "$PLATFORM" == $THIS ] ; then
     fi
 
     (
-    module switch PrgEnv-cray PrgEnv-gnu/8.3.3
-    module load cpe/22.11
+    module switch PrgEnv-cray PrgEnv-gnu/8.4.0
+    module load cpe/23.05
+    module swap gcc gcc/12.2.0
+    module load craype-x86-milan
 
     CONFIG=meto-ex1a-gfortran-gcc
-    LIBDIR=$BUILD_DESTINATION/meto-ex1a-gfortran-12.1.0-gcc-12.1.0
+    LIBDIR=$BUILD_DESTINATION/meto-ex1a-gfortran-12.2.0-gcc-12.2.0
     build_openmp_onoff $CONFIG "$LIBDIR" all_libs
     )
     if [ $? -ne 0 ] ; then
