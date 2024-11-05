@@ -36,7 +36,7 @@ set -eu
 RUN_SUCCESS=0
 
 # set up no IEEE list
-NO_IEEE_LIST=${NO_IEEE_LIST:-"xc40_haswell_gnu_4.9.1 xc40_ivybridge_gnu_4.9.1 x86_gnu_11.2.0"}
+NO_IEEE_LIST=${NO_IEEE_LIST:-"xc40_haswell_gnu_4.9.1 xc40_ivybridge_gnu_4.9.1 x86_gnu_11.2.0 azspice_gnu_12.2"}
 
 # Ensure directory is correct
 CANONICAL_DIR=$(dirname "$0")
@@ -174,6 +174,29 @@ function build_openmp_onoff {
     fi
 
 }
+
+# AZ SPICE GNU 12.2
+THIS="azspice_gnu_12.2"
+if [ "$PLATFORM" == "azspice" ] || [ "$PLATFORM" == $THIS ] ; then
+  if [[ $(gcc -dumpversion | awk -F'.' '{print $1}') -gt 8 ]] ; then
+    (
+    module use /data/users/spackadmin/spack/modules/linux-rhel9-zen2
+    module load gcc/12.2.0-gcc-12.2.0-elnqzkg
+    module load mpich/4.2.3-gcc-12.2.0-vqupwpn
+    unset SHUM_TMPDIR
+    CONFIG=meto-azspice-gfortran-gcc
+    LIBDIR=$BUILD_DESTINATION/azspice-gfortran-$(gfortran -dumpversion)-gcc-$(gcc -dumpversion)
+    build_openmp_onoff $CONFIG "$LIBDIR" all_libs
+    )
+    if [ $? -ne 0 ] ; then
+        >&2 echo "Error compiling for $THIS"
+        exit 1
+    fi
+  else
+    >&2 echo "SKIPPING $THIS as GCC version older than 8"
+  fi
+  RUN_SUCCESS=1
+fi
 
 # Intel/GCC (ifort 16)
 THIS="x86_ifort_16.0_gcc"
