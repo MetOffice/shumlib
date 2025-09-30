@@ -35,19 +35,8 @@ some aspects of Shumlib, which are not necessarily required knowledge for all
 developers or users.
 
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 2
 
     INSTALL
     DEVELOP
-    API-SHUM-BYTESWAP
-    API-SHUM-CONSTANTS
-    API-SHUM-FIELDSFILE-CLASSES
-    API-SHUM-FIELDSFILE
-    API-SHUM-HORIZONTAL-FIELD-INTERP
-    API-SHUM-LATLON-EQ-GRIDS
-    API-SHUM-NUMBER-TOOLS
-    API-SHUM-SPIRAL-SEARCH
-    API-SHUM-STRING-CONV
-    API-SHUM-THREAD-UTILS
-    API-SHUM-WGDOS-PACKING
-    TECHNICAL-SHUM-THREAD-UTILS
+    CONTENTS/CONTENTS

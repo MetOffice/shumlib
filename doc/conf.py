@@ -62,7 +62,7 @@ html_theme_options = {
     "show_prev_next": True,
     "navbar_align": "content",
     "logo": {
-        "text": "Simulation Systems",
+        "text": "Shumlib",
         "image_light": "_static/MO_SQUARE_black_mono_for_light_backg_RBG.png",
         "image_dark": "_static/MO_SQUARE_for_dark_backg_RBG.png",
     },
