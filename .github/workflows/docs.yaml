@@ -8,6 +8,9 @@ on: # yamllint disable-line rule:truthy
       - 'releases/**'
   pull_request:
     types: [opened, synchronize, reopened]
+    paths:
+      - 'doc/**'
+      - '.github/workflows/docs.yaml'
   workflow_dispatch:
 
 concurrency:
@@ -37,6 +40,8 @@ jobs:
         with:
           name: github-pages
           path: ./doc/_build/html
+      - name: Minimize uv cache
+        run: uv cache prune --ci
 
   deploy-pages:
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'

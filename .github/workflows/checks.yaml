@@ -58,4 +58,5 @@ jobs:
           jq -c 'select([.status] | inside(["ignored", "redirected"]))' \
             _build/linkcheck/output.json
 
-
+      - name: Minimize uv cache
+        run: uv cache prune --ci
