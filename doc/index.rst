@@ -39,4 +39,4 @@ developers or users.
 
     INSTALL
     DEVELOP
-    CONTENTS/CONTENTS
+    API_REF/CONTENTS
