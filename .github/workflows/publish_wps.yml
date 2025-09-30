@@ -37,7 +37,7 @@ jobs:
       run: uv run sphinx-lint source
 
     - name: Build Docs
-      run: uv run make clean html
+      run: uv run sphinx-build doc doc/build
 
     - name: commit docs to gh-pages branch
       if: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
@@ -46,7 +46,7 @@ jobs:
         cd ../publish_wps
         git fetch origin gh-pages
         git checkout gh-pages
-        cp -r ../simulation-systems/build/html/. .
+        cp -r ../shumlib/doc/build/html/. .
         git add .
         git commit -am "Docs build"
         git push -u origin gh-pages
