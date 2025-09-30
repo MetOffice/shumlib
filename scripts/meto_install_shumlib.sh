@@ -67,7 +67,7 @@ LIB_DIRS=$(find shum_* -maxdepth 0 -type d -print0 | xargs -0)
 
 # Destination for the build (can be overidden, otherwise defaults to a
 # "build" directory in the working copy - like the Makefile would)
-BUILD_DESTINATION=${BUILD_DESTINATION:-$PWD/build}
+BUILD_DESTINATION=${BUILD_DESTINATION:-$PWD/_build}
 
 # This list dictates which threading variants of Shumlib will be installed
 # (all versions defined will always be built + tested, but only those set

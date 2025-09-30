@@ -1,7 +1,7 @@
 # Copied from github c++ template
 
 # Default build directory
-build/
+_build/
 
 # From old svn repository
 *_version_mod.f90
