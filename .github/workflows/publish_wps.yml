@@ -12,40 +12,28 @@ permissions:
   contents: write
 
 jobs:
-  build-and-deploy:
+  # Build job
+  build:
+    # Specify runner +  build & upload the static files as an artifact
     runs-on: ubuntu-latest
-
     steps:
-    - name: set git user
-      run: |
-        git config --global user.email "umsysteam@metoffice.gov.uk"
-        git config --global user.name "SSD Developers"
+      - name: Build static files
+        id: build
+        run: sphinx-build doc doc/build
+      - name: Upload static files as artifact
+        id: deployment
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build_outputs_folder/
 
-    - name: Check out source
-      uses: actions/checkout@v4
-
-    - name: Setup uv
-      uses: astral-sh/setup-uv@v6
-      with:
-        python-version: '3.12'
-
-    - name: Install Dependencies
-      run: uv sync
-
-    - name: Lint Docs
-      run: uv run sphinx-lint source
-
-    - name: Build Docs
-      run: uv run sphinx-build doc doc/build
-
-    - name: commit docs to gh-pages branch
-      if: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
-      run: |
-        git worktree add ../publish_wps
-        cd ../publish_wps
-        git fetch origin gh-pages
-        git checkout gh-pages
-        cp -r ../shumlib/doc/build/html/. .
-        git add .
-        git commit -am "Docs build"
-        git push -u origin gh-pages
+  # Deployment job
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
