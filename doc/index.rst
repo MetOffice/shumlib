@@ -34,3 +34,9 @@ contains more in-depth information for developers of Shumlib itself
 some aspects of Shumlib, which are not necessarily required knowledge for all
 developers or users.
 
+.. toctree::
+    :maxdepth: 2
+
+    INSTALL
+    DEVELOP
+    API_REF/CONTENTS
