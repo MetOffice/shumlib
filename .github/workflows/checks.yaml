@@ -27,19 +27,20 @@ jobs:
         run: uv sync
       - name: Fortran
         # See: fortitude.toml
-        run: uv run make clean html
-      - name: C/C++
+        run: |
+          uv run fortitude check --respect-gitignore --show-fixes --statistics .
+      - name: C
         # See: CPPLINT.cfg
         if: always()
         run: |
-          find . -type f -name "*.c" -o -name "*.h" \
-            -not -path "*.git/*" -not -path "*.venv/*" \
-            | xargs -r uv run cpplint
+          uv run cpplint --recursive --extensions=c,h \
+            --exclude=.git --exclude=.venv .
 
       - name: Detect changes in doc
         id: doc_changes
         run: |
-          if git diff --name-only ${{ github.sha }} ${{ github.event.before }} | grep '^doc/'; then
+          if git diff --name-only ${{ github.sha }} ${{ github.event.before }} \
+            | grep '^doc/'; then
             echo "doc_changed=true" >> $GITHUB_OUTPUT
           else
             echo "doc_changed=false" >> $GITHUB_OUTPUT
