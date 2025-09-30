@@ -24,4 +24,4 @@ jobs:
         uses: actions/checkout@v4
       - name: Build and Test
         run: |
-          make -f ./make/vm-86-gfortran-gcc.mk check
+          make -f ./make/vm-x86-gfortran-gcc.mk check
