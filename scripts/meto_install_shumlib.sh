@@ -27,8 +27,8 @@
 # USAGE:  (Note - must be run from the toplevel Shumlib directory!)
 #   scripts/meto_install_shumlib.sh [azspice|ex1a]
 #
-# This script was used to install shumlib version 2024.11.1
-# and was intended for use with the UM at UM 13.7
+# This script was used to install shumlib version 2025.10.1
+# and was intended for use with the UM at UM 14.0
 #
 
 set -eu
@@ -178,22 +178,23 @@ function build_openmp_onoff {
 # AZ SPICE GNU 12.2
 THIS="azspice_gnu_12.2"
 if [ "$PLATFORM" == "azspice" ] || [ "$PLATFORM" == $THIS ] ; then
-  if [[ $(gcc -dumpversion | awk -F'.' '{print $1}') -gt 8 ]] ; then
-    (
-    module use /data/users/spackadmin/spack/modules/linux-rhel9-zen2
-    module load gcc/12.2.0-gcc-12.2.0-elnqzkg
-    module load mpich/4.2.3-gcc-12.2.0-vqupwpn
-    unset SHUM_TMPDIR
-    CONFIG=meto-azspice-gfortran-gcc
-    LIBDIR=$BUILD_DESTINATION/azspice-gfortran-$(gfortran -dumpversion)-gcc-$(gcc -dumpversion)
-    build_openmp_onoff $CONFIG "$LIBDIR" all_libs
-    )
-    if [ $? -ne 0 ] ; then
-        >&2 echo "Error compiling for $THIS"
-        exit 1
-    fi
-  else
-    >&2 echo "SKIPPING $THIS as GCC version older than 8"
+
+  if [ -z "${SPACKDIR}" ] ; then
+    echo "Please set the SPACKDIR environment variable for loading"
+    echo "the relevant modules"
+    exit 1
+  fi
+
+  module use $SPACKDIR/spack/modules/linux-rhel9-zen2
+  module load gcc/12.2.0-gcc-12.2.0-elnqzkg
+  module load mpich/4.2.3-gcc-12.2.0-vqupwpn
+  unset SHUM_TMPDIR
+  CONFIG=meto-azspice-gfortran-gcc
+  LIBDIR=$BUILD_DESTINATION/azspice-gfortran-$(gfortran -dumpversion)-gcc-$(gcc -dumpversion)
+  build_openmp_onoff $CONFIG "$LIBDIR" all_libs
+  if [ $? -ne 0 ] ; then
+      >&2 echo "Error compiling for $THIS"
+      exit 1
   fi
   RUN_SUCCESS=1
 fi
