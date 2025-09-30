@@ -39,8 +39,7 @@ jobs:
       - name: Detect changes in doc
         id: doc_changes
         run: |
-          if git diff --name-only ${{ github.sha }} ${{ github.event.before }} \
-            | grep '^doc/'; then
+          if git diff --name-only ${{ github.sha }} ${{ github.event.before }} | grep '^doc/'; then
             echo "doc_changed=true" >> $GITHUB_OUTPUT
           else
             echo "doc_changed=false" >> $GITHUB_OUTPUT
