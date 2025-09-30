@@ -3,6 +3,10 @@
 # Default build directory
 _build/
 
+# Virtual environment
+.venv/
+uv.lock
+
 # From old svn repository
 *_version_mod.f90
 

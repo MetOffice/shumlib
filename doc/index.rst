@@ -36,6 +36,7 @@ developers or users.
 
 .. toctree::
     :maxdepth: 2
+    :hidden:
 
     INSTALL
     DEVELOP

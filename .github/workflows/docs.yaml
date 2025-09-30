@@ -1,0 +1,61 @@
+---
+name: CI
+
+on: # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - main
+      - 'releases/**'
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions: read-all
+
+jobs:
+
+  build-docs:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12.9"
+      - name: Install dependencies
+        run: uv sync
+        working-directory: ./doc
+      - name: Build docs
+        run: uv run make clean html
+        working-directory: ./doc
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: github-pages
+          path: ./doc/_build/html
+
+  deploy-pages:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: build-docs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy-pages.outputs.page_url }}
+
+    steps:
+      - name: Deploy Documentation
+        id: deployment
+        uses: actions/deploy-pages@v4
+

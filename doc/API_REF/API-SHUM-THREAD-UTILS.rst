@@ -1,7 +1,7 @@
-API Reference: shum_thread_utils
----------------------------------
+shum_thread_util
+----------------
 
-Fortran Functions/Subroutines
+Fortran Functions/Subroutine
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 ``get_shum_thread_utils_version``

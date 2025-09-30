@@ -1,5 +1,5 @@
-API Reference: shum_string_conv
--------------------------------
+shum_string_conv
+----------------
 
 Foreword: Fortran Vs. C String Representation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

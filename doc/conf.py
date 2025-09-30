@@ -1,3 +1,9 @@
+# -----------------------------------------------------------------------------
+# (C) Crown copyright Met Office. All rights reserved.
+# The file LICENCE, distributed with this code, contains details of the terms
+# under which the code may be used.
+# -----------------------------------------------------------------------------
+
 # Configuration file for the Sphinx documentation builder.
 #
 # This file only contains a selection of the most common options. For a full
@@ -48,13 +54,18 @@ html_static_path = ["_static"]
 html_css_files = ["custom.css"]
 # -- Options for HTML output -------------------------------------------------
 
+html_sidebars = {
+    "INSTALL": [],
+    "DEVELOP": [],
+}
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
 html_theme = 'pydata_sphinx_theme'
 
+html_last_updated_fmt = '%Y-%m-%d %H:%M'
 html_theme_options = {
-    "footer_start": ["crown-copyright"],
+    "footer_start": ["crown-copyright", "last-updated"],
     "footer_center": ["show-accessibility"],
     "footer_end": ["sphinx-version", "theme-version"],
     "navigation_with_keys": False,
@@ -67,6 +78,11 @@ html_theme_options = {
         "image_dark": "_static/MO_SQUARE_for_dark_backg_RBG.png",
     },
     "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/MetOffice/shumlib",
+            "icon": "fa-brands fa-github"
+        },
         {
             "name": "GitHub Discussions",
             "url": "https://github.com/MetOffice/simulation-systems/discussions",

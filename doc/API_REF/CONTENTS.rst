@@ -1,9 +1,10 @@
-Contents
-========
+API reference
+=============
 
 .. toctree::
     :maxdepth: 1
     :hidden:
+    :caption: API Reference
 
     API-SHUM-BYTESWAP
     API-SHUM-CONSTANTS

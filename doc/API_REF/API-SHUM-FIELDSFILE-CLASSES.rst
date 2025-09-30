@@ -1,5 +1,5 @@
-API Reference: UM File and Field classes
-----------------------------------------
+UM File and Field classes
+-------------------------
 
 This API is **experimental**; it provides a higher-level way of reading and
 writing fieldsfiles over the functions provided in ``shum_fieldsfile``. There

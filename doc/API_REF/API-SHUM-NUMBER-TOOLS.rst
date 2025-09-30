@@ -1,5 +1,5 @@
-API Reference: shum_number_tools
---------------------------------
+shum_number_tools
+-----------------
 
 There are certain special classes of number which may be encountered when
 working with floating point arithmatic. These are "NaN" (not a number),

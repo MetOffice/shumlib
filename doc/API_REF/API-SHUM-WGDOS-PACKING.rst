@@ -1,5 +1,5 @@
-API Reference: shum_wgdos_packing
----------------------------------
+shum_wgdos_packing
+------------------
 
 Fortran Functions/Subroutines
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
