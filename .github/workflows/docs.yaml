@@ -31,6 +31,10 @@ jobs:
       - name: Build docs
         run: uv run make clean html
         working-directory: ./doc
+      - id: permissions
+        name: Set permissions
+        run: |
+          chmod -c -R +rX "./doc/_build/html/"
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
