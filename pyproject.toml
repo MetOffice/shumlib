@@ -1,0 +1,39 @@
+# (c) Crown copyright, Met Office. All rights reserved.
+# The file LICENCE, distributed with this code, contains details of the terms
+# under which the code may be used.
+
+[project]
+name = "shumlib"
+# dynamic = ["version"]
+version = "26.1.0"
+description = "Set of libraries used by the Met Office Unified Model (UM)"
+authors = [
+    {name = "Met Office", email = "enquiries@metoffice.gov.uk"},
+]
+maintainers = [
+    {name = "SSD Team", email = "umsysteam@metoffice.gov.uk"},
+]
+licence = { file = "../LICENCE" }
+homepage = "https://metoffice.github.com/shumlib"
+repository = "https://github.com/MetOffice/shumlib"
+keywords = ["SHUM", "library"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: UM Developers",
+    "License :: OSI Approved :: BSD-3-Clause License",
+    "Programming Language :: Fortran, C",
+    ]
+
+requires-python = ">=3.11"
+dependencies = [
+    "fortitude-lint == 0.7.5",
+    "cpplint == 2.0.2",
+    "sphinx == 8.2.3",
+    "sphinx-lint == 1.0.0",
+    "pydata-sphinx-theme == 0.16.1",
+    "sphinx-design == 0.6.1",
+    "sphinx-copybutton == 0.5.2",
+    "sphinx-lint == 1.0.0",
+    "sphinx-sitemap == 2.8.0",
+    "sphinxcontrib-svg2pdfconverter == 1.3.0"
+]

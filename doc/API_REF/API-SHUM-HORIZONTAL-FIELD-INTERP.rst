@@ -1,5 +1,5 @@
-API Reference: shum_horizontal_field_interp
--------------------------------------------
+shum_horizontal_field_interp
+----------------------------
 
 Fortran Functions/Subroutines
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%

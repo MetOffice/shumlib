@@ -1,5 +1,5 @@
-API Reference: shum_byteswap
-----------------------------
+shum_byteswap
+-------------
 
 When performing reads from disk there are two different orders in which the
 individual bytes making up a word/record can be read; these forms are known as

@@ -61,7 +61,7 @@ This ensures it is possible to select the use of only the Fortan OpenMP runtime 
 If possible, provide a Fortran implementation of the OpenMP parallelism as well, using the wrappers in the ``shum_thread_utils``.
 An example of such use is given below.
 
-::
+.. code-block:: c
 
   #if defined(_OPENMP) && defined(SHUM_USE_C_OPENMP_VIA_THREAD_UTILS)
 
@@ -102,7 +102,7 @@ This restriction is required to simplify the implementation of automated testing
 Any OpenMP if-def pair must not also include a logical test on a third macro. If this functionality is required, find an appropriate nesting of ``#if defined()`` tests.
 For example instead of:
 
-::
+.. code-block:: c
 
   #if defined(_OPENMP) && defined(SHUM_USE_C_OPENMP_VIA_THREAD_UTILS) && defined(OTHER)
     /* do stuff */
@@ -110,7 +110,7 @@ For example instead of:
 
 Use:
 
-::
+.. code-block:: c
 
   #if defined(_OPENMP) && defined(SHUM_USE_C_OPENMP_VIA_THREAD_UTILS)
   #if defined(OTHER)
@@ -136,7 +136,7 @@ This can be used equivalently to how the ``!$`` sentinel would be in Fortran.
 You cannot hide the use of the ``_OPENMP`` & ``SHUM_USE_C_OPENMP_VIA_THREAD_UTILS`` macros through the definition of a third macro dependent on them.
 For example, you must not define and use a new macro in place of the two original macros, as shown here:
 
-::
+.. code-block:: c
 
   #define USE_THREAD_UTILS defined(_OPENMP) && defined(SHUM_USE_C_OPENMP_VIA_THREAD_UTILS)
 
@@ -153,7 +153,7 @@ This section will detail how to correctly use the shum_thread_utils module from 
 
 To access the ``f_shum_thread_utils`` routines, the ``c_shum_thread_utils.h`` header must be included in your code as shown in the code example below.
 
-::
+.. code-block:: c
 
   #include <stdio.h>
   #include <stdint.h>
@@ -171,7 +171,7 @@ the code with the ``_OPENMP`` pre-processing macro, as none of the OpenMP is exp
 However, one may choose to use protect the inclusion anyway, perhaps to allow preprocessing to switching between ``f_shum_thread_utils``,
 direct OpenMP, and no OpenMP - as shown in the example below.
 
-::
+.. code-block:: c
 
   #include <stdio.h>
   #include <stdint.h>

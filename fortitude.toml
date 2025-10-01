@@ -1,0 +1,16 @@
+[check]
+exclude = ['.venv']
+ignore = [
+    'C002',    # interface-implicit-typing
+    'C003',    # implicit-external-procedures
+    'C061',    # missing-intent
+    'C071',    # assumed-size
+    'C072',    # assumed-size-character-intent
+    'C081',    # initialisation-in-declaration
+    'C121',    # use-all
+    'C141',    # missing-exit-or-cycle-label
+    'E001',    # syntax-error
+    'MOD011',  # old-style-array-literal
+    'MOD021',  # deprecated-relational-operator
+    'S061',    # unnamed-end-statement
+]

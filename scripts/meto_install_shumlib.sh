@@ -67,7 +67,7 @@ LIB_DIRS=$(find shum_* -maxdepth 0 -type d -print0 | xargs -0)
 
 # Destination for the build (can be overidden, otherwise defaults to a
 # "build" directory in the working copy - like the Makefile would)
-BUILD_DESTINATION=${BUILD_DESTINATION:-$PWD/build}
+BUILD_DESTINATION=${BUILD_DESTINATION:-$PWD/_build}
 
 # This list dictates which threading variants of Shumlib will be installed
 # (all versions defined will always be built + tested, but only those set
@@ -178,22 +178,23 @@ function build_openmp_onoff {
 # AZ SPICE GNU 12.2
 THIS="azspice_gnu_12.2"
 if [ "$PLATFORM" == "azspice" ] || [ "$PLATFORM" == $THIS ] ; then
-  if [[ $(gcc -dumpversion | awk -F'.' '{print $1}') -gt 8 ]] ; then
-    (
-    module use /data/users/spackadmin/spack/modules/linux-rhel9-zen2
-    module load gcc/12.2.0-gcc-12.2.0-elnqzkg
-    module load mpich/4.2.3-gcc-12.2.0-vqupwpn
-    unset SHUM_TMPDIR
-    CONFIG=meto-azspice-gfortran-gcc
-    LIBDIR=$BUILD_DESTINATION/azspice-gfortran-$(gfortran -dumpversion)-gcc-$(gcc -dumpversion)
-    build_openmp_onoff $CONFIG "$LIBDIR" all_libs
-    )
-    if [ $? -ne 0 ] ; then
-        >&2 echo "Error compiling for $THIS"
-        exit 1
-    fi
-  else
-    >&2 echo "SKIPPING $THIS as GCC version older than 8"
+
+  if [ -z "${SPACKDIR}" ] ; then
+    echo "Please set the SPACKDIR environment variable for loading"
+    echo "the relevant modules"
+    exit 1
+  fi
+
+  module use $SPACKDIR/spack/modules/linux-rhel9-zen2
+  module load gcc/12.2.0-gcc-12.2.0-elnqzkg
+  module load mpich/4.2.3-gcc-12.2.0-vqupwpn
+  unset SHUM_TMPDIR
+  CONFIG=meto-azspice-gfortran-gcc
+  LIBDIR=$BUILD_DESTINATION/azspice-gfortran-$(gfortran -dumpversion)-gcc-$(gcc -dumpversion)
+  build_openmp_onoff $CONFIG "$LIBDIR" all_libs
+  if [ $? -ne 0 ] ; then
+      >&2 echo "Error compiling for $THIS"
+      exit 1
   fi
   RUN_SUCCESS=1
 fi

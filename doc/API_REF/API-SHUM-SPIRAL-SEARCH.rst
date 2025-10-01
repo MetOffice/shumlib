@@ -1,5 +1,5 @@
-API Reference: shum_spiral_search
----------------------------------
+shum_spiral_search
+------------------
 
 Fortran Functions/Subroutines
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%

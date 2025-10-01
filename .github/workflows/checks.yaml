@@ -1,0 +1,62 @@
+---
+name: Quality
+
+on: # yamllint disable-line rule:truthy
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions: read-all
+
+jobs:
+
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+      - name: Install dependencies
+        run: uv sync
+      - name: Fortran
+        # See: fortitude.toml
+        run: |
+          uv run fortitude check --respect-gitignore --show-fixes --statistics .
+      - name: C
+        # See: CPPLINT.cfg
+        if: always()
+        run: |
+          uv run cpplint --recursive --extensions=c,h \
+            --exclude=.git --exclude=.venv .
+
+      # - name: Detect changes in doc
+      #   id: doc_changes
+      #   run: |
+      #     if git diff --name-only ${{ github.sha }} ${{ github.event.before }} | grep '^doc/'; then
+      #       echo "doc_changed=true" >> $GITHUB_OUTPUT
+      #     else
+      #       echo "doc_changed=false" >> $GITHUB_OUTPUT
+      #     fi
+      - name: RestructuredText
+        # if: steps.doc_changes.outputs.doc_changed == 'true'
+        working-directory: ./doc
+        run: uv run sphinx-lint .
+      - name: Link Checks
+        # if: steps.doc_changes.outputs.doc_changed == 'true'
+        working-directory: ./doc
+        run: |
+          uv run sphinx-build -q -b linkcheck \
+            -d _build/doctrees . _build/linkcheck || true
+          echo "== Ignored and Redirected links, if any =="
+          jq -c 'select([.status] | inside(["ignored", "redirected"]))' \
+            _build/linkcheck/output.json
+
+      - name: Minimize uv cache
+        run: uv cache prune --ci

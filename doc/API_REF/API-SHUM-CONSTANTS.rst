@@ -1,5 +1,5 @@
-API Reference: shum_constants
--------------------------------------------
+shum_constants
+--------------
 
 Fortran Modules
 %%%%%%%%%%%%%%%

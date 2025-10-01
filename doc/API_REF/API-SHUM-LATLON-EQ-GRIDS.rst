@@ -1,5 +1,5 @@
-API Reference: shum_latlon_eq_grids
------------------------------------
+shum_latlon_eq_grids
+--------------------
 
 Fortran Functions/Subroutines
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
