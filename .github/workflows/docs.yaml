@@ -17,7 +17,7 @@ permissions: read-all
 
 jobs:
 
-  build-shumlib-docs:
+  build-docs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
 
@@ -47,7 +47,7 @@ jobs:
   deploy:
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     # Add a dependency to the build job
-    needs: build
+    needs: build-docs
 
     # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
     permissions:
