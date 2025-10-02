@@ -14,7 +14,7 @@ permissions: read-all
 
 jobs:
 
-  checks:
+  shumlib-checks:
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
