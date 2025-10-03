@@ -1,6 +1,6 @@
 # Main makefile storing common options for building all libraries, by triggering
 # individual makefiles from each library directory
-#--------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 # The intention is that the user points "make" at one of the platform specific
 # files, which include this file at the end; here we try to ensure that this

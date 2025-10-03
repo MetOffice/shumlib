@@ -27,8 +27,8 @@
 # USAGE:  (Note - must be run from the toplevel Shumlib directory!)
 #   scripts/meto_install_shumlib.sh [azspice|ex1a]
 #
-# This script was used to install shumlib version 2024.11.1
-# and was intended for use with the UM at UM 13.7
+# This script was used to install shumlib version 2025.10.1
+# and was intended for use with the UM at UM 14.0
 #
 
 set -eu
