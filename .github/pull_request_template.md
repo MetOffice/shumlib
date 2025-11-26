@@ -67,6 +67,8 @@ Code Reviewer: <!-- CR id, filled by SSD -->
       Github Copilot Personal, ChatGPT GPT-4, etc) and I have followed the
       [Simulation Systems AI policy](https://metoffice.github.io/simulation-systems/FurtherDetails/ai.html)(including attribution labels)
 
+<!-- If AI has been used, please provide more details here -->
+
 ## Documentation
 
 - [ ] Where appropriate I have updated documentation related to this change and
