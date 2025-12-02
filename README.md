@@ -1,6 +1,7 @@
 # Shumlib
 
 [![CI](https://github.com/MetOffice/shumlib/actions/workflows/docs.yaml/badge.svg)](https://github.com/MetOffice/shumlib/actions/workflows/docs.yaml)
+[![Docs](https://github.com/MetOffice/shumlib/actions/workflows/docs.yaml/badge.svg)](https://github.com/MetOffice/shumlib/actions/workflows/docs.yaml)
 
 Shumlib is the collective name for a set of libraries which are used by the UM;
 the UK Met Office's Unified Model, that may be of use to external tools or
