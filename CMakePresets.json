@@ -1,0 +1,70 @@
+{
+    "version": 2,
+    "configurePresets": [
+        {
+            "name": "debug",
+            "displayName": "Debug",
+            "generator": "Unix Makefiles",
+            "binaryDir": "build/debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "debug-gcc",
+            "displayName": "GCC Debug",
+            "inherits": "debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_C_COMPILER": "gcc",
+                "CMAKE_Fortran_COMPILER": "gfortran",
+                "CMAKE_C_FLAGS_INIT": "-g -Wall -Wextra -Werror -Wformat=2 -Winit-self -Wfloat-equal -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wcast-align -Wconversion -Wlogical-op -Wstrict-prototypes -Wmissing-declarations -Wredundant-decls -Wnested-externs -Woverlength-strings -Wshadow -Wall -Wextra -Wpedantic -fdiagnostics-show-option",
+                "CMAKE_Fortran_FLAGS_INIT": "-g -std=f2018 -pedantic -pedantic-errors -fno-range-check -Wall -Wextra -Werror -Wno-compare-reals -Wconversion -Wno-unused-dummy-argument -Wno-c-binding-type -fdiagnostics-show-option"
+            }
+        },
+        {
+            "name": "debug-cce",
+            "displayName": "Cray CCE Debug",
+            "inherits": "debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_C_COMPILER": "cc",
+                "CMAKE_Fortran_COMPILER": "ftn",
+                "CMAKE_C_FLAGS_INIT": "-g -Weverything -Wno-vla -Wno-padded -Wno-missing-noreturn -Wno-declaration-after-statement -Werror -pedantic -pedantic-errors -fdiagnostics-show-option -DSHUM_X86_INTRINSIC",
+                "CMAKE_Fortran_FLAGS_INIT": "-g -M E287,E5001,1077"
+            }
+        },
+        {
+            "name": "debug-nvhpc",
+            "displayName": "nvidia HPC Debug",
+            "inherits": "debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_C_COMPILER": "nvcc",
+                "CMAKE_Fortran_COMPILER": "nvfortran",
+                "CMAKE_C_FLAGS_INIT": "-g",
+                "CMAKE_Fortran_FLAGS_INIT": "-g"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "debug-gcc",
+            "displayName": "GCC Debug Build",
+            "configurePreset": "debug",
+            "configuration": "Debug"
+        },
+        {
+            "name": "debug-cce",
+            "displayName": "Cray CCE Debug Build",
+            "configurePreset": "debug",
+            "configuration": "Debug"
+        },
+        {
+            "name": "debug-nvhpc",
+            "displayName": "nvidia HPC Debug Build",
+            "configurePreset": "debug",
+            "configuration": "Debug"
+        }
+    ]
+}

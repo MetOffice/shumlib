@@ -2,6 +2,7 @@
 
 # Default build directory
 _build/
+build/
 
 # Virtual environment
 .venv/
