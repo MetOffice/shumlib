@@ -230,7 +230,7 @@ contains
 
     resultValue = .false.
 
-    if ( number1 .eq. number2 ) then
+    if ( number1 == number2 ) then
        resultValue = .true.
     else
        resultValue = .false.
@@ -243,7 +243,7 @@ contains
 
     resultValue = .false.
 
-    if ( number1 .eq. number2 ) then
+    if ( number1 == number2 ) then
        resultValue = .true.
     else
        resultValue = .false.
@@ -256,7 +256,7 @@ contains
 
     resultValue = .false.
 
-    if ( str1 .eq. str2 ) then
+    if ( str1 == str2 ) then
        resultValue = .true.
     end if
   end function stringEqual
@@ -997,7 +997,7 @@ contains
 
     !$OMP BARRIER
 
-    if ( initial_failed_assert_count .eq. failed_assert_count ) then
+    if ( initial_failed_assert_count == failed_assert_count ) then
        ! If no additional assertions failed during the run of this test case
        ! then the test case was successful
        successful_case_count = successful_case_count+1
@@ -1102,12 +1102,12 @@ contains
   subroutine obsolete_isAllSuccessful_(result)
     logical, intent(out) :: result
     call obsolete_ ('subroutine isAllSuccessful is changed to function is_all_successful.')
-    result = (failed_assert_count .eq. 0 )
+    result = (failed_assert_count == 0 )
   end subroutine obsolete_isAllSuccessful_
 
   subroutine is_all_successful(result)
     logical, intent(out) :: result
-    result= (failed_assert_count .eq. 0 )
+    result= (failed_assert_count == 0 )
   end subroutine is_all_successful
 
   ! Private, helper routine to wrap lines of success/failed marks
@@ -1119,7 +1119,7 @@ contains
 
     !$omp critical      (FRUIT_OMP_ADD_OUTPUT_MARK)
     linechar_count = linechar_count + 1
-    if ( linechar_count .lt. MAX_MARKS_PER_LINE ) then
+    if ( linechar_count < MAX_MARKS_PER_LINE ) then
        write(stdout,"(A1)",ADVANCE='NO') chr
     else
        write(stdout,"(A1)",ADVANCE='YES') chr

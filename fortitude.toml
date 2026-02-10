@@ -10,6 +10,5 @@ ignore = [
     'C141',    # missing-exit-or-cycle-label
     'E001',    # syntax-error
     'MOD011',  # old-style-array-literal
-    'MOD021',  # deprecated-relational-operator
     'S061',    # unnamed-end-statement
 ]
