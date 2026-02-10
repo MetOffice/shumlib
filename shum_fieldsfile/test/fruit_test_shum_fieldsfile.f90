@@ -95,7 +95,7 @@ IF (get_env_status == 0 .AND. shum_tmpdir_len > 0) THEN
                                 VALUE=shum_tmpdir,                             &
                                 STATUS=get_env_status)
 ELSE
-   ! Force and error if variable has zero length
+   ! Force an error if variable has zero length
    get_env_status = 1
 END IF
 ! Now check the status (not an ELSE IF, because that way we can catch the
