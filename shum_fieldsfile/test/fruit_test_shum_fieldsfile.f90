@@ -157,7 +157,7 @@ USE f_shum_fixed_length_header_indices_mod, ONLY:                              &
 IMPLICIT NONE
 
 INTEGER(KIND=int64) :: status
-CHARACTER(LEN=500)  :: message = ""
+CHARACTER(LEN=500)  :: message
 INTEGER(KIND=int64) :: ff_id
 
 CHARACTER(LEN=*), PARAMETER   :: tempfile="fruit_test_fieldsfile_direct.ff"
@@ -226,6 +226,8 @@ INTEGER :: failures_at_entry
 INTEGER :: failures_at_exit
 
 LOGICAL(KIND=bool) :: check
+
+message = ""
 
 ! Get the number of failed tests prior to this test starting
 CALL get_failed_count(failures_at_entry)
@@ -879,7 +881,7 @@ USE f_shum_fixed_length_header_indices_mod, ONLY:                              &
 IMPLICIT NONE
 
 INTEGER(KIND=int64) :: status
-CHARACTER(LEN=500)  :: message = ""
+CHARACTER(LEN=500)  :: message
 INTEGER(KIND=int64) :: ff_id
 
 CHARACTER(LEN=*), PARAMETER   :: tempfile="fruit_test_fieldsfile_sequential.ff"
@@ -948,6 +950,8 @@ INTEGER :: failures_at_entry
 INTEGER :: failures_at_exit
 
 LOGICAL(KIND=bool) :: check
+
+message = ""
 
 ! Get the number of failed tests prior to this test starting
 CALL get_failed_count(failures_at_entry)
@@ -1555,7 +1559,7 @@ USE f_shum_stashmaster_mod, ONLY: shum_STASHmaster, f_shum_read_stashmaster
 IMPLICIT NONE
 
 INTEGER(KIND=int64)    :: status
-CHARACTER(LEN=500)     :: message = ""
+CHARACTER(LEN=500)     :: message
 CHARACTER(LEN=1)       :: newline
 TYPE(shum_STASHmaster), ALLOCATABLE :: STASHmaster(:)
 
@@ -1569,6 +1573,8 @@ INTEGER(KIND=int64) :: grid
 CHARACTER(LEN=36)   :: name
 INTEGER(KIND=int64) :: packing_codes(10)
 LOGICAL(KIND=bool)  :: check
+
+message = ""
 
 ! Get the number of failed tests prior to this test starting
 CALL get_failed_count(failures_at_entry)

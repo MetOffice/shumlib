@@ -231,10 +231,12 @@ INTEGER(KIND=INT64), PARAMETER :: dump_type = 1
 INTEGER(KIND=INT64), PARAMETER :: fieldsfile_type = 3
 INTEGER(KIND=INT64), PARAMETER :: ancil_type = 4
 
-LOGICAL :: is_variable_resolution = .FALSE.
+LOGICAL :: is_variable_resolution
 LOGICAL :: grid_supported
 
 TYPE(shum_ff_status_type) :: STATUS    ! Return status object
+
+is_variable_resolution = .FALSE.
 
 ! Read in compulsory headers
 STATUS%icode = f_shum_read_fixed_length_header(                                &

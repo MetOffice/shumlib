@@ -173,13 +173,13 @@ LOGICAL(KIND=bool) :: unres_mask(points_phi*points_lambda)
 INTEGER(KIND=int64) :: index_unres(no_point_unres)
 INTEGER(KIND=int64) :: indices(no_point_unres)
 
-LOGICAL(KIND=bool) :: is_land_field = .TRUE.
-LOGICAL(KIND=bool) :: constrained   = .FALSE.
-LOGICAL(KIND=bool) :: cyclic_domain = .FALSE.
+LOGICAL(KIND=bool) :: is_land_field
+LOGICAL(KIND=bool) :: constrained
+LOGICAL(KIND=bool) :: cyclic_domain
 
-REAL(KIND=real64) :: constrained_max_dist = 200000.0
+REAL(KIND=real64), PARAMETER :: constrained_max_dist = 200000.0
 REAL(KIND=real64) :: planet_radius
-REAL(KIND=real64) :: dist_step = 3.0
+REAL(KIND=real64), PARAMETER :: dist_step = 3.0
 
 INTEGER(KIND=int64) :: result_land(no_point_unres)
 INTEGER(KIND=int64) :: result_land_con(no_point_unres)
@@ -189,6 +189,10 @@ INTEGER(KIND=int64)          :: i
 INTEGER(KIND=int64)          :: status
 CHARACTER(LEN=400)           :: message
 CHARACTER(LEN=200)           :: case_info
+
+is_land_field = .TRUE.
+constrained   = .FALSE.
+cyclic_domain = .FALSE.
 
 ! Retrieve the set of data points to be tested
 CALL sample_6x6_data(lats, lons, lsm, unres_mask, index_unres, planet_radius )
@@ -281,13 +285,13 @@ LOGICAL(KIND=bool) :: unres_mask(points_phi*points_lambda)
 INTEGER(KIND=int32) :: index_unres(no_point_unres)
 INTEGER(KIND=int32) :: indices(no_point_unres)
 
-LOGICAL(KIND=bool) :: is_land_field = .TRUE.
-LOGICAL(KIND=bool) :: constrained   = .FALSE.
-LOGICAL(KIND=bool) :: cyclic_domain = .FALSE.
+LOGICAL(KIND=bool) :: is_land_field
+LOGICAL(KIND=bool) :: constrained
+LOGICAL(KIND=bool) :: cyclic_domain
 
 REAL(KIND=real32)   :: planet_radius
-REAL(KIND=real32)   :: constrained_max_dist = 200000.0
-REAL(KIND=real32) :: dist_step = 3.0
+REAL(KIND=real32), PARAMETER :: constrained_max_dist = 200000.0
+REAL(KIND=real32), PARAMETER :: dist_step = 3.0
 
 INTEGER(KIND=int32) :: result_land(no_point_unres)
 INTEGER(KIND=int32) :: result_land_con(no_point_unres)
@@ -297,6 +301,10 @@ INTEGER(KIND=int32)          :: i
 INTEGER(KIND=int32)          :: status
 CHARACTER(LEN=400)           :: message
 CHARACTER(LEN=200)           :: case_info
+
+is_land_field = .TRUE.
+constrained   = .FALSE.
+cyclic_domain = .FALSE.
 
 ! Retrieve the set of data points to be tested - should find 32bit version
 CALL sample_6x6_data(lats, lons, lsm, unres_mask, index_unres, &
