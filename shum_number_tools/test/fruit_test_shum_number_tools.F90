@@ -40,7 +40,7 @@ INTERFACE
   IMPORT :: C_FLOAT
   IMPLICIT NONE
   REAL(KIND=C_FLOAT) :: c_test_generate_finf
-  END FUNCTION
+  end function c_test_generate_finf
 END INTERFACE
 
 !------------------------------------------------------------------------------!
@@ -50,7 +50,7 @@ INTERFACE
   IMPORT :: C_DOUBLE
   IMPLICIT NONE
   REAL(KIND=C_DOUBLE) :: c_test_generate_dinf
-  END FUNCTION
+  end function c_test_generate_dinf
 END INTERFACE
 
 !------------------------------------------------------------------------------!
@@ -60,7 +60,7 @@ INTERFACE
   IMPORT :: C_FLOAT
   IMPLICIT NONE
   REAL(KIND=C_FLOAT) :: c_test_generate_fnan
-  END FUNCTION
+  end function c_test_generate_fnan
 END INTERFACE
 
 !------------------------------------------------------------------------------!
@@ -70,7 +70,7 @@ INTERFACE
   IMPORT :: C_DOUBLE
   IMPLICIT NONE
   REAL(KIND=C_DOUBLE) :: c_test_generate_dnan
-  END FUNCTION
+  end function c_test_generate_dnan
 END INTERFACE
 
 !------------------------------------------------------------------------------!
@@ -81,7 +81,7 @@ INTERFACE
   IMPORT :: C_FLOAT
   IMPLICIT NONE
   REAL(KIND=C_FLOAT) :: denormal_float
-  END SUBROUTINE
+  end subroutine c_test_generate_fdenormal
 END INTERFACE
 
 !------------------------------------------------------------------------------!
@@ -92,7 +92,7 @@ INTERFACE
   IMPORT :: C_DOUBLE
   IMPLICIT NONE
   REAL(KIND=C_DOUBLE) :: denormal_double
-  END SUBROUTINE
+  end subroutine c_test_generate_ddenormal
 END INTERFACE
 
 !------------------------------------------------------------------------------!

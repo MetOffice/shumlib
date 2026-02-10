@@ -39,7 +39,7 @@ SUBROUTINE c_exit(status)  BIND(c,NAME="exit")
   IMPORT :: C_INT
   IMPLICIT NONE
   INTEGER(KIND=C_INT), VALUE, INTENT(IN) :: status
-END SUBROUTINE
+END SUBROUTINE c_exit
 END INTERFACE
 
 !------------------------------------------------------------------------------!

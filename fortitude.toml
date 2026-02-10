@@ -9,5 +9,4 @@ ignore = [
     'C121',    # use-all
     'C141',    # missing-exit-or-cycle-label
     'E001',    # syntax-error
-    'S061',    # unnamed-end-statement
 ]

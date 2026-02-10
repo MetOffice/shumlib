@@ -276,7 +276,7 @@ END DO
 ! returning the last element in the list
 NULLIFY(ff)
 
-END FUNCTION
+END FUNCTION unique_id_to_ff
 
 !------------------------------------------------------------------------------!
 
