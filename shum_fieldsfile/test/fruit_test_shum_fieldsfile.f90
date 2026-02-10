@@ -21,7 +21,8 @@
 !*******************************************************************************
 MODULE fruit_test_shum_fieldsfile_mod
 
-USE fruit
+USE fruit, ONLY: assert_equals, assert_false, assert_true, get_failed_count,   &
+     run_test_case
 USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         &
   C_INT64_T, C_INT32_T, C_FLOAT, C_DOUBLE, C_INT, C_BOOL
 
