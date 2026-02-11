@@ -220,10 +220,10 @@ INTEGER                     :: ix
 
 ! Loop over elements of x and determine if any are NaNs
 ! Exit immediately if any are found
-DO ix=1,SIZE(x)
+HAS_NAN: DO ix=1,SIZE(x)
   f_shum_has_nan32 = f_shum_is_nan32(x(ix))
-  IF (f_shum_has_nan32) EXIT
-END DO
+  IF (f_shum_has_nan32) EXIT HAS_NAN
+END DO HAS_NAN
 
 END FUNCTION f_shum_has_nan32
 

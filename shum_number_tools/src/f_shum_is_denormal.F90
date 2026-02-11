@@ -209,10 +209,10 @@ INTEGER                     :: ix
 
 ! Loop over elements of x and determine if any are infinite
 ! Exit immediately if any are found
-DO ix=1,SIZE(x)
+HAS_INF: DO ix=1,SIZE(x)
   f_shum_has_denormal32 = f_shum_is_denormal32(x(ix))
-  IF (f_shum_has_denormal32) EXIT
-END DO
+  IF (f_shum_has_denormal32) EXIT HAS_INF
+END DO HAS_INF
 
 END FUNCTION f_shum_has_denormal32
 
