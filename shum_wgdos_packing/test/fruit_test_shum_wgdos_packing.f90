@@ -197,9 +197,9 @@ END SUBROUTINE sample_unpacked_data_1d
 SUBROUTINE sample_packed_data(sample)
 IMPLICIT NONE
 
-INTEGER(KIND=int32)          :: sample(21)
-INTEGER(KIND=int32), POINTER :: sample_pointer(:)
-INTEGER(KIND=int64), TARGET  :: sample64(11)
+INTEGER(KIND=int32), INTENT(OUT) :: sample(21)
+INTEGER(KIND=int32), POINTER     :: sample_pointer(:)
+INTEGER(KIND=int64), TARGET      :: sample64(11)
 
 ! Define the data as a 64-bit array.  The reason for this is that although the
 ! packing algorithm represents the data as 32-bit, the actual array is just a

@@ -80,7 +80,7 @@ INTERFACE
                                         BIND(c,NAME="c_test_generate_fdenormal")
   IMPORT :: C_FLOAT
   IMPLICIT NONE
-  REAL(KIND=C_FLOAT) :: denormal_float
+  REAL(KIND=C_FLOAT), INTENT(OUT) :: denormal_float
   end subroutine c_test_generate_fdenormal
 END INTERFACE
 
@@ -91,7 +91,7 @@ INTERFACE
                                         BIND(c,NAME="c_test_generate_ddenormal")
   IMPORT :: C_DOUBLE
   IMPLICIT NONE
-  REAL(KIND=C_DOUBLE) :: denormal_double
+  REAL(KIND=C_DOUBLE), INTENT(OUT) :: denormal_double
   end subroutine c_test_generate_ddenormal
 END INTERFACE
 

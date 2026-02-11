@@ -77,7 +77,7 @@ USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         &
 
 IMPLICIT NONE
 
-CHARACTER(KIND=C_CHAR,LEN=1), TARGET :: cstr(*)
+CHARACTER(KIND=C_CHAR,LEN=1), INTENT(IN), TARGET :: cstr(*)
 INTEGER(KIND=C_INT64_T)              :: c_strlen_integer_cstr
 
 c_strlen_integer_cstr = INT(c_std_strlen(cstr), KIND=C_INT64_T)
@@ -95,7 +95,8 @@ USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         &
 
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T) :: cstr_len, i
+INTEGER(KIND=C_INT64_T), INTENT(IN)      :: cstr_len
+INTEGER(KIND=C_INT64_T)                  :: i
 CHARACTER(KIND=C_CHAR,LEN=1), INTENT(IN) :: cstr(cstr_len)
 CHARACTER(LEN=cstr_len)                  :: c2f_string_cstr
 
@@ -114,7 +115,8 @@ USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         &
 
 IMPLICIT NONE
 
-INTEGER(KIND=C_INT64_T) :: cstr_len, i
+INTEGER(KIND=C_INT64_T), INTENT(IN)      :: cstr_len
+INTEGER(KIND=C_INT64_T)                  :: i
 TYPE(C_PTR), INTENT(IN)                  :: cptr
 CHARACTER(KIND=C_CHAR, LEN=1), POINTER   :: fptr(:)
 CHARACTER(LEN=cstr_len)                  :: c2f_string_cptr

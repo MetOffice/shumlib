@@ -135,7 +135,7 @@ INTERFACE
     IMPLICIT NONE
 
     LOGICAL(KIND=C_BOOL), INTENT(OUT) :: test_ret
-    INTEGER(KIND=C_INT64_T) :: par
+    INTEGER(KIND=C_INT64_T), INTENT(OUT) :: par
 
   END SUBROUTINE c_test_inpar
 
@@ -149,7 +149,7 @@ INTERFACE
     IMPLICIT NONE
 
     LOGICAL(KIND=C_BOOL), INTENT(OUT) :: test_ret
-    INTEGER(KIND=C_INT64_T) :: tid
+    INTEGER(KIND=C_INT64_T), INTENT(OUT) :: tid
 
   END SUBROUTINE c_test_threadid
 
@@ -163,7 +163,7 @@ INTERFACE
     IMPLICIT NONE
 
     LOGICAL(KIND=C_BOOL), INTENT(OUT) :: test_ret
-    INTEGER(KIND=C_INT64_T) :: numthreads
+    INTEGER(KIND=C_INT64_T), INTENT(OUT) :: numthreads
 
   END SUBROUTINE c_test_numthreads
 
@@ -177,7 +177,7 @@ INTERFACE
     IMPLICIT NONE
 
     LOGICAL(KIND=C_BOOL), INTENT(OUT) :: test_ret
-    INTEGER(KIND=C_INT64_T) :: shared1
+    INTEGER(KIND=C_INT64_T), INTENT(IN) :: shared1
 
   END SUBROUTINE c_test_threadflush
 

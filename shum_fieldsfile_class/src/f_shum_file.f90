@@ -138,8 +138,8 @@ USE f_shum_fieldsfile_mod, ONLY:                                               &
 IMPLICIT NONE
 CLASS(shum_file_type), INTENT(IN OUT)   :: self
 CHARACTER(LEN=*), INTENT(IN) :: fname
-INTEGER(KIND=INT64), OPTIONAL :: num_lookup
-LOGICAL(KIND=bool), OPTIONAL :: overwrite
+INTEGER(KIND=INT64), INTENT(IN), OPTIONAL :: num_lookup
+LOGICAL(KIND=bool), INTENT(IN), OPTIONAL :: overwrite
 TYPE(shum_ff_status_type) :: STATUS    ! Return status object
 INTEGER(KIND=INT64) :: lookup_size
 LOGICAL :: exists, read_only
@@ -1908,7 +1908,7 @@ IMPLICIT NONE
 
 ! Arguments
 CLASS(shum_file_type), INTENT(IN)     :: self
-INTEGER(KIND=INT64) :: fixed_length_header(f_shum_fixed_length_header_len)
+INTEGER(KIND=INT64), INTENT(OUT) :: fixed_length_header(f_shum_fixed_length_header_len)
 TYPE(shum_ff_status_type) :: STATUS    ! Return status object
 
 fixed_length_header = self%fixed_length_header
@@ -1923,7 +1923,7 @@ FUNCTION set_fixed_length_header_by_index(self, num_index, value_to_set)       &
     RESULT(STATUS)
 IMPLICIT NONE
 CLASS(shum_file_type), INTENT(IN OUT)     :: self
-INTEGER(KIND=INT64) :: num_index, value_to_set
+INTEGER(KIND=INT64), INTENT(IN) :: num_index, value_to_set
 TYPE(shum_ff_status_type) :: STATUS    ! Return status object
 
 IF (num_index < 1_int64 .OR. num_index > f_shum_fixed_length_header_len)       &
@@ -1944,7 +1944,8 @@ FUNCTION get_fixed_length_header_by_index(self, num_index, value_to_get)       &
     RESULT(STATUS)
 IMPLICIT NONE
 CLASS(shum_file_type), INTENT(IN)     :: self
-INTEGER(KIND=INT64) :: num_index, value_to_get
+INTEGER(KIND=INT64), INTENT(IN) :: num_index
+INTEGER(KIND=INT64), INTENT(OUT) :: value_to_get
 TYPE(shum_ff_status_type) :: STATUS    ! Return status object
 
 IF (num_index < 1_int64 .OR. num_index > f_shum_fixed_length_header_len)       &
@@ -1996,7 +1997,7 @@ IMPLICIT NONE
 
 ! Arguments
 CLASS(shum_file_type), INTENT(IN)     :: self
-INTEGER(KIND=INT64), ALLOCATABLE :: integer_constants(:)
+INTEGER(KIND=INT64), INTENT(IN OUT), ALLOCATABLE :: integer_constants(:)
 INTEGER(KIND=INT64) :: s_ic
 TYPE(shum_ff_status_type) :: STATUS    ! Return status object
 
@@ -2026,7 +2027,7 @@ FUNCTION set_integer_constants_by_index(self, num_index, value_to_set)         &
     RESULT(STATUS)
 IMPLICIT NONE
 CLASS(shum_file_type), INTENT(IN OUT)     :: self
-INTEGER(KIND=INT64) :: num_index, value_to_set
+INTEGER(KIND=INT64), INTENT(IN) :: num_index, value_to_set
 TYPE(shum_ff_status_type) :: STATUS    ! Return status object
 
 IF (.NOT. ALLOCATED(self%integer_constants)) THEN
@@ -2050,7 +2051,8 @@ FUNCTION get_integer_constants_by_index(self, num_index, value_to_get)         &
     RESULT(STATUS)
 IMPLICIT NONE
 CLASS(shum_file_type), INTENT(IN)     :: self
-INTEGER(KIND=INT64) :: num_index, value_to_get
+INTEGER(KIND=INT64), INTENT(IN) :: num_index
+INTEGER(KIND=INT64), INTENT(OUT) :: value_to_get
 TYPE(shum_ff_status_type) :: STATUS    ! Return status object
 
 IF (.NOT. ALLOCATED(self%integer_constants)) THEN
@@ -2105,7 +2107,7 @@ IMPLICIT NONE
 
 ! Arguments
 CLASS(shum_file_type), INTENT(IN)     :: self
-REAL(KIND=REAL64), ALLOCATABLE :: real_constants(:)
+REAL(KIND=REAL64), INTENT(IN OUT), ALLOCATABLE :: real_constants(:)
 INTEGER(KIND=INT64) :: s_rc
 TYPE(shum_ff_status_type) :: STATUS    ! Return status object
 
@@ -2135,8 +2137,8 @@ FUNCTION set_real_constants_by_index(self, num_index, value_to_set)            &
     RESULT(STATUS)
 IMPLICIT NONE
 CLASS(shum_file_type), INTENT(IN OUT)     :: self
-INTEGER(KIND=INT64) :: num_index
-REAL(KIND=REAL64) :: value_to_set
+INTEGER(KIND=INT64), INTENT(IN) :: num_index
+REAL(KIND=REAL64), INTENT(IN) :: value_to_set
 TYPE(shum_ff_status_type) :: STATUS    ! Return status object
 
 IF (.NOT. ALLOCATED(self%real_constants)) THEN
@@ -2160,8 +2162,8 @@ FUNCTION get_real_constants_by_index(self, num_index, value_to_get)            &
     RESULT(STATUS)
 IMPLICIT NONE
 CLASS(shum_file_type), INTENT(IN)     :: self
-INTEGER(KIND=INT64) :: num_index
-REAL(KIND=REAL64) :: value_to_get
+INTEGER(KIND=INT64), INTENT(IN) :: num_index
+REAL(KIND=REAL64), INTENT(OUT) :: value_to_get
 TYPE(shum_ff_status_type) :: STATUS    ! Return status object
 
 IF (.NOT. ALLOCATED(self%real_constants)) THEN
@@ -2221,7 +2223,7 @@ IMPLICIT NONE
 
 ! Arguments
 CLASS(shum_file_type), INTENT(IN)     :: self
-REAL(KIND=REAL64), ALLOCATABLE :: level_dependent_constants(:,:)
+REAL(KIND=REAL64), INTENT(IN OUT), ALLOCATABLE :: level_dependent_constants(:,:)
 INTEGER(KIND=INT64) :: s_ldc1,s_ldc2
 TYPE(shum_ff_status_type) :: STATUS    ! Return status object
 
@@ -2289,7 +2291,7 @@ IMPLICIT NONE
 
 ! Arguments
 CLASS(shum_file_type), INTENT(IN)     :: self
-REAL(KIND=REAL64), ALLOCATABLE :: row_dependent_constants(:,:)
+REAL(KIND=REAL64), INTENT(IN OUT), ALLOCATABLE :: row_dependent_constants(:,:)
 TYPE(shum_ff_status_type) :: STATUS    ! Return status object
 
 INTEGER(KIND=int64) :: s_rdc1,s_rdc2
@@ -2361,7 +2363,7 @@ IMPLICIT NONE
 
 ! Arguments
 CLASS(shum_file_type), INTENT(IN)     :: self
-REAL(KIND=REAL64), ALLOCATABLE :: column_dependent_constants(:,:)
+REAL(KIND=REAL64), INTENT(IN OUT), ALLOCATABLE :: column_dependent_constants(:,:)
 TYPE(shum_ff_status_type) :: STATUS    ! Return status object
 
 INTEGER(KIND=int64) :: s_cdc1,s_cdc2
@@ -2431,7 +2433,7 @@ IMPLICIT NONE
 
 ! Arguments
 CLASS(shum_file_type), INTENT(IN)     :: self
-REAL(KIND=REAL64), ALLOCATABLE :: additional_parameters(:,:)
+REAL(KIND=REAL64), INTENT(IN OUT), ALLOCATABLE :: additional_parameters(:,:)
 TYPE(shum_ff_status_type) :: STATUS    ! Return status object
 
 INTEGER(KIND=int64) :: s_ap1, s_ap2
@@ -2498,7 +2500,7 @@ IMPLICIT NONE
 
 ! Arguments
 CLASS(shum_file_type), INTENT(IN)     :: self
-REAL(KIND=REAL64), ALLOCATABLE :: extra_constants(:)
+REAL(KIND=REAL64), INTENT(IN OUT), ALLOCATABLE :: extra_constants(:)
 TYPE(shum_ff_status_type) :: STATUS    ! Return status object
 
 INTEGER(KIND=int64) :: s_ec
@@ -2562,7 +2564,7 @@ IMPLICIT NONE
 
 ! Arguments
 CLASS(shum_file_type), INTENT(IN)     :: self
-REAL(KIND=REAL64), ALLOCATABLE :: temp_histfile(:)
+REAL(KIND=REAL64), INTENT(IN OUT), ALLOCATABLE :: temp_histfile(:)
 TYPE(shum_ff_status_type) :: STATUS    ! Return status object
 
 INTEGER(KIND=int64) :: s_thf
@@ -2596,7 +2598,7 @@ IMPLICIT NONE
 
 ! Arguments
 CLASS(shum_file_type), INTENT(IN OUT)     :: self
-INTEGER(KIND=INT64) :: num_index
+INTEGER(KIND=INT64), INTENT(IN) :: num_index
 REAL(KIND=REAL64), INTENT(IN) :: compressed_index(:)
 TYPE(shum_ff_status_type) :: STATUS    ! Return status object
 
@@ -2656,8 +2658,8 @@ IMPLICIT NONE
 
 ! Arguments
 CLASS(shum_file_type), INTENT(IN)     :: self
-INTEGER(KIND=INT64) :: num_index
-REAL(KIND=REAL64), ALLOCATABLE :: compressed_index(:)
+INTEGER(KIND=INT64), INTENT(IN) :: num_index
+REAL(KIND=REAL64), INTENT(IN OUT), ALLOCATABLE :: compressed_index(:)
 TYPE(shum_ff_status_type) :: STATUS    ! Return status object
 
 INTEGER(KIND=int64) :: s_ci
@@ -2736,7 +2738,7 @@ FUNCTION get_field(self, field_number, field) RESULT(STATUS)
 IMPLICIT NONE
 CLASS(shum_file_type), INTENT(IN)  :: self
 INTEGER(KIND=INT64), INTENT(IN)    :: field_number
-TYPE(shum_field_type)              :: field
+TYPE(shum_field_type), INTENT(OUT) :: field
 TYPE(shum_ff_status_type) :: STATUS    ! Return status object
 
 IF (field_number > self%num_fields) THEN
@@ -2783,7 +2785,7 @@ INTEGER(KIND=INT64), OPTIONAL, INTENT(IN) :: level_code
 INTEGER(KIND=INT64), OPTIONAL, INTENT(IN) :: max_returned_fields
 
 ! Returned list
-INTEGER(KIND=INT64), ALLOCATABLE :: found_field_indices(:)
+INTEGER(KIND=INT64), INTENT(IN OUT), ALLOCATABLE :: found_field_indices(:)
 
 ! Internal variables
 TYPE(shum_field_type) :: current_field
@@ -2932,7 +2934,7 @@ INTEGER(KIND=INT64), OPTIONAL, INTENT(IN) :: level_code
 INTEGER(KIND=INT64), OPTIONAL, INTENT(IN) :: max_returned_fields
 
 ! Returned list
-TYPE(shum_field_type), ALLOCATABLE :: found_fields(:)
+TYPE(shum_field_type), INTENT(IN OUT), ALLOCATABLE :: found_fields(:)
 
 ! Local message string
 CHARACTER(LEN=256) :: cmessage
@@ -3044,7 +3046,7 @@ CLASS(shum_file_type), INTENT(IN OUT) :: self
 INTEGER(KIND=INT64), INTENT(IN)       :: stashcode
 
 ! Returned list
-REAL(KIND=REAL64), ALLOCATABLE        :: found_fctime(:)
+REAL(KIND=REAL64), INTENT(IN OUT), ALLOCATABLE        :: found_fctime(:)
 
 TYPE(shum_ff_status_type) :: STATUS    ! Return status object
 
@@ -3077,7 +3079,7 @@ END FUNCTION find_forecast_time
 FUNCTION set_filename(self, fname) RESULT(STATUS)
 IMPLICIT NONE
 CLASS(shum_file_type), INTENT(IN OUT) :: self
-CHARACTER(LEN=*) :: fname
+CHARACTER(LEN=*), INTENT(IN) :: fname
 TYPE(shum_ff_status_type) :: STATUS    ! Return status object
 
 IF (ALLOCATED(self%filename)) DEALLOCATE(self%filename)
@@ -3092,7 +3094,7 @@ END FUNCTION set_filename
 FUNCTION get_filename(self, fname) RESULT(STATUS)
 IMPLICIT NONE
 CLASS(shum_file_type), INTENT(IN) :: self
-CHARACTER(LEN=*) :: fname
+CHARACTER(LEN=*), INTENT(OUT) :: fname
 TYPE(shum_ff_status_type) :: STATUS    ! Return status object
 
 ! return empty string if filename is not allocated
@@ -3207,7 +3209,7 @@ FUNCTION add_field(self, new_field) RESULT(STATUS)
   ! in the file.
 IMPLICIT NONE
 CLASS(shum_file_type),  INTENT(IN OUT) :: self
-TYPE(shum_field_type)                 :: new_field
+TYPE(shum_field_type), INTENT(IN)      :: new_field
 
 ! Internal variables
 TYPE(shum_field_type), ALLOCATABLE :: tmp_fields(:)

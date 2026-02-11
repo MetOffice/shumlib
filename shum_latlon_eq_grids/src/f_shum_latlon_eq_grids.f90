@@ -101,7 +101,7 @@ REAL(KIND=real64), INTENT(IN)  :: lambda_pole          ! Long pole (eq)
 REAL(KIND=real64), INTENT(OUT) :: phi_eq(SIZE(phi))    ! Lat (eq)
 REAL(KIND=real64), INTENT(OUT) :: lambda_eq(SIZE(phi)) ! Long (eq)
 
-CHARACTER(LEN=*)    :: message
+CHARACTER(LEN=*), INTENT(OUT)  :: message
 INTEGER(KIND=int64) :: status
 
 REAL(KIND=real64)   :: a_lambda
@@ -225,7 +225,7 @@ REAL(KIND=real64) :: lambda_arr(1)
 REAL(KIND=real64) :: phi_eq_arr(1)
 REAL(KIND=real64) :: lambda_eq_arr(1)
 
-CHARACTER(LEN=*)    :: message
+CHARACTER(LEN=*), INTENT(OUT) :: message
 INTEGER(KIND=int64) :: status
 
 phi_arr(1) = phi
@@ -255,7 +255,7 @@ REAL(KIND=real32), INTENT(IN)  :: lambda_pole          ! Long pole (eq)
 REAL(KIND=real32), INTENT(OUT) :: phi_eq(SIZE(phi))    ! Lat (eq)
 REAL(KIND=real32), INTENT(OUT) :: lambda_eq(SIZE(phi)) ! Long (eq)
 
-CHARACTER(LEN=*)    :: message
+CHARACTER(LEN=*), INTENT(OUT)  :: message
 INTEGER(KIND=int64) :: status64
 INTEGER(KIND=int32) :: status
 
@@ -315,7 +315,7 @@ REAL(KIND=real64) :: lambda_eq_arr64(1)
 REAL(KIND=real64) :: phi_pole64
 REAL(KIND=real64) :: lambda_pole64
 
-CHARACTER(LEN=*)    :: message
+CHARACTER(LEN=*), INTENT(OUT) :: message
 INTEGER(KIND=int64) :: status64
 INTEGER(KIND=int32) :: status
 
@@ -354,7 +354,7 @@ REAL(KIND=real64), INTENT(IN)  :: lambda_pole             ! Long pole (eq)
 REAL(KIND=real64), INTENT(OUT) :: phi(SIZE(phi_eq))       ! Lat (lat-lon)
 REAL(KIND=real64), INTENT(OUT) :: lambda(SIZE(phi_eq))    ! Long (lat-lon)
 
-CHARACTER(LEN=*)    :: message
+CHARACTER(LEN=*), INTENT(OUT)  :: message
 INTEGER(KIND=int64) :: status
 
 REAL(KIND=real64)   :: a_lambda
@@ -478,7 +478,7 @@ REAL(KIND=real64) :: lambda_eq_arr(1)
 REAL(KIND=real64) :: phi_arr(1)
 REAL(KIND=real64) :: lambda_arr(1)
 
-CHARACTER(LEN=*)    :: message
+CHARACTER(LEN=*), INTENT(OUT)  :: message
 INTEGER(KIND=int64) :: status
 
 phi_eq_arr(1) = phi_eq
@@ -508,7 +508,7 @@ REAL(KIND=real32), INTENT(IN)  :: lambda_pole             ! Long pole (eq)
 REAL(KIND=real32), INTENT(OUT) :: phi(SIZE(phi_eq))       ! Lat (lat-lon)
 REAL(KIND=real32), INTENT(OUT) :: lambda(SIZE(phi_eq))    ! Long (lat-lon)
 
-CHARACTER(LEN=*)    :: message
+CHARACTER(LEN=*), INTENT(OUT)  :: message
 INTEGER(KIND=int64) :: status64
 INTEGER(KIND=int32) :: status
 
@@ -568,7 +568,7 @@ REAL(KIND=real64) :: lambda_eq_arr64(1)
 REAL(KIND=real64) :: phi_pole64
 REAL(KIND=real64) :: lambda_pole64
 
-CHARACTER(LEN=*)    :: message
+CHARACTER(LEN=*), INTENT(OUT)  :: message
 INTEGER(KIND=int64) :: status64
 INTEGER(KIND=int32) :: status
 
@@ -606,7 +606,7 @@ REAL(KIND=real64), INTENT(IN)  :: lambda_pole             ! Long pole (eq)
 REAL(KIND=real64), INTENT(OUT) :: coeff1(SIZE(lambda))    ! Rotation coeff 1
 REAL(KIND=real64), INTENT(OUT) :: coeff2(SIZE(lambda))    ! Rotation coeff 2
 
-CHARACTER(LEN=*)    :: message
+CHARACTER(LEN=*), INTENT(OUT)  :: message
 INTEGER(KIND=int64) :: status
 
 REAL(KIND=real64)   :: a_lambda
@@ -723,7 +723,7 @@ REAL(KIND=real32), INTENT(IN)  :: lambda_pole             ! Long pole (eq)
 REAL(KIND=real32), INTENT(OUT) :: coeff1(SIZE(lambda))    ! Rotation coeff 1
 REAL(KIND=real32), INTENT(OUT) :: coeff2(SIZE(lambda))    ! Rotation coeff 2
 
-CHARACTER(LEN=*)    :: message
+CHARACTER(LEN=*), INTENT(OUT)  :: message
 INTEGER(KIND=int64) :: status64
 INTEGER(KIND=int32) :: status
 
@@ -777,7 +777,7 @@ REAL(KIND=real64), INTENT(OUT) :: u(SIZE(coeff1))      ! Wind U compt (lat-lon)
 REAL(KIND=real64), INTENT(OUT) :: v(SIZE(coeff1))      ! Wind U compt (lat-lon)
 REAL(KIND=real64), INTENT(IN), OPTIONAL :: mdi         ! Missing data value
 
-CHARACTER(LEN=*)    :: message
+CHARACTER(LEN=*), INTENT(OUT)  :: message
 INTEGER(KIND=int64) :: status
 
 LOGICAL             :: l_mdi ! Was an mdi value provided?
@@ -830,7 +830,7 @@ REAL(KIND=real32), INTENT(OUT) :: u(SIZE(coeff1))      ! Wind U compt (lat-lon)
 REAL(KIND=real32), INTENT(OUT) :: v(SIZE(coeff1))      ! Wind U compt (lat-lon)
 REAL(KIND=real32), INTENT(IN), OPTIONAL :: mdi         ! Missing data value
 
-CHARACTER(LEN=*)    :: message
+CHARACTER(LEN=*), INTENT(OUT)  :: message
 INTEGER(KIND=int64) :: status64
 INTEGER(KIND=int32) :: status
 REAL(KIND=real64)   :: coeff1_64(SIZE(coeff1))
@@ -892,7 +892,7 @@ REAL(KIND=real64), INTENT(OUT) :: u_eq(SIZE(coeff1))   ! Wind U compt (eq)
 REAL(KIND=real64), INTENT(OUT) :: v_eq(SIZE(coeff1))   ! Wind U compt (eq)
 REAL(KIND=real64), INTENT(IN), OPTIONAL :: mdi         ! Missing data value
 
-CHARACTER(LEN=*)    :: message
+CHARACTER(LEN=*), INTENT(OUT)  :: message
 INTEGER(KIND=int64) :: status
 
 LOGICAL             :: l_mdi ! Was an mdi value provided?
@@ -945,7 +945,7 @@ REAL(KIND=real32), INTENT(OUT) :: u_eq(SIZE(coeff1))   ! Wind U compt (eq)
 REAL(KIND=real32), INTENT(OUT) :: v_eq(SIZE(coeff1))   ! Wind U compt (eq)
 REAL(KIND=real32), INTENT(IN), OPTIONAL :: mdi         ! Missing data value
 
-CHARACTER(LEN=*)    :: message
+CHARACTER(LEN=*), INTENT(OUT)  :: message
 INTEGER(KIND=int64) :: status64
 INTEGER(KIND=int32) :: status
 

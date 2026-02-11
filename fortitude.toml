@@ -6,9 +6,7 @@ exclude = [
 ]
 ignore = [
     'C003',    # implicit-external-procedures
-    'C061',    # missing-intent
     'C071',    # assumed-size
     'C072',    # assumed-size-character-intent
-    'C141',    # missing-exit-or-cycle-label
     'E001',    # syntax-error
 ]

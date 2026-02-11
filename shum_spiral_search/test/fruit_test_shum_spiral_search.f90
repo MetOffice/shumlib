@@ -130,7 +130,7 @@ REAL(KIND=real32), INTENT(OUT) :: longitude(6)
 LOGICAL(KIND=bool), INTENT(OUT) :: lsm(36)
 LOGICAL(KIND=bool), INTENT(OUT) :: unres_mask(36)
 INTEGER(KIND=int32), INTENT(OUT) :: index_unres(5)
-REAL(KIND=real32)   :: planet_radius
+REAL(KIND=real32), INTENT(OUT)   :: planet_radius
 
 REAL(KIND=real64)   :: latitude_64(6)
 REAL(KIND=real64)   :: longitude_64(6)
