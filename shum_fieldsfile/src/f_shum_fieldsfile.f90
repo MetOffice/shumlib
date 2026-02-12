@@ -276,7 +276,7 @@ END DO
 ! returning the last element in the list
 NULLIFY(ff)
 
-END FUNCTION
+END FUNCTION unique_id_to_ff
 
 !------------------------------------------------------------------------------!
 
@@ -1989,8 +1989,8 @@ END FUNCTION f_shum_write_fixed_length_header
 FUNCTION commit_fixed_length_header(ff, message) RESULT(STATUS)
 IMPLICIT NONE
 
-TYPE(ff_type)       :: ff
-CHARACTER(LEN=*)    :: message
+TYPE(ff_type), INTENT(IN OUT) :: ff
+CHARACTER(LEN=*), INTENT(OUT) :: message
 INTEGER(KIND=INT64) :: STATUS
 
 INTEGER(KIND=INT64), ALLOCATABLE :: swap_header(:)
@@ -2044,7 +2044,7 @@ END FUNCTION commit_fixed_length_header
 FUNCTION get_next_free_position(ff) RESULT(POSITION)
 IMPLICIT NONE
 
-TYPE(ff_type)       :: ff
+TYPE(ff_type), INTENT(IN) :: ff
 INTEGER(KIND=INT64) :: POSITION
 
 POSITION = f_shum_fixed_length_header_len + 1
@@ -2133,8 +2133,8 @@ END FUNCTION get_next_free_position
 FUNCTION get_next_populated_position(ff, start) RESULT(POSITION)
 IMPLICIT NONE
 
-TYPE(ff_type)       :: ff
-INTEGER(KIND=INT64) :: start
+TYPE(ff_type), INTENT(IN) :: ff
+INTEGER(KIND=INT64), INTENT(IN) :: start
 INTEGER(KIND=INT64) :: POSITION
 
 POSITION = HUGE(0_int64)
@@ -3059,8 +3059,8 @@ END FUNCTION f_shum_write_lookup
 FUNCTION commit_lookup(ff, message) RESULT(STATUS)
 IMPLICIT NONE
 
-TYPE(ff_type)       :: ff
-CHARACTER(LEN=*)    :: message
+TYPE(ff_type), INTENT(IN OUT) :: ff
+CHARACTER(LEN=*), INTENT(OUT) :: message
 
 INTEGER(KIND=INT64) :: STATUS
 INTEGER(KIND=INT64) :: start

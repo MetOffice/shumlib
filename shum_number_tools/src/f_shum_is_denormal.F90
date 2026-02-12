@@ -209,15 +209,15 @@ INTEGER                     :: ix
 
 ! Loop over elements of x and determine if any are infinite
 ! Exit immediately if any are found
-DO ix=1,SIZE(x)
+HAS_INF: DO ix=1,SIZE(x)
   f_shum_has_denormal32 = f_shum_is_denormal32(x(ix))
-  IF (f_shum_has_denormal32) EXIT
-END DO
+  IF (f_shum_has_denormal32) EXIT HAS_INF
+END DO HAS_INF
 
 END FUNCTION f_shum_has_denormal32
 
 ! To use for multi-dimensional arrays you can call f_shum_has_denormal with the
-! array reshaped, e.g. f_shum_has_denormal(RESHAPE(x, (/SIZE(x)/)))
+! array reshaped, e.g. f_shum_has_denormal(RESHAPE(x, [SIZE(x)]))
 
 !***************************************************************************
 ! 2D Array 64-bit version
@@ -232,7 +232,7 @@ REAL (KIND=REAL64), INTENT(IN) :: x(:,:)
 ! End of header
 
 ! Reshape array and pass through 1d array version
-f_shum_has_denormal64_2d = f_shum_has_denormal64(RESHAPE(x, (/SIZE(x)/)))
+f_shum_has_denormal64_2d = f_shum_has_denormal64(RESHAPE(x, [SIZE(x)]))
 
 END FUNCTION f_shum_has_denormal64_2d
 
@@ -249,7 +249,7 @@ REAL (KIND=REAL32), INTENT(IN) :: x(:,:)
 ! End of header
 
 ! Reshape array and pass through 1d array version
-f_shum_has_denormal32_2d = f_shum_has_denormal32(RESHAPE(x, (/SIZE(x)/)))
+f_shum_has_denormal32_2d = f_shum_has_denormal32(RESHAPE(x, [SIZE(x)]))
 
 END FUNCTION f_shum_has_denormal32_2d
 
@@ -266,7 +266,7 @@ REAL (KIND=REAL64), INTENT(IN) :: x(:,:,:)
 ! End of header
 
 ! Reshape array and pass through 1d array version
-f_shum_has_denormal64_3d = f_shum_has_denormal64(RESHAPE(x, (/SIZE(x)/)))
+f_shum_has_denormal64_3d = f_shum_has_denormal64(RESHAPE(x, [SIZE(x)]))
 
 END FUNCTION f_shum_has_denormal64_3d
 
@@ -283,7 +283,7 @@ REAL (KIND=REAL32), INTENT(IN) :: x(:,:,:)
 ! End of header
 
 ! Reshape array and pass through 1d array version
-f_shum_has_denormal32_3d = f_shum_has_denormal32(RESHAPE(x, (/SIZE(x)/)))
+f_shum_has_denormal32_3d = f_shum_has_denormal32(RESHAPE(x, [SIZE(x)]))
 
 END FUNCTION f_shum_has_denormal32_3d
 
@@ -300,7 +300,7 @@ REAL (KIND=REAL64), INTENT(IN) :: x(:,:,:,:)
 ! End of header
 
 ! Reshape array and pass through 1d array version
-f_shum_has_denormal64_4d = f_shum_has_denormal64(RESHAPE(x, (/SIZE(x)/)))
+f_shum_has_denormal64_4d = f_shum_has_denormal64(RESHAPE(x, [SIZE(x)]))
 
 END FUNCTION f_shum_has_denormal64_4d
 
@@ -317,7 +317,7 @@ REAL (KIND=REAL32), INTENT(IN) :: x(:,:,:,:)
 ! End of header
 
 ! Reshape array and pass through 1d array version
-f_shum_has_denormal32_4d = f_shum_has_denormal32(RESHAPE(x, (/SIZE(x)/)))
+f_shum_has_denormal32_4d = f_shum_has_denormal32(RESHAPE(x, [SIZE(x)]))
 
 END FUNCTION f_shum_has_denormal32_4d
 
@@ -334,7 +334,7 @@ REAL (KIND=REAL64), INTENT(IN) :: x(:,:,:,:,:)
 ! End of header
 
 ! Reshape array and pass through 1d array version
-f_shum_has_denormal64_5d = f_shum_has_denormal64(RESHAPE(x, (/SIZE(x)/)))
+f_shum_has_denormal64_5d = f_shum_has_denormal64(RESHAPE(x, [SIZE(x)]))
 
 END FUNCTION f_shum_has_denormal64_5d
 
@@ -351,7 +351,7 @@ REAL (KIND=REAL32), INTENT(IN) :: x(:,:,:,:,:)
 ! End of header
 
 ! Reshape array and pass through 1d array version
-f_shum_has_denormal32_5d = f_shum_has_denormal32(RESHAPE(x, (/SIZE(x)/)))
+f_shum_has_denormal32_5d = f_shum_has_denormal32(RESHAPE(x, [SIZE(x)]))
 
 END FUNCTION f_shum_has_denormal32_5d
 

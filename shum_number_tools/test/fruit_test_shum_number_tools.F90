@@ -21,7 +21,7 @@
 !*******************************************************************************
 MODULE fruit_test_shum_number_tools_mod
 
-USE fruit
+USE fruit, ONLY: assert_false, assert_not_equals, assert_true, run_test_case
 USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         &
   C_INT64_T, C_INT32_T, C_FLOAT, C_DOUBLE, C_INT, C_BOOL
 
@@ -40,7 +40,7 @@ INTERFACE
   IMPORT :: C_FLOAT
   IMPLICIT NONE
   REAL(KIND=C_FLOAT) :: c_test_generate_finf
-  END FUNCTION
+  end function c_test_generate_finf
 END INTERFACE
 
 !------------------------------------------------------------------------------!
@@ -50,7 +50,7 @@ INTERFACE
   IMPORT :: C_DOUBLE
   IMPLICIT NONE
   REAL(KIND=C_DOUBLE) :: c_test_generate_dinf
-  END FUNCTION
+  end function c_test_generate_dinf
 END INTERFACE
 
 !------------------------------------------------------------------------------!
@@ -60,7 +60,7 @@ INTERFACE
   IMPORT :: C_FLOAT
   IMPLICIT NONE
   REAL(KIND=C_FLOAT) :: c_test_generate_fnan
-  END FUNCTION
+  end function c_test_generate_fnan
 END INTERFACE
 
 !------------------------------------------------------------------------------!
@@ -70,7 +70,7 @@ INTERFACE
   IMPORT :: C_DOUBLE
   IMPLICIT NONE
   REAL(KIND=C_DOUBLE) :: c_test_generate_dnan
-  END FUNCTION
+  end function c_test_generate_dnan
 END INTERFACE
 
 !------------------------------------------------------------------------------!
@@ -80,8 +80,8 @@ INTERFACE
                                         BIND(c,NAME="c_test_generate_fdenormal")
   IMPORT :: C_FLOAT
   IMPLICIT NONE
-  REAL(KIND=C_FLOAT) :: denormal_float
-  END SUBROUTINE
+  REAL(KIND=C_FLOAT), INTENT(OUT) :: denormal_float
+  end subroutine c_test_generate_fdenormal
 END INTERFACE
 
 !------------------------------------------------------------------------------!
@@ -91,8 +91,8 @@ INTERFACE
                                         BIND(c,NAME="c_test_generate_ddenormal")
   IMPORT :: C_DOUBLE
   IMPLICIT NONE
-  REAL(KIND=C_DOUBLE) :: denormal_double
-  END SUBROUTINE
+  REAL(KIND=C_DOUBLE), INTENT(OUT) :: denormal_double
+  end subroutine c_test_generate_ddenormal
 END INTERFACE
 
 !------------------------------------------------------------------------------!

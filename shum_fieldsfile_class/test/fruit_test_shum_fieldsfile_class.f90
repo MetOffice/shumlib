@@ -21,7 +21,7 @@
 !*******************************************************************************
 MODULE fruit_test_shum_fieldsfile_class_mod
 
-USE fruit
+USE fruit, ONLY: assert_equals, get_failed_count, run_test_case
 USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         &
   C_INT64_T, C_INT32_T, C_FLOAT, C_DOUBLE, C_INT, C_BOOL
 
@@ -39,7 +39,7 @@ SUBROUTINE c_exit(status)  BIND(c,NAME="exit")
   IMPORT :: C_INT
   IMPLICIT NONE
   INTEGER(KIND=C_INT), VALUE, INTENT(IN) :: status
-END SUBROUTINE
+END SUBROUTINE c_exit
 END INTERFACE
 
 !------------------------------------------------------------------------------!
