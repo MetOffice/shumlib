@@ -147,7 +147,7 @@ accuracy = INT(accuracy_32, KIND=int64)
 cols = INT(cols_32, KIND=int64)
 rows = INT(rows_32, KIND=int64)
 
-END FUNCTION
+END FUNCTION f_shum_read_wgdos_header_arg64
 
 !------------------------------------------------------------------------------!
 

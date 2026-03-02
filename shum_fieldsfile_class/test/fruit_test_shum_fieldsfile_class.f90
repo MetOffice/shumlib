@@ -21,7 +21,7 @@
 !*******************************************************************************
 MODULE fruit_test_shum_fieldsfile_class_mod
 
-USE fruit
+USE fruit, ONLY: assert_equals, get_failed_count, run_test_case
 USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         &
   C_INT64_T, C_INT32_T, C_FLOAT, C_DOUBLE, C_INT, C_BOOL
 
@@ -39,7 +39,7 @@ SUBROUTINE c_exit(status)  BIND(c,NAME="exit")
   IMPORT :: C_INT
   IMPLICIT NONE
   INTEGER(KIND=C_INT), VALUE, INTENT(IN) :: status
-END SUBROUTINE
+END SUBROUTINE c_exit
 END INTERFACE
 
 !------------------------------------------------------------------------------!
@@ -89,11 +89,14 @@ CALL GET_ENVIRONMENT_VARIABLE("SHUM_TMPDIR", LENGTH=shum_tmpdir_len,           &
                               STATUS=get_env_status)
 
 ! If the variable exists call again to read it in
-IF (get_env_status == 0) THEN
+IF (get_env_status == 0 .AND. shum_tmpdir_len > 0) THEN
   ALLOCATE(CHARACTER(shum_tmpdir_len) :: shum_tmpdir)
   CALL GET_ENVIRONMENT_VARIABLE("SHUM_TMPDIR",                                 &
                                 VALUE=shum_tmpdir,                             &
                                 STATUS=get_env_status)
+ELSE
+   ! Force an error if variable has zero length
+   get_env_status = 1
 END IF
 ! Now check the status (not an ELSE IF, because that way we can catch the
 ! failed status of either the first or second call

@@ -21,7 +21,7 @@
 !*******************************************************************************
 MODULE fruit_test_shum_string_conv_mod
 
-USE fruit
+USE fruit, ONLY: assert_equals, run_test_case, set_case_name
 USE, INTRINSIC :: ISO_C_BINDING, ONLY:                                         &
   C_INT64_T, C_INT32_T, C_FLOAT, C_DOUBLE, C_CHAR, C_NULL_CHAR, C_PTR, C_LOC
 

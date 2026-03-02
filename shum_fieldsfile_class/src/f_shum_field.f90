@@ -223,7 +223,7 @@ END FUNCTION get_lookup
 FUNCTION set_int_lookup_by_index(self, num_index, value_to_set) RESULT(status)
   IMPLICIT NONE
   CLASS(shum_field_type), INTENT(INOUT) :: self
-  INTEGER(KIND=int64) :: value_to_set, num_index
+  INTEGER(KIND=int64), INTENT(IN) :: value_to_set, num_index
   TYPE(shum_ff_status_type) :: status ! Return status object
 
   IF (num_index > len_integer_lookup .OR. num_index < 1_int64) THEN
@@ -243,7 +243,8 @@ END FUNCTION set_int_lookup_by_index
 FUNCTION get_int_lookup_by_index(self, num_index, value_to_get) RESULT(status)
   IMPLICIT NONE
   CLASS(shum_field_type), INTENT(IN) :: self
-  INTEGER(KIND=int64) :: value_to_get, num_index
+  INTEGER(KIND=int64), INTENT(IN) :: num_index
+  INTEGER(KIND=int64), INTENT(OUT) :: value_to_get
   TYPE(shum_ff_status_type) :: status ! Return status object
 
   IF (num_index > len_integer_lookup .OR. num_index < 1_int64) THEN
@@ -263,8 +264,8 @@ END FUNCTION get_int_lookup_by_index
 FUNCTION set_real_lookup_by_index(self, num_index, value_to_set) RESULT(status)
   IMPLICIT NONE
   CLASS(shum_field_type), INTENT(INOUT) :: self
-  INTEGER(KIND=int64) :: num_index
-  REAL(KIND=real64) :: value_to_set
+  INTEGER(KIND=int64), INTENT(IN) :: num_index
+  REAL(KIND=real64), INTENT(IN) :: value_to_set
   TYPE(shum_ff_status_type) :: status ! Return status object
 
   IF (num_index > len_integer_lookup + len_real_lookup .OR.                   &
@@ -289,8 +290,8 @@ END FUNCTION set_real_lookup_by_index
 FUNCTION get_real_lookup_by_index(self, num_index, value_to_get) RESULT(status)
   IMPLICIT NONE
   CLASS(shum_field_type), INTENT(IN) :: self
-  INTEGER(KIND=int64) :: num_index
-  REAL(KIND=real64) :: value_to_get
+  INTEGER(KIND=int64), INTENT(IN) :: num_index
+  REAL(KIND=real64), INTENT(OUT) :: value_to_get
   TYPE(shum_ff_status_type) :: status ! Return status object
 
   IF (num_index > len_integer_lookup + len_real_lookup .OR.                   &
@@ -317,7 +318,7 @@ FUNCTION get_stashcode(self, stashcode) RESULT(status)
   USE f_shum_lookup_indices_mod, ONLY: lbuser4
   IMPLICIT NONE
   CLASS(shum_field_type), INTENT(IN) :: self
-  INTEGER(KIND=int64) :: stashcode
+  INTEGER(KIND=int64), INTENT(OUT) :: stashcode
   TYPE(shum_ff_status_type) :: status ! Return status object
 
   IF (self%lookup_int(lbuser4) /= um_imdi) THEN
@@ -338,7 +339,7 @@ FUNCTION get_timestring(self, timestring) RESULT(status)
   USE f_shum_lookup_indices_mod, ONLY: lbyr, lbmon, lbdat, lbhr, lbmin, lbsec
   IMPLICIT NONE
   CLASS(shum_field_type), INTENT(IN) :: self
-  CHARACTER(LEN=16) :: timestring
+  CHARACTER(LEN=16), INTENT(OUT) :: timestring
   INTEGER(KIND=int64) :: yr, mon, dat, hr, min, sec
   TYPE(shum_ff_status_type) :: status ! Return status object
 
@@ -380,7 +381,7 @@ FUNCTION get_level_number(self, level_number) RESULT(status)
   USE f_shum_lookup_indices_mod, ONLY: lblev
   IMPLICIT NONE
   CLASS(shum_field_type), INTENT(IN) :: self
-  INTEGER(KIND=int64) :: level_number
+  INTEGER(KIND=int64), INTENT(OUT) :: level_number
   TYPE(shum_ff_status_type) :: status ! Return status object
 
   level_number = self%lookup_int(lblev)
@@ -395,7 +396,7 @@ FUNCTION get_level_eta(self, level_eta) RESULT(status)
   USE f_shum_lookup_indices_mod, ONLY: blev
   IMPLICIT NONE
   CLASS(shum_field_type), INTENT(IN) :: self
-  REAL(KIND=real64) :: level_eta
+  REAL(KIND=real64), INTENT(OUT) :: level_eta
   TYPE(shum_ff_status_type) :: status ! Return status object
 
   ! SHUMlib stores parameters containing the index in the 64-word lookup
@@ -413,7 +414,7 @@ END FUNCTION get_level_eta
 FUNCTION get_real_fctime(self, real_fctime) RESULT(status)
   IMPLICIT NONE
   CLASS(shum_field_type), INTENT(IN) :: self
-  REAL(KIND=real64) :: real_fctime
+  REAL(KIND=real64), INTENT(OUT) :: real_fctime
   TYPE(shum_ff_status_type) :: status ! Return status object
 
   real_fctime = self%fctime_real
@@ -428,7 +429,7 @@ FUNCTION get_lbproc(self, proc) RESULT(status)
   USE f_shum_lookup_indices_mod, ONLY: lbproc
   IMPLICIT NONE
   CLASS(shum_field_type), INTENT(IN) :: self
-  INTEGER(KIND=int64) :: proc
+  INTEGER(KIND=int64), INTENT(OUT) :: proc
   TYPE(shum_ff_status_type) :: status ! Return status object
 
   proc = self%lookup_int(lbproc)
@@ -485,7 +486,7 @@ FUNCTION get_longitudes(self, longitudes) RESULT(status)
   IMPLICIT NONE
   CLASS(shum_field_type), INTENT(IN) :: self
   REAL(KIND=real64), ALLOCATABLE :: temp_longitudes(:)
-  REAL(KIND=real64), ALLOCATABLE :: longitudes(:)
+  REAL(KIND=real64), INTENT(OUT), ALLOCATABLE :: longitudes(:)
   TYPE(shum_ff_status_type) :: status ! Return status object
 
   IF (ALLOCATED(self%longitudes)) THEN
@@ -532,7 +533,7 @@ FUNCTION get_latitudes(self, latitudes) RESULT(status)
   IMPLICIT NONE
   CLASS(shum_field_type), INTENT(IN) :: self
   REAL(KIND=real64), ALLOCATABLE :: temp_latitudes(:)
-  REAL(KIND=real64), ALLOCATABLE :: latitudes(:)
+  REAL(KIND=real64), INTENT(OUT), ALLOCATABLE :: latitudes(:)
   TYPE(shum_ff_status_type) :: status ! Return status object
 
   IF (ALLOCATED(self%latitudes)) THEN
@@ -553,8 +554,8 @@ END FUNCTION get_latitudes
 FUNCTION get_coords(self, x, y, coords) RESULT(status)
   IMPLICIT NONE
   CLASS(shum_field_type), INTENT(IN) :: self
-  INTEGER(KIND=int64)                 :: x, y
-  REAL(KIND=real64)                   :: coords(2)
+  INTEGER(KIND=int64), INTENT(IN)     :: x, y
+  REAL(KIND=real64), INTENT(OUT)      :: coords(2)
   TYPE(shum_ff_status_type) :: status ! Return status object
 
   IF (x < 1_int64 .OR. x > SIZE(self%longitudes)) THEN
@@ -584,7 +585,7 @@ FUNCTION get_pole_location(self, pole_location) RESULT(status)
   USE f_shum_lookup_indices_mod, ONLY: bplon, bplat
   IMPLICIT NONE
   CLASS(shum_field_type), INTENT(IN) :: self
-  REAL(KIND=real64) :: pole_location(2)
+  REAL(KIND=real64), INTENT(OUT) :: pole_location(2)
   TYPE(shum_ff_status_type) :: status ! Return status object
 
   ! SHUMlib stores parameters containing the index in the 64-word lookup
@@ -634,7 +635,7 @@ FUNCTION get_rdata(self, rdata) RESULT(status)
   USE f_shum_lookup_indices_mod, ONLY: lbrow, lbnpt
   IMPLICIT NONE
   CLASS(shum_field_type), INTENT(IN) :: self
-  REAL(KIND=real64) :: rdata(self%lookup_int(lbnpt),                          &
+  REAL(KIND=real64), INTENT(OUT) :: rdata(self%lookup_int(lbnpt),             &
                              self%lookup_int(lbrow))
   TYPE(shum_ff_status_type) :: status ! Return status object
 
@@ -655,8 +656,8 @@ END FUNCTION get_rdata
 FUNCTION get_rdata_by_location(self, x, y, rdata) RESULT(status)
   IMPLICIT NONE
   CLASS(shum_field_type), INTENT(IN) :: self
-  INTEGER(KIND=int64)                 :: x, y
-  REAL(KIND=real64)                   :: rdata
+  INTEGER(KIND=int64), INTENT(IN)    :: x, y
+  REAL(KIND=real64), INTENT(OUT)     :: rdata
   TYPE(shum_ff_status_type) :: status ! Return status object
 
   IF (ALLOCATED(self%rdata)) THEN
@@ -714,7 +715,7 @@ FUNCTION get_idata(self, idata) RESULT(status)
   USE f_shum_lookup_indices_mod, ONLY: lbrow, lbnpt
   IMPLICIT NONE
   CLASS(shum_field_type), INTENT(IN) :: self
-  INTEGER(KIND=int64) :: idata(self%lookup_int(lbnpt),                        &
+  INTEGER(KIND=int64), INTENT(OUT) :: idata(self%lookup_int(lbnpt),           &
                                    self%lookup_int(lbrow))
   TYPE(shum_ff_status_type) :: status ! Return status object
 
@@ -735,8 +736,8 @@ END FUNCTION get_idata
 FUNCTION get_idata_by_location(self, x, y, idata) RESULT(status)
   IMPLICIT NONE
   CLASS(shum_field_type), INTENT(IN) :: self
-  INTEGER(KIND=int64)                 :: x, y
-  INTEGER(KIND=int64)                 :: idata
+  INTEGER(KIND=int64), INTENT(IN)     :: x, y
+  INTEGER(KIND=int64), INTENT(OUT)    :: idata
   TYPE(shum_ff_status_type) :: status ! Return status object
 
   IF (ALLOCATED(self%idata)) THEN
