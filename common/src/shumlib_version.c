@@ -32,5 +32,6 @@
 #include "precision_bomb.h"
 #include "shumlib_version.h"
 
-int64_t GET_SHUMLIB_VERSION(SHUMLIB_LIBNAME) {
-  return SHUMLIB_VERSION;}
+int64_t GET_SHUMLIB_VERSION(void) {
+  return SHUMLIB_VERSION;
+}

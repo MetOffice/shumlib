@@ -1,0 +1,21 @@
+PROGRAM fruit_driver
+USE iso_c_binding
+USE fruit
+@SHUM_FRUIT_USE@
+IMPLICIT NONE
+INTERFACE
+SUBROUTINE c_exit(status)  BIND(c,NAME="exit")
+IMPORT :: C_INT
+IMPLICIT NONE
+INTEGER(KIND=C_INT), VALUE, INTENT(IN) :: status
+END SUBROUTINE
+END INTERFACE
+INTEGER :: status
+CALL init_fruit
+@SHUM_FRUIT_CALLS@
+CALL fruit_summary
+CALL fruit_finalize
+CALL get_failed_count(status)
+CALL c_exit(INT(status,KIND=C_INT))
+END PROGRAM fruit_driver
+
