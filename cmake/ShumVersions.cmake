@@ -1,3 +1,9 @@
+# ------------------------------------------------------------------------------
+#  (c) Crown copyright Met Office. All rights reserved.
+#  The file LICENCE, distributed with this code, contains details of the terms
+#  under which the code may be used.
+# ------------------------------------------------------------------------------
+
 # Create shumlib version files from templates
 #
 # Replace the previous versioning which used preprocessor macros and

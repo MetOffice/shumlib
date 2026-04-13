@@ -1,3 +1,9 @@
+# ------------------------------------------------------------------------------
+#  (c) Crown copyright Met Office. All rights reserved.
+#  The file LICENCE, distributed with this code, contains details of the terms
+#  under which the code may be used.
+# ------------------------------------------------------------------------------
+
 # Setup fruit unit testing for shumlib
 #
 # Take the accumluted list of shumlib subdirectories and use it to

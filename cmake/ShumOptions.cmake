@@ -1,3 +1,9 @@
+# ------------------------------------------------------------------------------
+#  (c) Crown copyright Met Office. All rights reserved.
+#  The file LICENCE, distributed with this code, contains details of the terms
+#  under which the code may be used.
+# ------------------------------------------------------------------------------
+
 # Library type options
 option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 
