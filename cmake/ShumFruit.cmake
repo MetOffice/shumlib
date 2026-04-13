@@ -32,7 +32,6 @@ macro(setup_shum_fruit)
       set(SHUM_FRUIT_USE "${SHUM_FRUIT_USE}\nUSE fruit_test_${SHUM_LIBNAME}_mod")
       set(SHUM_FRUIT_CALLS "${SHUM_FRUIT_CALLS}\nCALL fruit_test_${SHUM_LIBNAME}")
 
-      # FIXME: deal with relative path
       add_subdirectory(${SHUM_LIBNAME}/test)
     endif()
 
