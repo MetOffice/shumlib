@@ -13,6 +13,7 @@ option(BUILD_TESTS "Build fruit unit tests" ON)
 
 # Build a list of preprocessor settings based on options
 set(SHUM_DEFINES "SHUMLIB_VERSION=${SHUMLIB_VERSION}")
+list(APPEND SHUM_DEFINES "SHUMLIB_CMAKE=1")
 
 if(IEEE_ARITHMETIC)
   message(VERBOSE "Enabling shumlib IEEE arithmetic")
