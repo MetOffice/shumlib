@@ -15,6 +15,9 @@ option(BUILD_TESTS "Build fruit unit tests" ON)
 set(SHUM_DEFINES "SHUMLIB_VERSION=${SHUMLIB_VERSION}")
 list(APPEND SHUM_DEFINES "SHUMLIB_CMAKE=1")
 
+# Install options
+option(ENABLE_PKGCONFIG "Install a pkg-config description" ON)
+
 if(IEEE_ARITHMETIC)
   message(VERBOSE "Enabling shumlib IEEE arithmetic")
   list(APPEND SHUM_DEFINES "HAS_IEEE_ARITHMETIC")

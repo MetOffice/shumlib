@@ -34,6 +34,7 @@ include(cmake/ShumAddSublibrary.cmake)
 include(cmake/ShumFruit.cmake)
 include(cmake/ShumOptions.cmake)
 include(cmake/ShumVersions.cmake)
+include(cmake/PkgConfig.cmake)
 
 
 # Build rules for shumlib
