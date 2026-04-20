@@ -1,0 +1,11 @@
+Name: shumlib
+Version: @PROJECT_VERSION@
+Description: @PROJECT_DESCRIPTION@
+URL: @CMAKE_PROJECT_HOMEPAGE_URL@
+
+# Use pcfiledir to make package relocatable
+libdir=${pcfiledir}/../
+includedir=${pcfiledir}/../../@CMAKE_INSTALL_INCLUDEDIR@
+
+Libs: -L${libdir} -lshum
+Cflags: -I${includedir}
