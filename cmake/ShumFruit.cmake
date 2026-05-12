@@ -26,13 +26,13 @@ macro(setup_shum_fruit)
     # Build the variables that pull in each of the test modules ready
     # to process the driver template
 
-    if(EXISTS ${SHUM_LIBNAME}/test/CMakeLists.txt)
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${SHUM_LIBNAME}/test/CMakeLists.txt)
       message(VERBOSE "Adding ${SHUM_LIBNAME} unit tests")
 
       set(SHUM_FRUIT_USE "${SHUM_FRUIT_USE}\nUSE fruit_test_${SHUM_LIBNAME}_mod")
       set(SHUM_FRUIT_CALLS "${SHUM_FRUIT_CALLS}\nCALL fruit_test_${SHUM_LIBNAME}")
 
-      add_subdirectory(${SHUM_LIBNAME}/test)
+      add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/${SHUM_LIBNAME}/test)
     endif()
 
   endforeach()
