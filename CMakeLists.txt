@@ -73,7 +73,7 @@ install(TARGETS shum
 )
 
 # Install the Fortran module files
-install(DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY}
+install(DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY}/
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 # Unit tests and framework
