@@ -14,3 +14,20 @@ target_sources(shum
   TYPE HEADERS
   FILES
   c_shum_wgdos_packing.h)
+
+add_library(shum_wgdos_packing)
+target_sources(shum_wgdos_packing
+  PRIVATE
+  c_shum_wgdos_packing.f90
+  f_shum_wgdos_packing.f90
+  ${PROJECT_SOURCE_DIR}/common/src/shumlib_version.c
+  ${PROJECT_BINARY_DIR}/f_shum_wgdos_packing_version_mod.f90)
+
+target_compile_definitions(shum_wgdos_packing PUBLIC ${SHUM_DEFINES})
+
+target_include_directories(shum_wgdos_packing
+  PUBLIC
+  ${CMAKE_Fortran_MODULE_DIRECTORY}
+  ${PROJECT_SOURCE_DIR}/common/src)
+
+target_link_libraries(shum_wgdos_packing PUBLIC shum_constants shum_string_conv)
