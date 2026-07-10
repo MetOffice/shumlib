@@ -5,3 +5,4 @@
 | james-bruten-mo | James Bruten | Met Office | 2025-12-09 |
 | t00sa | Sam Clarke-Green | Met Office | 2026-02-10 |
 | jennyhickson | Jenny Hickson | Met Office | 2026-03-02 |
+| yaswant | Yaswant Pradhan | Met Office | 2026-07-10 |

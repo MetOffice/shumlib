@@ -18,7 +18,15 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
-      - name: Build and Test
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Build and Test (Legacy)
         run: |
           make -f ./make/vm-x86-gfortran-gcc.mk check
+
+      - name: Build (CMake)
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --config Release -j $(nproc)
