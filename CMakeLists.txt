@@ -117,11 +117,18 @@ configure_file(
   ${CMAKE_CURRENT_BINARY_DIR}/c_shum_wgdos_packing_version.h
   @ONLY
 )
+# Generate legacy compatibility header for data conversion version API.
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/common/src/c_shum_data_conv_version.h.in
+  ${CMAKE_CURRENT_BINARY_DIR}/c_shum_data_conv_version.h
+  @ONLY
+)
 
 # Install additional headers expected by downstream users.
 install(FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/common/src/shumlib_version.h
   ${CMAKE_CURRENT_BINARY_DIR}/c_shum_wgdos_packing_version.h
+  ${CMAKE_CURRENT_BINARY_DIR}/c_shum_data_conv_version.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
@@ -132,6 +139,7 @@ install(TARGETS
   shum_wgdos_packing
   shum_byteswap
   shum_spiral_search
+  shum_data_conv
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}

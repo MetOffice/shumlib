@@ -1,0 +1,14 @@
+#ifndef C_SHUM_DATA_CONV_VERSION_H
+#define C_SHUM_DATA_CONV_VERSION_H
+
+#if !defined(SHUMLIB_VERSION)
+#define SHUMLIB_VERSION @SHUMLIB_VERSION@
+#endif
+
+#define SHUMLIB_CMAKE 1
+#include "shumlib_version.h"
+#undef SHUMLIB_CMAKE
+
+#define get_shum_data_conv_version GET_SHUMLIB_VERSION
+
+#endif
