@@ -25,7 +25,12 @@ target_sources(shum_data_conv
 
 target_compile_definitions(shum_data_conv PUBLIC ${SHUM_DEFINES})
 
+set_target_properties(shum_data_conv PROPERTIES
+  Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/modules_shum_data_conv)
+
 target_include_directories(shum_data_conv
   PUBLIC
-  ${CMAKE_Fortran_MODULE_DIRECTORY}
+  ${PROJECT_BINARY_DIR}/modules_shum_data_conv
   ${PROJECT_SOURCE_DIR}/common/src)
+
+target_link_libraries(shum_data_conv PUBLIC shum_string_conv)

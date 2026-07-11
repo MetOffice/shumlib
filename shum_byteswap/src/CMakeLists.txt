@@ -26,9 +26,12 @@ target_sources(shum_byteswap
 
 target_compile_definitions(shum_byteswap PUBLIC ${SHUM_DEFINES})
 
+set_target_properties(shum_byteswap PROPERTIES
+  Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/modules_shum_byteswap)
+
 target_include_directories(shum_byteswap
   PUBLIC
-  ${CMAKE_Fortran_MODULE_DIRECTORY}
+  ${PROJECT_BINARY_DIR}/modules_shum_byteswap
   ${PROJECT_SOURCE_DIR}/common/src)
 
 target_link_libraries(shum_byteswap PUBLIC shum_string_conv)

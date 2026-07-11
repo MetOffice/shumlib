@@ -26,7 +26,10 @@ target_sources(shum_constants
 
 target_compile_definitions(shum_constants PUBLIC ${SHUM_DEFINES})
 
+set_target_properties(shum_constants PROPERTIES
+  Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/modules_shum_constants)
+
 target_include_directories(shum_constants
   PUBLIC
-  ${CMAKE_Fortran_MODULE_DIRECTORY}
+  ${PROJECT_BINARY_DIR}/modules_shum_constants
   ${PROJECT_SOURCE_DIR}/common/src)

@@ -16,7 +16,10 @@ target_sources(shum_string_conv
 
 target_compile_definitions(shum_string_conv PUBLIC ${SHUM_DEFINES})
 
+set_target_properties(shum_string_conv PROPERTIES
+  Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/modules_shum_string_conv)
+
 target_include_directories(shum_string_conv
   PUBLIC
-  ${CMAKE_Fortran_MODULE_DIRECTORY}
+  ${PROJECT_BINARY_DIR}/modules_shum_string_conv
   ${PROJECT_SOURCE_DIR}/common/src)
