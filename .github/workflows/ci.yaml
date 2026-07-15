@@ -26,7 +26,8 @@ jobs:
         run: |
           make -f ./make/vm-x86-gfortran-gcc.mk check
 
-      - name: Build (CMake)
+      - name: Build & Test (CMake)
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-          cmake --build build --config Release -j $(nproc)
+          cmake --preset debug-gcc -DBUILD_FTHREADS=ON --log-level=VERBOSE
+          cmake --build --preset debug-gcc
+          ctest --preset debug-gcc -V
