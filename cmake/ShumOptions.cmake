@@ -41,7 +41,44 @@ endif()
 
 if(BUILD_OPENMP)
   # FIXME: this probably needs newer version of cmake on the Cray
-  find_package(OpenMP 3.0 REQUIRED)
+  # UPDATE: Doesn't work with cmake 3.31.9
+  # A little hack to check supported OMP spec on Cray
+  # ---
+  if(CMAKE_Fortran_COMPILER_ID MATCHES "Cray" OR CMAKE_C_COMPILER_ID MATCHES "Cray")
+    # Cray's OpenMP is compiler-managed (no separate runtime library).
+    # CMake's FindOpenMP fails on Cray because it can't resolve LIB_NAMES.
+    # Verify the minimum required OpenMP spec date manually instead.
+    # See OpenMP Spec dates <https://www.openmp.org/specifications/>
+    include(CheckFortranSourceRuns)
+    set(CMAKE_REQUIRED_FLAGS "-homp")
+    check_fortran_source_runs(
+      "program check\n  if (_OPENMP < 200805) stop 1\nend program\n"
+      CRAY_OMP_MEETS_MINIMUM SRC_EXT F90
+    )
+    unset(CMAKE_REQUIRED_FLAGS)
+    if(NOT CRAY_OMP_MEETS_MINIMUM)
+      message(FATAL_ERROR "shumlib requires OpenMP >= 3.0 (date 200805); Cray compiler does not meet this.")
+    endif()
+
+    # Create the standard imported targets so downstream consumers work normally
+    if(NOT TARGET OpenMP::OpenMP_Fortran)
+      add_library(OpenMP::OpenMP_Fortran INTERFACE IMPORTED)
+      set_target_properties(OpenMP::OpenMP_Fortran PROPERTIES
+        INTERFACE_COMPILE_OPTIONS "-homp"
+        INTERFACE_LINK_OPTIONS   "-homp")
+    endif()
+    if(NOT TARGET OpenMP::OpenMP_C)
+      add_library(OpenMP::OpenMP_C INTERFACE IMPORTED)
+      set_target_properties(OpenMP::OpenMP_C PROPERTIES
+        INTERFACE_COMPILE_OPTIONS "-fopenmp"
+        INTERFACE_LINK_OPTIONS   "-fopenmp")
+    endif()
+    set(OpenMP_FOUND TRUE)
+    set(OpenMP_Fortran_FOUND TRUE)
+    set(OpenMP_C_FOUND TRUE)
+  else()
+    find_package(OpenMP 3.0 REQUIRED)
+  endif()
 
   if(BUILD_FTHREADS)
     message(VERBOSE "Using shumlib with Fortran OpenMP threading")
