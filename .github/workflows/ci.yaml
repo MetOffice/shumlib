@@ -23,6 +23,12 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Build and Test
+      - name: Build and Test (make)
         run: |
           make -f ./make/vm-x86-gfortran-gcc.mk check
+
+      - name: Build and Test (CMake)
+        run: |
+          cmake --preset debug-gcc
+          cmake --build --preset debug-gcc
+          ctest --test-dir build/debug --output-on-failure -V
