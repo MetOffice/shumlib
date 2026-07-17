@@ -4,8 +4,7 @@
 
 [project]
 name = "shumlib"
-# dynamic = ["version"]
-version = "26.1.0"
+version = "2026.07.2"
 description = "Set of libraries used by the Met Office Unified Model (UM)"
 authors = [
     {name = "Met Office", email = "enquiries@metoffice.gov.uk"},
