@@ -1,68 +1,38 @@
----
+# -----------------------------------------------------------------------------
+# (C) Crown copyright Met Office. All rights reserved.
+# The file LICENCE, distributed with this code, contains details of the terms
+# under which the code may be used.
+# -----------------------------------------------------------------------------
+
+# Build and deploy Sphinx documentation to GitHub Pages
+
 name: Docs
 
-on: # yamllint disable-line rule:truthy
+on:
   push:
-    branches:
-      - main
-      - 'releases/**'
+    branches: [main]
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, reopened, synchronize]
     paths:
       - 'doc/**'
-      - '.github/workflows/docs.yaml'
+      - '.github/workflows/**'
   workflow_dispatch:
 
-permissions: read-all
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
+  docs:
+    uses: MetOffice/growss/.github/workflows/sphinx-docs.yaml@0f9ffe6a138ae9943053621916a850a075997db8 # v1.0.0
+    with:
+      python-version: "3.12.12"
+      timeout-minutes: 5
+      docs-dir: doc
+      source-dir: doc
+      use-pyproject: true
 
-  build-docs:
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Setup uv
-        uses: astral-sh/setup-uv@v6
-      - name: Install dependencies
-        run: uv sync
-      - name: Build docs
-        run: uv run make clean html
-        working-directory: ./doc
-      - id: permissions
-        name: Set permissions
-        run: |
-          chmod -c -R +rX "./doc/_build/html/"
-      - name: Upload artifacts
-        uses: actions/upload-pages-artifact@v4
-        with:
-          name: github-pages
-          path: ./doc/_build/html
-      - name: Minimize uv cache
-        run: uv cache prune --ci
-
-  # Deploy job
-  deploy:
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    # Add a dependency to the build job
-    needs: build-docs
-
-    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
     permissions:
-      pages: write      # to deploy to Pages
-      id-token: write   # to verify the deployment originates from an appropriate source
-
-    # Deploy to the github-pages environment
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    # Specify runner + deployment step
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4 # or specific "vX.X.X" version tag for this action
-
+      contents: read
+      pages: write
+      id-token: write

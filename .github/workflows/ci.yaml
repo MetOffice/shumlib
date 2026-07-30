@@ -9,7 +9,8 @@ on:  # yamllint disable-line rule:truthy
     types: [opened, synchronize, reopened]
   workflow_dispatch:
 
-permissions: read-all
+permissions:
+  contents: read
 
 jobs:
   build-shumlib:
@@ -18,16 +19,16 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
 
-      - name: Build and Test (Legacy)
+      - name: Build and Test (make)
         run: |
           make -f ./make/vm-x86-gfortran-gcc.mk check
 
-      - name: Build & Test (CMake)
+      - name: Build and Test (CMake)
         run: |
-          cmake --preset debug-gcc -DBUILD_FTHREADS=ON --log-level=VERBOSE
-          cmake --build --preset debug-gcc
-          ctest --preset debug-gcc -V
+          cmake --preset debug-gcc
+          cmake --build --preset debug-gcc --parallel
+          ctest --test-dir build/debug --output-on-failure -V
