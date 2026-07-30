@@ -1,0 +1,20 @@
+#ifndef C_SHUM_WGDOS_PACKING_VERSION_H
+#define C_SHUM_WGDOS_PACKING_VERSION_H
+
+/* Ensure downstream consumers do not need to define SHUMLIB_VERSION */
+#if !defined(SHUMLIB_VERSION)
+#define SHUMLIB_VERSION @SHUMLIB_VERSION@
+#endif
+
+/*
+ * Reuse the CMake-mode API in shumlib_version.h and expose the legacy
+ * function-like name expected by external applications.
+ */
+#define SHUMLIB_CMAKE 1
+#include "shumlib_version.h"
+#undef SHUMLIB_CMAKE
+
+/* Legacy compatibility symbol name */
+#define get_shum_wgdos_packing_version GET_SHUMLIB_VERSION
+
+#endif

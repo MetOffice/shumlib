@@ -14,3 +14,23 @@ target_sources(shum
   TYPE HEADERS
   FILES
   c_shum_spiral_search.h)
+
+add_library(shum_spiral_search)
+target_sources(shum_spiral_search
+  PRIVATE
+  f_shum_spiral_search.f90
+  c_shum_spiral_search.f90
+  ${PROJECT_SOURCE_DIR}/common/src/shumlib_version.c
+  ${PROJECT_BINARY_DIR}/f_shum_spiral_search_version_mod.f90)
+
+target_compile_definitions(shum_spiral_search PUBLIC ${SHUM_DEFINES})
+
+set_target_properties(shum_spiral_search PROPERTIES
+  Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/modules_shum_spiral_search)
+
+target_include_directories(shum_spiral_search
+  PUBLIC
+  ${PROJECT_BINARY_DIR}/modules_shum_spiral_search
+  ${PROJECT_SOURCE_DIR}/common/src)
+
+target_link_libraries(shum_spiral_search PUBLIC shum_constants shum_string_conv)

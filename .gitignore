@@ -4,6 +4,8 @@
 _build/
 build/
 
+Testing/
+
 # Virtual environment
 .venv/
 uv.lock

@@ -110,3 +110,47 @@ if(BUILD_TESTS)
     ENVIRONMENT SHUM_TMPDIR=/tmp)
 
 endif()
+
+# Generate legacy compatibility header for wgdos version API.
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/common/src/c_shum_wgdos_packing_version.h.in
+  ${CMAKE_CURRENT_BINARY_DIR}/c_shum_wgdos_packing_version.h
+  @ONLY
+)
+# Generate legacy compatibility header for data conversion version API.
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/common/src/c_shum_data_conv_version.h.in
+  ${CMAKE_CURRENT_BINARY_DIR}/c_shum_data_conv_version.h
+  @ONLY
+)
+
+# Install additional headers expected by downstream users.
+install(FILES
+  ${CMAKE_CURRENT_SOURCE_DIR}/common/src/shumlib_version.h
+  ${CMAKE_CURRENT_BINARY_DIR}/c_shum_wgdos_packing_version.h
+  ${CMAKE_CURRENT_BINARY_DIR}/c_shum_data_conv_version.h
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+# Install standalone sub-libraries requested by packaging.
+install(TARGETS
+  shum_constants
+  shum_string_conv
+  shum_wgdos_packing
+  shum_byteswap
+  shum_spiral_search
+  shum_data_conv
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+# Create install prefix symlink: lib -> lib64 (when lib64 exists).
+# Variables are escaped (\$) so they evaluate at install time, not configure time.
+install(CODE
+"if(EXISTS \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/lib64\"
+    AND NOT EXISTS \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/lib\")
+  execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink
+    lib64 \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/lib\")
+endif()"
+)
