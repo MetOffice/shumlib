@@ -31,4 +31,4 @@ jobs:
         run: |
           cmake --preset debug-gcc
           cmake --build --preset debug-gcc --parallel
-          ctest --test-dir build/debug --output-on-failure -V
+          ctest --test-dir ../build-shumlib-debug-gcc --output-on-failure -V
