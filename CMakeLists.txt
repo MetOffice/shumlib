@@ -62,6 +62,23 @@ target_compile_definitions(shum
   PUBLIC
   ${SHUM_DEFINES})
 
+# BUILD_OPENMP goes as far as find_package(OpenMP) in ShumOptions.cmake, but
+# the imported targets have to be linked for the option to have any effect.
+# Without this, no -fopenmp reaches a compile line, _OPENMP is never defined
+# and the OpenMP regions are preprocessed away, so a CMake build produces a
+# serial library where the Makefile build (SHUM_OPENMP ?= true) produces a
+# threaded one.
+#
+# PRIVATE is sufficient: _OPENMP is used inside c_shum_byteswap.c, never in an
+# installed header, so consumers of shumlib do not need OpenMP flags of their
+# own.
+if(BUILD_OPENMP)
+  target_link_libraries(shum
+    PRIVATE
+    OpenMP::OpenMP_C
+    OpenMP::OpenMP_Fortran)
+endif()
+
 # Install shumlib and the C header files for the sub-libraries that
 # have them
 install(TARGETS shum
@@ -94,6 +111,16 @@ if(BUILD_TESTS)
   target_include_directories(shumlib-tests
     PUBLIC ${CMAKE_Fortran_MODULE_DIRECTORY})
   target_link_libraries(shumlib-tests PUBLIC fruit shum)
+
+  # The thread_utils tests exercise the OpenMP paths directly, and shumlib's
+  # OpenMP linkage is PRIVATE, so the test executable needs the flags in its
+  # own right.
+  if(BUILD_OPENMP)
+    target_link_libraries(shumlib-tests
+      PRIVATE
+      OpenMP::OpenMP_C
+      OpenMP::OpenMP_Fortran)
+  endif()
 
   add_subdirectory(fruit)
   setup_shum_fruit()
